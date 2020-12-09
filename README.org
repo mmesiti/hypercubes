@@ -1,0 +1,5 @@
+#+TITLE: Readme
+
+A number of tools and functions
+for addressing and domain decomposition
+of hypercubic lattices.
