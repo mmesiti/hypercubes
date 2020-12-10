@@ -1,3 +1,4 @@
+#include "dimension.hpp"
 #include <array>
 #include <functional>
 #include <numeric>
@@ -6,55 +7,36 @@
 namespace hypercubes {
 using std::array;
 
-template <int Dimension> class LocalBlock {
-  array<int, Dimension> starts;
-  array<int, Dimension> ends;
+template <int Dimensionality> class LocalBlock {
+  array<int, Dimensionality> starts;
+  array<int, Dimensionality> ends;
   virtual int volume() {
     int res = 1;
-    for (int d = 0; d < Dimension; ++d) {
+    for (int d = 0; d < Dimensionality; ++d) {
       res *= ends[d] - starts[d];
     }
     return res;
   }
 };
 
-template <int Dimension> struct EOBlock : class Block<Dimension> {
-  array<bool, Dimension> is_dim_checherboarded;
+template <int Dimensionality> struct LocalEOBlock : LocalBlock<Dimensionality> {
+  array<bool, Dimensionality> is_dim_checherboarded;
+  int checkerboard_shift_dimension;
   enum Type { LOCAL_EVEN, LOCAL_ODD, NUM_TYPES };
   Type type;
 };
 
-struct FlattenedContiguousBlock {
-  int start, end;
-};
+template <int Dimensionality> class LocalLattice {
+  using NDPortion = array<Dimension::Portion, Dimensionality>;
+  using Location = array<int, Dimensionality>;
 
-template <int Dimension> class LocalLattice {
-  enum Portion {
-    HALO_MINUS,
-    BORDER_MINUS,
-    BULK,
-    BORDER_PLUS,
-    HALO_PLUS,
-    NUM_PORTIONS
-  };
-  using PortionBlock = array<Portion, Dimension>;
+  array<Dimension, Dimensionality> dimensions;
 
-  array<int, Dimension> sizes;
-  array<int, Dimension> halo_thicknesses;
+  NDPortion get_nd_portion(int i);
+  NDPortion get_nd_portion(Location x);
+  LocalBlock<Dimensionality> get_local_block(NDPortion block_idx);
 
-  int start(Portion p, int dimension);
-
-  int end(Portion p, int dimension);
-
-  Portion portion(int x, int dim);
-
-  array<Portion, Dimension> block_idx(array<int, Dimension> x);
-
-  LocalBlock<Dimension> get_block(PortionBlock block_idx);
-
-  std::vector<PortionBlock> all_portions();
-
-  PortionBlock get_portion(int i);
+  std::vector<NDPortion> all_portions();
 };
 
 } // namespace hypercubes
