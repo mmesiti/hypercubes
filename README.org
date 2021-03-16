@@ -51,23 +51,29 @@ and to understand once it's written.
 A memory layout for a lattice
 is a function that takes the coordinates
 
+#+begin_src
 x_0, ... , x_d
+#+end_src
 
 of a point
 and returns a natural number:
 
+#+begin_src
 idx = f ( x_0, ... , x_d )
+#+end_src
 
 A hypercubic lattice has also
 global dimensions
 
+#+begin_src
 L_0, ... , L_d
+#+end_src
 
 A memory layout function
 allows us to completely abstract
 the problem of finding lattice sites in memory.
 It can either be used on-line,
-or the results can be cached,
+or the results can be cached.
 
 
 ** Decomposition of dimensions in factors
@@ -75,17 +81,21 @@ or the results can be cached,
 We can decompose all the dimensions
 as a product of factors:
 
+#+begin_src
 L_0 = F_00 * ... * F_0(n_0-1)
 ...
 L_d = F_d0 * ... * F_d(n_d-1)
+#+end_src
 
 For the sake of argument,
 and to support following examples,
 let's assume:
 
+#+begin_src
 L_0 = 32 = 2 * 2 * 4 * 2
 L_1 = 27 = 3 * 9
 L_2 = 35 = 5 * 7
+#+end_src
 
 
 ** Express coordinates using the decomposition factors
@@ -101,66 +111,90 @@ For the sake of argument,
 using the previous decomposition of L_0,
 let's assume:
 
+#+begin_src
 x_0 = 25 = 1 * 1 +
            0 * 1 * 2 +
            1 * 1 * 2 * 2
            1 * 1 * 2 * 2 * 4
+#+end_src
 
 The we can represent x_0 as follows:
 
+#+begin_src
 x_0 <--> (x_00,x_01,x_02,x_03)
 x_0 <--> (1,0,1,1)
+#+end_src
 
 using the /strides/
 
+#+begin_src
 s_00 = 1
 s_01 = 1 * 2
 s_02 = 1 * 2 * 2
 s_03 = 1 * 2 * 2 * 4
+#+end_src
 
 Where obviously
 
+#+begin_src
 s_i0 = 1
 s_ij = s_i(j-1) * F_i(j-1)
+#+end_src
 
 Let's choose also x_1 and x_2
 
+#+begin_src
 x_1 = 14 = 2 * 1 +
            4 * 1 * 3
+#+end_src
 
+
+#+begin_src
 x_2 = 26 = 1 * 1 +
            5 * 1 * 5
+#+end_src
 
 
 We can then express the lattice point
 
+#+begin_src
 x = ( x_0, x_1, x_2 )
+#+end_src
 
 as
+#+begin_src
 x = ((1, 0, 1, 1),
      (2, 4),
      (1, 5))
+#+end_src
 
 ** Lexicographic memory layout
 
 A possible memory layout is the following:
 
+#+begin_src
 idx = x_0 * 1 +
       x_1 * 1 * L_0 +
       x_2 * 1 * L_0 * L_1 +
       x_2 * 1 * L_0 * L_1 * L_2
+#+end_src
 
 which can be expressed as the list
 
+#+begin_src
 [L_0,L_1,L_2,L_3]
+#+end_src
 
 We can define the memory layout
 to be the function f such that
 
+#+begin_src
 idx = f([L_0,L_1,L_2,L_3],[x_0,x_1,x_2,x_3])
+#+end_src
 
 Another completely equivalend memory layout is
 
+#+begin_src
 idx = x_00*1 +             // From L_0
       x_01*1*2 +           //
       x_02*1*2*2 +         //
@@ -171,23 +205,26 @@ idx = x_00*1 +             // From L_0
       //
       x_20*1*2*2*4*2*3*9 + // From L_2
       x_21*1*2*2*4*2*3*9*5 //
-          \ L0    \L1 \L2 \
+      //    | L_0   |L_1|L_2 |
+#+end_src
 
 
 Which can be expressed as
 
+#+begin_src
 idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
         [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
+#+end_src
 
-Now, an obvious statement:
-/if we apply the same permutation
-to the list of Fs
-and to the list of xs,
-we get a valid memory layout/.
-
-Another statement:
-/the memory layout functions
-can be made modular./
+Some statements:
+1. /if we apply the same permutation
+    to the list of Fs
+    and to the list of xs,
+    we get a valid memory layout/.
+2. /permuting the lists as described
+    can be seen as a tensor index transposition/.
+2. /the memory layout functions
+    can be made modular./
 
 * Breaking the symmetry
 ** Halos, Borders, and bulk
@@ -235,14 +272,18 @@ we have a halo thickness h.
 
 Example:
 
+#+begin_src
 For L_0 = 2 * 2 * 4 * 2,
+#+end_src
 
 We can have
 
+#+begin_src
 s_00 = 1 , h_00 = 0
 s_01 = 2 , h_01 = 0
 s_02 = 4 , h_02 = 1
 s_03 = 16, h_03 = 1
+#+end_src
 
 Notice that if i<j, h_ki <= h_kj.
 
@@ -254,10 +295,13 @@ Proposed solution:
   and another index which will be 0 or 1
 - make the chosen even direction half of its original value
 
-** Uneven partitioning
+** Inhomogeneous partitioning
 
 Requiring the dimension of the lattice
 to have certain factors can be too restrictive.
-In HiRep it is possible to have unequal MPI partitioning,
+In HiRep it is possible to have inhomogeneous MPI partitioning,
 and it should be possible to replicate this
 in a hierarchical way.
+
+While homogeneous hierarchical partitioning
+produces hypercubic arrays,
