@@ -4,24 +4,30 @@ int main() {
   {
     using hypercubes::slow::partitioning1D::p;
     {
-      auto partition = p<3>(382, p<2>(100, p(9), p(1)), p<2>(82, p(8), p(2)));
-      std::cout << "Representing partition:" << *partition << std::endl;
+      auto partitioning = p<0>(382,            //
+                               p<1>(100,       //
+                                    p<2>(9),   //
+                                    p<2>(1)),  //
+                               p<1>(82,        //
+                                    p<2>(8),   //
+                                    p<2>(2))); //
+      std::cout << "Representing partition:" << *partitioning << std::endl;
       {
-        auto indices351 = partition->indices(351);
+        auto indices351 = partitioning->indices(351);
         for (int i : indices351)
           std::cout << i << " ";
         std::cout << std::endl;
         assert((std::vector<int>{3, 6, 3} == indices351));
       }
       {
-        auto indices238 = partition->indices(238);
+        auto indices238 = partitioning->indices(238);
         for (int i : indices238)
           std::cout << i << " ";
         std::cout << std::endl;
         assert((std::vector<int>{2, 4, 2} == indices238));
       }
       {
-        auto indices381 = partition->indices(381);
+        auto indices381 = partitioning->indices(381);
         for (int i : indices381)
           std::cout << i << " ";
         std::cout << std::endl;
@@ -29,40 +35,40 @@ int main() {
       }
     }
     {
-      auto partition = p<4>(382,               //
-                            p<3>(100,          //
-                                 p<2>(10,      //
-                                      p(1),    //
-                                      p(0)),   //
-                                 p<2>(0,       //
-                                      p(1),    //
-                                      p(0))),  //
-                            p<3>(82,           //
-                                 p<2>(41,      //
-                                      p(10),   //
-                                      p(1)),   //
-                                 p<2>(0,       //
-                                      p(1),    //
-                                      p(0)))); //
+      auto partitioning = p<0>(382,                  //
+                               p<1>(100,             //
+                                    p<2>(10,         //
+                                         p<3>(1),    //
+                                         p<3>(0)),   //
+                                    p<2>(0,          //
+                                         p<3>(1),    //
+                                         p<3>(0))),  //
+                               p<1>(82,              //
+                                    p<2>(41,         //
+                                         p<3>(10),   //
+                                         p<3>(1)),   //
+                                    p<2>(0,          //
+                                         p<3>(1),    //
+                                         p<3>(0)))); //
 
-      std::cout << "Representing partition:" << *partition << std::endl;
+      std::cout << "Representing partition:" << *partitioning << std::endl;
 
       {
-        auto indices351 = partition->indices(351);
+        auto indices351 = partitioning->indices(351);
         for (int i : indices351)
           std::cout << i << " ";
         std::cout << std::endl;
         assert((std::vector<int>{3, 1, 1, 0} == indices351));
       }
       {
-        auto indices238 = partition->indices(238);
+        auto indices238 = partitioning->indices(238);
         for (int i : indices238)
           std::cout << i << " ";
         std::cout << std::endl;
         assert((std::vector<int>{2, 3, 8, 0} == indices238));
       }
       {
-        auto indices381 = partition->indices(381);
+        auto indices381 = partitioning->indices(381);
         for (int i : indices381)
           std::cout << i << " ";
         std::cout << std::endl;
