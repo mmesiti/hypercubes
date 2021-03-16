@@ -4,7 +4,7 @@ int main() {
   {
     using hypercubes::slow::partitioning1D::p;
     {
-      auto partition = p(382, p(100, p(9), p(1)), p(82, p(8), p(2)));
+      auto partition = p<3>(382, p<2>(100, p(9), p(1)), p<2>(82, p(8), p(2)));
       std::cout << "Representing partition:" << *partition << std::endl;
       {
         auto indices351 = partition->indices(351);
@@ -29,8 +29,21 @@ int main() {
       }
     }
     {
-      auto partition =
-          p(382, p(100, p(10), p(0)), p(82, p(41, p(10), p(1)), p(0)));
+      auto partition = p<4>(382,               //
+                            p<3>(100,          //
+                                 p<2>(10,      //
+                                      p(1),    //
+                                      p(0)),   //
+                                 p<2>(0,       //
+                                      p(1),    //
+                                      p(0))),  //
+                            p<3>(82,           //
+                                 p<2>(41,      //
+                                      p(10),   //
+                                      p(1)),   //
+                                 p<2>(0,       //
+                                      p(1),    //
+                                      p(0)))); //
 
       std::cout << "Representing partition:" << *partition << std::endl;
 
@@ -46,7 +59,7 @@ int main() {
         for (int i : indices238)
           std::cout << i << " ";
         std::cout << std::endl;
-        assert((std::vector<int>{2, 3, 8} == indices238));
+        assert((std::vector<int>{2, 3, 8, 0} == indices238));
       }
       {
         auto indices381 = partition->indices(381);
