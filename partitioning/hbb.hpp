@@ -6,6 +6,7 @@
 #include <ostream>
 
 #include "base.hpp"
+#include "toposorting.hpp"
 
 namespace hypercubes {
 namespace slow {
@@ -105,6 +106,10 @@ template <int level> struct HBB : BasePart<level> {
   }
   std::vector<SortablePartitioning::P> children() const {
     return std::vector<SortablePartitioning::P>{bulk, border};
+  }
+
+  bool operator<(const SortablePartitioning &other) const {
+    return toposorting::strict_relationship(*this, other);
   }
 };
 

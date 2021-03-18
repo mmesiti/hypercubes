@@ -56,6 +56,9 @@ template <int level> struct Q : BasePart<level> {
   std::vector<SortablePartitioning::P> children() const {
     return std::vector<SortablePartitioning::P>{quotient};
   }
+  bool operator<(const SortablePartitioning &other) const {
+    return toposorting::indifferent_relationship(*this, other);
+  }
 };
 
 template <int level> using Qp = std::shared_ptr<Q<level>>;

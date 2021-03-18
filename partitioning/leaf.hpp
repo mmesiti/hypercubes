@@ -29,9 +29,10 @@ template <int level> struct Leaf : BasePart<level> {
   std::vector<SortablePartitioning::P> children() const {
     return std::vector<SortablePartitioning::P>{};
   }
+  bool operator<(const SortablePartitioning &other) const {
+    return toposorting::indifferent_relationship(*this, other);
+  }
 };
-// only to declare p(int) as a template for uniformity
-/// Function to create a leaf
 template <int level> using Leafp = std::shared_ptr<Leaf<level>>;
 template <int level> Leafp<level> leaf(int id, int size) {
   return std::make_shared<Leaf<level>>(id, size);

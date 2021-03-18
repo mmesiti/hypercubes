@@ -80,6 +80,9 @@ template <int level> struct QR : BasePart<level> {
   std::vector<SortablePartitioning::P> children() const {
     return std::vector<SortablePartitioning::P>{quotient, rest};
   }
+  bool operator<(const SortablePartitioning &other) const {
+    return toposorting::strict_relationship(*this, other);
+  }
 };
 template <int level> using QRp = std::shared_ptr<QR<level>>;
 template <int level>

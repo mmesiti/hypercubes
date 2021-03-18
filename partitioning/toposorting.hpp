@@ -21,21 +21,17 @@ struct SortablePartitioning {
     };
     return res;
   };
-  virtual bool operator<(const SortablePartitioning &other) const {
-    return false;
-  }
+  virtual bool operator<(const SortablePartitioning &other) const = 0;
 };
 
-struct StrictSortablePartitioning : public SortablePartitioning {
-  using SortablePart = SortablePartitioning;
-  using P = std::shared_ptr<SortablePart>;
-
-  StrictSortablePartitioning(int id) : SortablePart(id) {}
-  virtual std::vector<P> children() const = 0;
-  bool operator<(const SortablePart &other) const {
-    return not find_in_children(other);
-  };
-};
+bool strict_relationship(const SortablePartitioning &self,
+                         const SortablePartitioning &other) {
+  return not self.find_in_children(other);
+}
+bool indifferent_relationship(const SortablePartitioning &self,
+                              const SortablePartitioning &other) {
+  return false;
+}
 
 } // namespace toposorting
 } // namespace slow
