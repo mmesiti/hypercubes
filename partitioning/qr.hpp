@@ -1,80 +1,38 @@
-#ifndef __PARTITIONS_H_
-#define __PARTITIONS_H_
+#ifndef __QR_H_
+#define __QR_H_
 
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <initializer_list>
 #include <iostream>
 #include <iterator>
 #include <memory>
 #include <vector>
 
 #include "base.hpp"
+#include "toposorting.hpp"
 
 namespace hypercubes {
 namespace slow {
 namespace partitioning1D {
-
-#define _TYPE_DEFINITIONS                                                      \
-  using Base = BasePart<level>;                                                \
-  using Child = BasePart<level + 1>;                                           \
-  using Childp = BaseP<level + 1>;                                             \
-  using Coord = Coordinate<level>;                                             \
-  using ChildCoord = Coordinate<level + 1>;                                    \
-  using Partition = Partition1D<level>;
-
-template <int level> struct Q : BasePart<level> {
-
-  _TYPE_DEFINITIONS
-
-  Childp quotient;
-
-  Q(int size, //
-    Childp quotient_)
-      : Base(size),           //
-        quotient(quotient_) { //
-    assert((Base::end() % quotient->size).is_zero());
-  }
-
-  std::vector<int> indices(ChildCoord x) {
-    assert(x < Base::end());
-    int idx = x / quotient->size;
-    auto rst = x % quotient->size;
-    std::vector<int> res{idx};
-    auto other_indices = quotient->indices(rst);
-    res.insert(res.end(), other_indices.begin(), other_indices.end());
-    return res;
-  }
-
-  std::ostream &stream(std::ostream &os) const {
-    Base::stream(os) << ", {q:{" << *quotient << "}}";
-    return os;
-  }
-
-  Partition operator[](int i) {
-    return Partition{quotient->size * i, //
-                     quotient->size * (i + 1)};
-  }
-
-  int max_subtree_level() { return quotient->max_subtree_level() + 1; }
-
-  bool is_balanced() { return quotient->is_balanced(); };
-};
+using toposorting::SortablePartitioning;
 
 template <int level> struct QR : BasePart<level> {
-
-  _TYPE_DEFINITIONS
+  using Base = BasePart<level>;
+  using Childp = typename BasePart<level + 1>::P;
+  using ChildCoord = Coordinate<level + 1>;
+  using Partition = Partition1D<level>;
 
   Childp quotient;
   Childp rest;
 
   int _nparts;
 
-  QR(int size,         //
+  QR(int id,
+     int size,         //
      Childp quotient_, //
      Childp rest_)
-      : Base(size),          //
+      : Base(id, size),      //
         quotient(quotient_), //
         rest(rest_) {
     assert(Base::end() % quotient->size == rest->end());
@@ -119,15 +77,16 @@ template <int level> struct QR : BasePart<level> {
     return quotient->is_balanced() and rest->is_balanced() and
            quotient->max_subtree_level() == rest->max_subtree_level();
   };
+  std::vector<SortablePartitioning::P> children() const {
+    return std::vector<SortablePartitioning::P>{quotient, rest};
+  }
 };
+template <int level> using QRp = std::shared_ptr<QR<level>>;
 template <int level>
-auto qr(int size, BaseP<level + 1> quotient, BaseP<level + 1> rest) {
-  return std::make_shared<QR<level>>(size, quotient, rest);
-}
-
-template <int level> auto q(int size, BaseP<level + 1> quotient) {
-
-  return std::make_shared<Q<level>>(size, quotient);
+QRp<level> qr(int id, int size,                         //
+              typename BasePart<level + 1>::P quotient, //
+              typename BasePart<level + 1>::P rest) {
+  return std::make_shared<QR<level>>(id, size, quotient, rest);
 }
 
 } // namespace partitioning1D

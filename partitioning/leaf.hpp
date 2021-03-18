@@ -16,8 +16,8 @@ template <int level> struct Leaf : BasePart<level> {
   using ChildCoord = Coordinate<level + 1>;
   using Partition = Partition1D<level>;
 
-  Leaf(int size) //
-      : Base(size){};
+  Leaf(int id, int size) //
+      : Base(id, size){};
   std::vector<int> indices(ChildCoord x) {
     assert(x < Base::end());
     return std::vector<int>({x.value});
@@ -26,11 +26,15 @@ template <int level> struct Leaf : BasePart<level> {
 
   bool is_balanced() { return true; };
   int max_subtree_level() { return level; };
+  std::vector<SortablePartitioning::P> children() const {
+    return std::vector<SortablePartitioning::P>{};
+  }
 };
 // only to declare p(int) as a template for uniformity
 /// Function to create a leaf
-template <int level> auto leaf(int size) {
-  return std::make_shared<Leaf<level>>(size);
+template <int level> using Leafp = std::shared_ptr<Leaf<level>>;
+template <int level> Leafp<level> leaf(int id, int size) {
+  return std::make_shared<Leaf<level>>(id, size);
 }
 
 } // namespace partitioning1D

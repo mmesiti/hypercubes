@@ -2,6 +2,7 @@
 #define __HBB_H_
 
 #include <cassert>
+#include <memory>
 #include <ostream>
 
 #include "base.hpp"
@@ -16,7 +17,7 @@ namespace partitioning1D {
 template <int level> struct HBB : BasePart<level> {
   using Base = BasePart<level>;
   using Child = BasePart<level + 1>;
-  using Childp = BaseP<level + 1>;
+  using Childp = typename Child::P;
   using Coord = Coordinate<level>;
   using ChildCoord = Coordinate<level + 1>;
   using Partition = Partition1D<level>;
@@ -34,19 +35,22 @@ template <int level> struct HBB : BasePart<level> {
   };
   ChildCoord starts[6];
 
-  HBB(int size,     //
+  HBB(int id,       //
+      int size,     //
       int hs,       //
       Childp bulk_, //
       Childp border_)
-      : Base(size), bulk(bulk_),
-        border(border_), starts{
-                             Base::start() - Offset{hs}, // HALO_MINUS,
-                             Base::start(),              // BORDER_MINUS,
-                             Base::start() + Offset{hs}, // BULK,
-                             Base::end() - Offset{hs},   // BORDER_PLUS,
-                             Base::end(),                // HALO_PLUS,
-                             Base::end() + Offset{hs}    // NUM_PORTIONS
-                         } {
+      : Base(id, size),  //
+        bulk(bulk_),     //
+        border(border_), //
+        starts{
+            Base::start() - Offset{hs}, // HALO_MINUS,
+            Base::start(),              // BORDER_MINUS,
+            Base::start() + Offset{hs}, // BULK,
+            Base::end() - Offset{hs},   // BORDER_PLUS,
+            Base::end(),                // HALO_PLUS,
+            Base::end() + Offset{hs}    // NUM_PORTIONS
+        } {
     assert(border->size.value == hs);
     assert(bulk->size.value == Base::size.value - hs * 2);
   };
@@ -99,14 +103,21 @@ template <int level> struct HBB : BasePart<level> {
     auto p = (Portion)i;
     return Partition{start(p), end(p)};
   }
+  std::vector<SortablePartitioning::P> children() const {
+    return std::vector<SortablePartitioning::P>{bulk, border};
+  }
 };
 
+template <int level> using HBBp = std::shared_ptr<HBB<level>>;
 template <int level>
-auto hbb(int size, int halo, BaseP<level + 1> bulk, BaseP<level + 1> border) {
+HBBp<level> hbb(int id, int size, int halo,           //
+                typename BasePart<level + 1>::P bulk, //
+                typename BasePart<level + 1>::P border) {
   using HBB = HBB<level>;
 
-  return std::make_shared<HBB>(size, halo, bulk, border);
+  return std::make_shared<HBB>(id, size, halo, bulk, border);
 }
+
 } // namespace partitioning1D
 } // namespace slow
 } // namespace hypercubes
