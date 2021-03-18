@@ -192,6 +192,8 @@ to be the function f such that
 idx = f([L_0,L_1,L_2,L_3],[x_0,x_1,x_2,x_3])
 #+end_src
 
+Where ~0 <= x_d < L_d~.
+
 Another completely equivalend memory layout is
 
 #+begin_src
@@ -215,18 +217,134 @@ Which can be expressed as
 idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
         [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
 #+end_src
+Where ~0 <= x_ab < F_ab~.
 
 Some statements:
+
 1. /if we apply the same permutation
     to the list of Fs
     and to the list of xs,
     we get a valid memory layout/.
 2. /permuting the lists as described
     can be seen as a tensor index transposition/.
-2. /the memory layout functions
-    can be made modular./
+3. /the memory layout functions
+    can be made modular/.
 
-* Breaking the symmetry
+** Truncated and reduced memory layouts
+
+I decide to use these two adjectives
+for two complementary concepts:
+
+*** Truncated memory layout
+
+Be ~f~ being the full memory layout
+#+begin_src
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
+#+end_src
+and equal to the "0-truncated" memory layout,
+then the 5-truncated memory layout is
+#+begin_src
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [   0,    0,    0, x_03, x_10, x_11, x_20, x_21])
+#+end_src
+since it does not depend on x_00, x_01 and x_02 any more,
+we can compute it as
+#+begin_src
+idx = f([F_00* F_01* F_02, F_03, F_10, F_11, F_20, F_21],
+        [               0, x_03, x_10, x_11, x_20, x_21]) .
+#+end_src
+The value of ~idx~ computed in this way
+represents the start of a full partition being indexed,
+as opposed to a general point.
+
+*** Reduced memory layout (for homogeneous partitioning)
+Be ~f~ being the full memory layout
+#+begin_src
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
+#+end_src
+and equal to the "0-reduced" memory layout,
+the 5-reduced memory layout is
+#+begin_src
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [x_00, x_01, x_02,    0,    0,    0,    0,    0])
+#+end_src
+
+In the case of inhomogeneous partitioning,
+F_00, F_01, and F_02 would actually depend
+on x_03 and the other "slow" variables,
+
+
+
+** Truncated and reduced memory layouts
+
+If the partitioning is homogeneous, then
+the full memory layout is just the sum
+of the N-truncated memory layout
+and the N-reduced memory layout.
+#+begin_src
+f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+  [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21]) =
+f([F_00* F_01* F_02, F_03, F_10, F_11, F_20, F_21],
+  [               0, x_03, x_10, x_11, x_20, x_21]) +
+f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+  [x_00, x_01, x_02,    0,    0,    0,    0,    0])
+#+end_src
+
+* Breaking the symmetry - From ND-array to tree
+
+There are a number of features
+that are needed in order
+to make a memory layout useful:
+- even/odd partitioning
+- the possibility to split the regions
+  into bulk, border and halos
+- optionally, the possibilty of
+  inhomogeneous partitioning,
+  i.e., having some partitions
+  that are smaller than others.
+
+Homogeneous hierarchical partitioning
+produces hypercubic arrays,
+which
+(as we discussed)
+are trivial to transpose
+and should be preferred.
+
+Inhomogeneous partitioning produces instead
+/ragged/ arrays,
+which are non trivial to transpose,
+and are better represented as trees.
+
+The most general structure
+is a directed acyclic graph
+where the nodes are the levels,
+and the arcs the dependences between them.
+By dependence,
+I mean the fact that the range for an index
+at a certain level depends ~b~ on
+the values of the indices at another other level
+~a~, or potentially on more than one leve.
+
+
+
+The implementation could decide
+not to transpose the arrays.
+In case this is needed,
+a possible technique
+to transpose such array is
+padding and masking.
+
+** EO ordering
+Proposed solution:
+- requires at least one dimension to be even
+  *in the "local" memory layout*
+  in order to have still homogeneous partitions;
+- Increase the dimensionality of the array by 1,
+  and another index which will be 0 or 1
+- make the chosen even direction half of its original value
+
 ** Halos, Borders, and bulk
 Splitting each portion of a lattice
 into halos, borders and bulk
@@ -287,13 +405,6 @@ s_03 = 16, h_03 = 1
 
 Notice that if i<j, h_ki <= h_kj.
 
-** EO ordering
-Proposed solution:
-- requires at least one dimension to be even
-  *in the "local" memory layout*
-- Increase the dimensionality of the array by 1,
-  and another index which will be 0 or 1
-- make the chosen even direction half of its original value
 
 ** Inhomogeneous partitioning
 
@@ -303,5 +414,3 @@ In HiRep it is possible to have inhomogeneous MPI partitioning,
 and it should be possible to replicate this
 in a hierarchical way.
 
-While homogeneous hierarchical partitioning
-produces hypercubic arrays,
