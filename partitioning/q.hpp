@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "base.hpp"
+#include "toposorting.hpp"
 
 namespace hypercubes {
 namespace slow {
@@ -23,10 +24,11 @@ template <int level> struct Q : BasePart<level> {
 
   Childp quotient;
 
-  Q(int id, int size, //
+  Q(std::string id, int size, //
     Childp quotient_)
       : Base(id, size),       //
         quotient(quotient_) { //
+    SortablePartitioning::prepend_children_id(id);
     assert((Base::end() % quotient->size).is_zero());
   }
 
@@ -41,8 +43,10 @@ template <int level> struct Q : BasePart<level> {
   }
 
   std::ostream &stream(std::ostream &os) const {
-    Base::stream(os) << ", {q:{" << *quotient << "}}";
-    return os;
+    return Base::stream(os)          //
+           << Base::pad() << "q:{\n" //
+           << *quotient              //
+           << Base::pad() << "}\n";
   }
 
   Partition operator[](int i) {
@@ -63,7 +67,7 @@ template <int level> struct Q : BasePart<level> {
 
 template <int level> using Qp = std::shared_ptr<Q<level>>;
 template <int level>
-auto q(int id, int size, //
+auto q(std::string id, int size, //
        typename BasePart<level + 1>::P quotient) {
   return std::make_shared<Q<level>>(id, size, quotient);
 }

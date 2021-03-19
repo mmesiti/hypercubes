@@ -16,7 +16,7 @@ template <int level> struct Leaf : BasePart<level> {
   using ChildCoord = Coordinate<level + 1>;
   using Partition = Partition1D<level>;
 
-  Leaf(int id, int size) //
+  Leaf(std::string id, int size) //
       : Base(id, size){};
   std::vector<int> indices(ChildCoord x) {
     assert(x < Base::end());
@@ -34,7 +34,7 @@ template <int level> struct Leaf : BasePart<level> {
   }
 };
 template <int level> using Leafp = std::shared_ptr<Leaf<level>>;
-template <int level> Leafp<level> leaf(int id, int size) {
+template <int level> Leafp<level> leaf(std::string id, int size) {
   return std::make_shared<Leaf<level>>(id, size);
 }
 

@@ -36,10 +36,10 @@ template <int level> struct HBB : BasePart<level> {
   };
   ChildCoord starts[6];
 
-  HBB(int id,       //
-      int size,     //
-      int hs,       //
-      Childp bulk_, //
+  HBB(std::string id, //
+      int size,       //
+      int hs,         //
+      Childp bulk_,   //
       Childp border_)
       : Base(id, size),  //
         bulk(bulk_),     //
@@ -52,6 +52,7 @@ template <int level> struct HBB : BasePart<level> {
             Base::end(),                // HALO_PLUS,
             Base::end() + Offset{hs}    // NUM_PORTIONS
         } {
+    SortablePartitioning::prepend_children_id(id);
     assert(border->size.value == hs);
     assert(bulk->size.value == Base::size.value - hs * 2);
   };
@@ -86,9 +87,13 @@ template <int level> struct HBB : BasePart<level> {
   };
 
   std::ostream &stream(std::ostream &os) const {
-    return Base::stream(os) << ", {"                      //
-                            << "bulk:{" << *bulk << "}, " //
-                            << "border:{" << *border << "}}";
+    return Base::stream(os)                //
+           << Base::pad() << "bulk: {\n"   //
+           << *bulk                        //
+           << Base::pad() << "},\n"        //
+           << Base::pad() << "border: {\n" //
+           << *border                      //
+           << Base::pad() << "}\n";
   }
 
   int max_subtree_level() {
@@ -115,7 +120,7 @@ template <int level> struct HBB : BasePart<level> {
 
 template <int level> using HBBp = std::shared_ptr<HBB<level>>;
 template <int level>
-HBBp<level> hbb(int id, int size, int halo,           //
+HBBp<level> hbb(std::string id, int size, int halo,   //
                 typename BasePart<level + 1>::P bulk, //
                 typename BasePart<level + 1>::P border) {
   using HBB = HBB<level>;

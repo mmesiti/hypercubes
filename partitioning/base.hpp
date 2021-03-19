@@ -24,7 +24,7 @@ template <int level> struct BasePart : SortablePartitioning {
   using P = const std::shared_ptr<BasePart>;
 
   Coord size;
-  BasePart(int id, int size_) : SortablePartitioning(id), size(size_){};
+  BasePart(std::string id, int size_) : SortablePartitioning(id), size(size_){};
   ChildCoord start() { return 0; }
   ChildCoord end() { return ChildCoord(size.value); }
   /**
@@ -34,9 +34,10 @@ template <int level> struct BasePart : SortablePartitioning {
    * */
   bool not_empty() { return not size.is_zero(); }
   virtual std::vector<int> indices(ChildCoord x) = 0;
+  auto pad() const { return std::string(level * 2, ' '); }
   virtual std::ostream &stream(std::ostream &os) const {
-    os << "size:" << size;
-    return os;
+    os << pad();
+    return SortablePartitioning::stream(os) << "size:" << size << ",\n";
   }
   virtual Partition operator[](int i) = 0;
   virtual bool is_balanced() = 0;

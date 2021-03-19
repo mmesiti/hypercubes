@@ -1,6 +1,8 @@
 #ifndef __TOPOSORTING_H_
 #define __TOPOSORTING_H_
+#include <iostream> //debug
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -11,8 +13,8 @@ namespace toposorting {
 struct SortablePartitioning {
   using P = std::shared_ptr<SortablePartitioning>;
 
-  int id;
-  SortablePartitioning(int id_) : id(id_) {}
+  std::string id;
+  SortablePartitioning(std::string id_) : id(id_) {}
   virtual std::vector<P> children() const = 0;
   bool find_in_children(const SortablePartitioning &other) const {
     bool res = false;
@@ -21,14 +23,23 @@ struct SortablePartitioning {
     };
     return res;
   };
+  void prepend_children_id(const std::string &prefix) {
+    for (auto c : children()) {
+      c->id = prefix + '/' + c->id;
+      c->prepend_children_id(prefix);
+    }
+  }
   virtual bool operator<(const SortablePartitioning &other) const = 0;
+  virtual std::ostream &stream(std::ostream &os) const {
+    return os << "id:" << id << ", ";
+  }
 };
 
-bool strict_relationship(const SortablePartitioning &self,
+bool strict_relationship(const SortablePartitioning &partitioning,
                          const SortablePartitioning &other) {
-  return not self.find_in_children(other);
+  return not partitioning.find_in_children(other);
 }
-bool indifferent_relationship(const SortablePartitioning &self,
+bool indifferent_relationship(const SortablePartitioning &partitioning,
                               const SortablePartitioning &other) {
   return false;
 }

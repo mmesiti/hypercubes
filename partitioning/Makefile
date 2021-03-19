@@ -1,14 +1,7 @@
 
-
-
-runtests: test test_indexing
+runtests: test
 	./test
-	./test_indexing
 
-test: test.cpp qr.hpp leaf.hpp hbb.hpp base.hpp toposorting.hpp
+test: test.cpp q.hpp qr.hpp leaf.hpp hbb.hpp base.hpp toposorting.hpp
 	echo "Building $<" && g++ -std=c++17 -O0 -g -o test test.cpp
-
-test_indexing: test_indexing.cpp qr.hpp leaf.hpp hbb.hpp base.hpp indexer.hpp toposorting.hpp
-	echo "Building $<" && g++ -std=c++17 -O0 -g -o test_indexing test_indexing.cpp
-
 

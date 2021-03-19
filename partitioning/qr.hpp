@@ -28,13 +28,14 @@ template <int level> struct QR : BasePart<level> {
 
   int _nparts;
 
-  QR(int id,
+  QR(std::string id,
      int size,         //
      Childp quotient_, //
      Childp rest_)
       : Base(id, size),      //
         quotient(quotient_), //
         rest(rest_) {
+    SortablePartitioning::prepend_children_id(id);
     assert(Base::end() % quotient->size == rest->end());
     _nparts = Base::end() / quotient->size + ((rest->not_empty()) ? 1 : 0);
   }
@@ -58,9 +59,13 @@ template <int level> struct QR : BasePart<level> {
   }
 
   std::ostream &stream(std::ostream &os) const {
-    return Base::stream(os) << ", {"                       //
-                            << "q:{" << *quotient << "}, " //
-                            << "r:{" << *rest << "}}";
+    return Base::stream(os)           //
+           << Base::pad() << "q: {\n" //
+           << *quotient               //
+           << Base::pad() << "},\n"   //
+           << Base::pad() << "r: {\n" //
+           << *rest                   //
+           << Base::pad() << "}\n";
   }
 
   Partition operator[](int i) {
@@ -86,7 +91,7 @@ template <int level> struct QR : BasePart<level> {
 };
 template <int level> using QRp = std::shared_ptr<QR<level>>;
 template <int level>
-QRp<level> qr(int id, int size,                         //
+QRp<level> qr(std::string id, int size,                 //
               typename BasePart<level + 1>::P quotient, //
               typename BasePart<level + 1>::P rest) {
   return std::make_shared<QR<level>>(id, size, quotient, rest);

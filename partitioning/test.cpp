@@ -22,13 +22,13 @@ int main() {
   };
   {
 
-    auto partitioning = qr<0>(0, 382,                //
-                              qr<1>(1, 100,          //
-                                    leaf<2>(2, 9),   //
-                                    leaf<2>(3, 1)),  //
-                              qr<1>(4, 82,           //
-                                    leaf<2>(5, 8),   //
-                                    leaf<2>(6, 2))); //
+    auto partitioning = qr<0>("X/Node", 382,                //
+                              qr<1>("socket-q", 100,        //
+                                    leaf<2>("core-q", 9),   //
+                                    leaf<2>("core-r", 1)),  //
+                              qr<1>("socket-r", 82,         //
+                                    leaf<2>("core-q", 8),   //
+                                    leaf<2>("core-r", 2))); //
     std::cout << "Representing partition:" << *partitioning << std::endl;
 
     check(partitioning, 351, {3, 6, 3});
@@ -36,17 +36,17 @@ int main() {
     check(partitioning, 381, {3, 10, 1});
   }
   {
-    auto partitioning = qr<0>(0, 382,                      //
-                              q<1>(1, 100,                 //
-                                   qr<2>(2, 10,            //
-                                         leaf<3>(3, 1),    //
-                                         leaf<3>(4, 0))),  //
-                              q<1>(5, 82,                  //
-                                   qr<2>(6, 41,            //
-                                         leaf<3>(7, 10),   //
-                                         leaf<3>(8, 1)))); //
+    auto partitioning = qr<0>("X/Node", 382,                      //
+                              q<1>("Socket-q", 100,               //
+                                   qr<2>("vector", 10,            //
+                                         leaf<3>("core-q", 1),    //
+                                         leaf<3>("core-r", 0))),  //
+                              q<1>("Socket-r", 82,                //
+                                   qr<2>("vector", 41,            //
+                                         leaf<3>("core-q", 10),   //
+                                         leaf<3>("core-r", 1)))); //
 
-    std::cout << "Representing partition:" << *partitioning << std::endl;
+    std::cout << "Representing partition:\n" << *partitioning << std::endl;
 
     check(partitioning, 351, {3, 1, 1, 0});
     check(partitioning, 238, {2, 3, 8, 0});
@@ -54,17 +54,17 @@ int main() {
   }
 
   {
-    auto partitioning = qr<0>(0, 140,                      //
-                              q<1>(1, 32,                  //
-                                   hbb<2>(2, 16, 1,        //
-                                          leaf<3>(3, 14),  //
-                                          leaf<3>(4, 1))), //
-                              q<1>(5, 12,                  //
-                                   hbb<2>(6, 12, 1,        //
-                                          leaf<3>(7, 10),  //
-                                          leaf<3>(8, 1))));
+    auto partitioning = qr<0>("X/Node", 140,                      //
+                              q<1>("Socket-q", 32,                //
+                                   hbb<2>("hbb", 16, 1,           //
+                                          leaf<3>("bulk", 14),    //
+                                          leaf<3>("border", 1))), //
+                              q<1>("Socket-r", 12,                //
+                                   hbb<2>("hbb", 12, 1,           //
+                                          leaf<3>("bulk", 10),    //
+                                          leaf<3>("border", 1))));
 
-    std::cout << "Representing partition:" << *partitioning << std::endl;
+    std::cout << "Representing partition:\n" << *partitioning << std::endl;
     check(partitioning, 139, {4, 0, 3, 0});
     check(partitioning, 81, {2, 1, 2, 0});
   }
