@@ -14,17 +14,14 @@ def eo_fun(sizes, split_dir, cbflags):
     def indexer(xs):
         eo = sum(x for x, cbflag in zip(xs, cbflags) if cbflag) % 2
         rests = [x if i != split_dir else x // 2 for i, x in enumerate(xs)]
+        #cached = not all(0 <= x < s for x, s in zip(xs, sizes))
         res = Box(
             idx=eo,  #
             rests=rests,  #
-            child_type=0)
+            child_type=0,
+            cached_flag=False)  # cached?
 
-        real_values, ghosts = ((res, [])  #
-                               if all(0 <= x < s  #
-                                      for x, s in zip(xs, sizes))  #
-                               else (None, [res]))
-
-        return real_values,ghosts
+        return [res]
 
     comments = f"Dir: {split_dir}, {sizes}"
 

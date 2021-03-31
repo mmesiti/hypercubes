@@ -3,7 +3,23 @@ from math import ceil
 from box import Box
 
 
-def q_fun1D(size, nparts):
+def q_idx_range_open(x, quotient, nparts):
+    idx_true = x // quotient
+    min_idx = max(0, idx_true - 1)
+    max_idx = min(nparts, idx_true + 2)
+
+    return min_idx, max_idx
+
+
+def q_idx_range_periodic(x, quotient, nparts):
+    idx_true = x // quotient
+    min_idx = idx_true - 1
+    max_idx = idx_true + 2
+
+    return min_idx, max_idx
+
+
+def q_fun1D(size, nparts, q_idx_range_fun=q_idx_range_open):
     quotient = ceil(size / nparts)
     rest = size % quotient
 
@@ -11,19 +27,27 @@ def q_fun1D(size, nparts):
         def child_type(idx):
             return 0 if rest == 0 or idx < (nparts - 1) else 1
 
-        idx = x // quotient
-        x_rest = x % quotient
-        res = Box(idx=idx, rest=x_rest, child_type=child_type(idx))
+        min_idx, max_idx = q_idx_range_fun(x, quotient, nparts)
 
-        real_values = res if 0 <= x < size else None
-        return real_values, [
-            Box(idx=idx, rest=(x - idx * quotient), child_type=child_type(idx))
-            for idx in range(nparts)
+        return [
+            Box(idx=idx % nparts,
+                rest=(x - idx * quotient),
+                child_type=child_type(idx),
+                cached_flag=(idx != x // quotient))
+            for idx in range(min_idx, max_idx)
         ]
 
     rest_size = [rest] if rest != 0 else []
 
     return [quotient] + rest_size, indexer, "q"
+
+
+def q_fun1D_openbc(size, nparts):
+    return q_fun1D(size, nparts, q_idx_range_open)
+
+
+def q_fun1D_periodicnc(size, nparts):
+    return q_fun1D(size, nparts, q_idx_range_periodic)
 
 
 def hbb_fun1D(size, halo):
@@ -37,25 +61,30 @@ def hbb_fun1D(size, halo):
 
     def indexer(x):
         if not -halo <= x < size + halo:
-            real_value = None
+            return []
         else:
             idx, rest = next((i, x - s)  #
                              for i, (s, e) in enumerate(zip(starts, ends))
                              if s <= x < e)
 
-            real_value = Box(
-                idx=idx,  #
-                rest=rest,  #
-                child_type=0 if idx == 2 else 1)
-        return real_value, []
+            return [
+                Box(
+                    idx=idx,  #
+                    rest=rest,  #
+                    child_type=(0 if idx == 2 else 1),
+                    cached_flag=False)
+            ]
 
     return [bulk, halo], indexer, "hbb"
 
 
 def leaf_fun1D(size):
     def indexer(x):
-        real_value = (Box(idx=x, rest=0, child_type=0)
-                      if 0 <= x < size else None)
-        return real_value, []
+        if 0 <= x < size:
+            return [Box(idx=x, rest=0, child_type=0, cached_flag=False)]
+        else:
+            return []
 
     return [1], indexer, "leaf"
+
+

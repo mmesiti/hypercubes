@@ -18,17 +18,22 @@ def dimensionalize(monodim_partitioner, sizes, dimension, *args, **kwargs):
     ] for new_size in new_size_list]
 
     def dimensionalized_indexer(xs):
-        real_value, ghosts = indexer(xs[dimension])
+        possible_indices = indexer(xs[dimension])
 
         def dimensionalize_rest(value):
+            if type(value) == str:
+                import pdb
+                pdb.set_trace()
+
             rests = [
                 x if i != dimension else value.rest for i, x in enumerate(xs)
             ]
-            return Box(idx=value.idx, rests=rests, child_type=value.child_type)
+            return Box(idx=value.idx,
+                       rests=rests,
+                       child_type=value.child_type,
+                       cached_flag=value.cached_flag)
 
-        return dimensionalize_rest(real_value), [
-            dimensionalize_rest(g) for g in ghosts
-        ]
+        return [dimensionalize_rest(i) for i in possible_indices]
 
     return (
         new_sizes_list,  #
