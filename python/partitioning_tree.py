@@ -2,42 +2,50 @@
 from tree import tree_apply, get_max_depth, get_all_paths
 from box import Box
 
+DEBUG=True
+count = 0
 
-def get_partitioning(sizes, partitioners):
+def get_partitioning(ranges, partitioners):
     """
     Creates a tree of partitionings
-    from an initial size specification
+    from an initial range specification
     and a list of partitioners
     to be applied sequentially.
 
     A node is represented
-    by the sizes that represent lattice partition.
+    by the ranges that represent lattice partition.
     """
     def iterate_children(node):
         """
         In this case, node is actually size.
         """
-        sizes, partitioners = node
+        ranges, partitioners = node
         name, partitioner = partitioners[0]
         other_partitioners = partitioners[1:]
-        new_sizes_list, indexer, comments = partitioner(sizes)
+        new_ranges_list, coords_to_idx, idx_to_coord, comments = partitioner(ranges)
 
         return ([
-            (new_sizes, other_partitioners) for new_sizes in new_sizes_list
+            (new_ranges, other_partitioners) for new_ranges in new_ranges_list
         ] if other_partitioners else [])
 
     def pop_stack(node, children):
-        sizes, partitioners = node
+        ranges, partitioners = node
         name, partitioner = partitioners[0]
-        _, indexer, comments = partitioner(sizes)
+        _, coords_to_idx, idx_to_coords, comments = partitioner(ranges)
+
+        if DEBUG:
+            global count
+            print("NAME", name, count)
+            count += 1
 
         return Box(sub_partitionings=children,
-                   indexer=indexer,
+                   coords_to_idx=coords_to_idx,
+                   idx_to_coords=idx_to_coords,
                    name=name,
                    comments=comments)
 
     return tree_apply(
-        node=(sizes, partitioners),
+        node=(ranges, partitioners),
         iterate_children=iterate_children,
         pop_stack=pop_stack,
     )

@@ -1,90 +1,134 @@
 #!/usr/bin/env python3
+'''
+General concepts
+
+The following is a list of functions
+that can be used to partition 1D ranges.
+
+Each function takes a range as `geom_info`,
+some parameters that define the kind of partitioning
+and returns:
+- ranges
+- indexer function (from a coordinate,
+get the index at current level in the hierarchy,
+and other infos)
+- reverse indexer function (the inverse of the indexer function)
+- comments and additional information
+
+Range returned must agree with what the indexer function does.
+E.g., range can be (start,end) for each partition
+where start and end are absolute coordinates.
+But in that case, the "rest" given by the indexer function must be
+an absolute coordinate, which means that "rest" must be "x".
+If instead the range is (0,subsize), then 0 <= rest < subsize,
+which means that rest = x - start.
+
+'''
+
 from math import ceil
 from box import Box
 
 
-def q_idx_range_open(x, quotient, nparts):
-    idx_true = x // quotient
+def q_idx_range_open(relative_x, quotient, nparts):
+    idx_true = relative_x // quotient
     min_idx = max(0, idx_true - 1)
     max_idx = min(nparts, idx_true + 2)
 
     return min_idx, max_idx
 
 
-def q_idx_range_periodic(x, quotient, nparts):
-    idx_true = x // quotient
+def q_idx_range_periodic(relative_x, quotient, nparts):
+    idx_true = relative_x // quotient
     min_idx = idx_true - 1
     max_idx = idx_true + 2
 
     return min_idx, max_idx
 
 
-def q_fun1D(size, nparts, q_idx_range_fun=q_idx_range_open):
+def q_fun1D(geom_info, nparts, q_idx_range_fun=q_idx_range_open):
+    '''
+    Using the absolute rest / absolute sub-range choice.
+    '''
+    start, end = geom_info
+    size = end - start
     quotient = ceil(size / nparts)
-    rest = size % quotient
 
-    def indexer(x):
-        def child_type(idx):
-            return 0 if rest == 0 or idx < (nparts - 1) else 1
-
-        min_idx, max_idx = q_idx_range_fun(x, quotient, nparts)
-
-        return [
-            Box(idx=idx % nparts,
-                rest=(x - idx * quotient),
-                child_type=child_type(idx),
-                cached_flag=(idx != x // quotient))
-            for idx in range(min_idx, max_idx)
-        ]
-
-    rest_size = [rest] if rest != 0 else []
-
-    return [quotient] + rest_size, indexer, "q"
-
-
-def q_fun1D_openbc(size, nparts):
-    return q_fun1D(size, nparts, q_idx_range_open)
-
-
-def q_fun1D_periodicnc(size, nparts):
-    return q_fun1D(size, nparts, q_idx_range_periodic)
-
-
-def hbb_fun1D(size, halo):
-    assert halo != 0
-
-    bulk = size - 2 * halo
-
-    limits = [-halo, 0, halo, size - halo, size, size + halo]
+    limits = [start + quotient * i for i in range(nparts)] + [end]
     starts = limits[:-1]
     ends = limits[1:]
 
-    def indexer(x):
-        if not -halo <= x < size + halo:
+    def coord_to_idx(x):
+        relative_x = x - start
+        min_idx, max_idx = q_idx_range_fun(relative_x, quotient, nparts)
+
+        return [
+            Box(
+                idx=idx % nparts,  # for boundary conditions
+                rest=x,
+                cached_flag=(idx != relative_x // quotient))
+            for idx in range(min_idx, max_idx)
+        ]
+
+    idx_to_coord = None # None because it's not a leaf
+
+    start_ends = list(zip(starts, ends))
+
+    return start_ends, coord_to_idx, idx_to_coord, "q"
+
+
+def q_fun1D_openbc(geom_info, nparts):
+    return q_fun1D(geom_info, nparts, q_idx_range_open)
+
+
+def q_fun1D_periodicbc(geom_info, nparts):
+    return q_fun1D(geom_info, nparts, q_idx_range_periodic)
+
+
+def hbb_fun1D(geom_info, halo):
+    '''
+    Using the absolute rest / absolute sub-range choice.
+    '''
+    assert halo != 0
+    start, end = geom_info
+
+    limits = [start - halo, start, start + halo, end - halo, end, end + halo]
+    starts = limits[:-1]
+    ends = limits[1:]
+
+    def coord_to_idx(x):
+        if not start - halo <= x < end + halo:
             return []
         else:
-            idx, rest = next((i, x - s)  #
-                             for i, (s, e) in enumerate(zip(starts, ends))
-                             if s <= x < e)
+            idx, local_rest = next(
+                (i, x - s)  #
+                for i, (s, e) in enumerate(zip(starts, ends)) if s <= x < e)
 
-            return [
-                Box(
-                    idx=idx,  #
-                    rest=rest,  #
-                    child_type=(0 if idx == 2 else 1),
-                    cached_flag=False)
-            ]
+            return [Box(
+                idx=idx,  #
+                rest=x,  #
+                cached_flag=False)]
 
-    return [bulk, halo], indexer, "hbb"
+    idx_to_coord = None  # None because it's not a leaf
+
+    start_ends = list(zip(starts, ends))
+
+    return start_ends, coord_to_idx, idx_to_coord, "hbb"
 
 
-def leaf_fun1D(size):
-    def indexer(x):
-        if 0 <= x < size:
-            return [Box(idx=x, rest=0, child_type=0, cached_flag=False)]
+def leaf_fun1D(geom_info):
+    '''
+    Here we use the relative rest / relative sub-range  choice.
+    '''
+    start, end = geom_info
+
+    def coord_to_idx(x):
+        if start <= x < end:
+            relative_x = x - start
+            return [Box(idx=relative_x, rest=0, cached_flag=False)]
         else:
             return []
 
-    return [1], indexer, "leaf"
+    def idx_to_coord(idx):
+        return start+idx
 
-
+    return [1], coord_to_idx, idx_to_coord, "leaf"

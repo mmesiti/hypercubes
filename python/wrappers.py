@@ -2,22 +2,24 @@
 from box import Box
 
 
-def dimensionalize(monodim_partitioner, sizes, dimension, *args, **kwargs):
+def dimensionalize(monodim_partitioner, ranges, dimension, *args, **kwargs):
     '''
     Takes a 1D partitioner and behaves as a multiple dimension one
     '''
-    size = sizes[dimension]
+    range_ = ranges[dimension]
     (
-        new_size_list,  #
+        new_ranges_list,  #
         indexer,  #
+        idx_to_coord,
         comments,  #
-    ) = monodim_partitioner(size, *args, **kwargs)
+    ) = monodim_partitioner(range_, *args, **kwargs)
 
-    new_sizes_list = [[
-        new_size if d == dimension else s for d, s in enumerate(sizes)
-    ] for new_size in new_size_list]
+    new_ranges_list = [[
+        new_range if d == dimension else (s, e)
+        for d, (s, e) in enumerate(ranges)
+    ] for new_range in new_ranges_list]
 
-    def dimensionalized_indexer(xs):
+    def dimensionalized_coord_to_idx(xs):
         possible_indices = indexer(xs[dimension])
 
         def dimensionalize_rest(value):
@@ -30,16 +32,25 @@ def dimensionalize(monodim_partitioner, sizes, dimension, *args, **kwargs):
             ]
             return Box(idx=value.idx,
                        rests=rests,
-                       child_type=value.child_type,
                        cached_flag=value.cached_flag)
 
         return [dimensionalize_rest(i) for i in possible_indices]
 
+    if idx_to_coord:
+        def dimensionalized_idx_to_coord(idx, offsets):
+            coordinates = list(offsets)
+            coordinates[dimension] = idx_to_coord(idx)
+            return coordinates
+    else:
+        def dimensionalized_idx_to_coord(idx, offsets):
+            return offsets
+
     return (
-        new_sizes_list,  #
-        dimensionalized_indexer,  #
-        comments + f"  Sizes: {sizes}, Dimension: {dimension}")  #
+        new_ranges_list,  #
+        dimensionalized_coord_to_idx,  #
+        dimensionalized_idx_to_coord,  #
+        comments + f"  Sizes: {ranges}, Dimension: {dimension}")  #
 
 
 def objectify(partitioner, *args, **kwargs):
-    return lambda sizes: partitioner(sizes, *args, **kwargs)
+    return lambda ranges: partitioner(ranges, *args, **kwargs)
