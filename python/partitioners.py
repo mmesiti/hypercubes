@@ -3,8 +3,8 @@ from wrappers import objectify
 import multidimensional as md
 
 
-def eo(split_dir, cbflags):
-    return objectify(md.eo_fun, split_dir, cbflags)
+def eo(cbflags):
+    return objectify(md.eo_fun, cbflags)
 
 
 def q(dimension, nparts):

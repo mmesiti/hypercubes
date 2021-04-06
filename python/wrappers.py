@@ -2,25 +2,23 @@
 from box import Box
 
 
-def dimensionalize(monodim_partitioner, ranges, dimension, *args, **kwargs):
+def dimensionalize(monodim_partitioner, geom_infos, dimension, *args,
+                   **kwargs):
     '''
     Takes a 1D partitioner and behaves as a multiple dimension one
     '''
-    range_ = ranges[dimension]
-    (
-        new_ranges_list,  #
-        indexer,  #
-        idx_to_coord,
-        comments,  #
-    ) = monodim_partitioner(range_, *args, **kwargs)
+    geom_info = geom_infos[dimension]
+    monodim_partitioner_output = monodim_partitioner(geom_info, *args,
+                                                     **kwargs)
 
-    new_ranges_list = [[
-        new_range if d == dimension else (s, e)
-        for d, (s, e) in enumerate(ranges)
-    ] for new_range in new_ranges_list]
+    new_geom_info_list = [[
+        new_geom_info if d == dimension else gi
+        for d, gi in enumerate(geom_infos)
+    ] for new_geom_info in monodim_partitioner_output.new_geom_info_list]
 
-    def dimensionalized_coord_to_idx(xs):
-        possible_indices = indexer(xs[dimension])
+    def dimensionalized_coord_to_idxs(relative_xs):
+        possible_indices = monodim_partitioner_output.coord_to_idxs(
+            relative_xs[dimension])
 
         def dimensionalize_rest(value):
             if type(value) == str:
@@ -28,7 +26,8 @@ def dimensionalize(monodim_partitioner, ranges, dimension, *args, **kwargs):
                 pdb.set_trace()
 
             rests = [
-                x if i != dimension else value.rest for i, x in enumerate(xs)
+                relative_x if i != dimension else value.rest
+                for i, relative_x in enumerate(relative_xs)
             ]
             return Box(idx=value.idx,
                        rests=rests,
@@ -36,20 +35,17 @@ def dimensionalize(monodim_partitioner, ranges, dimension, *args, **kwargs):
 
         return [dimensionalize_rest(i) for i in possible_indices]
 
-    if idx_to_coord:
-        def dimensionalized_idx_to_coord(idx, offsets):
-            coordinates = list(offsets)
-            coordinates[dimension] = idx_to_coord(idx)
-            return coordinates
-    else:
-        def dimensionalized_idx_to_coord(idx, offsets):
-            return offsets
+    def dimensionalized_idx_to_coord(idx, offsets):
+        coordinates = list(offsets)
+        coordinates[dimension] = monodim_partitioner_output.idx_to_coord(idx)
+        return coordinates
 
-    return (
-        new_ranges_list,  #
-        dimensionalized_coord_to_idx,  #
-        dimensionalized_idx_to_coord,  #
-        comments + f"  Sizes: {ranges}, Dimension: {dimension}")  #
+    return Box(new_geom_info_list=new_geom_info_list,
+               coords_to_idxs=dimensionalized_coord_to_idxs,
+               idx_to_coords=dimensionalized_idx_to_coord,
+               idx_to_child_kind=monodim_partitioner_output.idx_to_child_kind,
+               comments=monodim_partitioner_output.comments +
+               f" Geom info: {geom_info}, Dimension: {dimension}")  #
 
 
 def objectify(partitioner, *args, **kwargs):

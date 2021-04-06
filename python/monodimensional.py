@@ -5,23 +5,15 @@ General concepts
 The following is a list of functions
 that can be used to partition 1D ranges.
 
-Each function takes a range as `geom_info`,
+Each function takes a size,
 some parameters that define the kind of partitioning
 and returns:
-- ranges
-- indexer function (from a coordinate,
+- sizes
+- indexer function (from a relative coordinate,
 get the index at current level in the hierarchy,
 and other infos)
 - reverse indexer function (the inverse of the indexer function)
 - comments and additional information
-
-Range returned must agree with what the indexer function does.
-E.g., range can be (start,end) for each partition
-where start and end are absolute coordinates.
-But in that case, the "rest" given by the indexer function must be
-an absolute coordinate, which means that "rest" must be "x".
-If instead the range is (0,subsize), then 0 <= rest < subsize,
-which means that rest = x - start.
 
 '''
 
@@ -45,35 +37,71 @@ def q_idx_range_periodic(relative_x, quotient, nparts):
     return min_idx, max_idx
 
 
-def q_fun1D(geom_info, nparts, q_idx_range_fun=q_idx_range_open):
-    '''
-    Using the absolute rest / absolute sub-range choice.
-    '''
-    start, end = geom_info
-    size = end - start
-    quotient = ceil(size / nparts)
+def _get_new_geom_info_list(starts, ends, parity):
+    parities = [(parity + s) % 2 for s in starts]
+    subsizes = [e - s for s, e in zip(starts, ends)]
 
-    limits = [start + quotient * i for i in range(nparts)] + [end]
+    all_kinds = set(
+        (subsize, parity) for subsize, parity in zip(subsizes, parities))
+
+    return list(all_kinds)
+
+
+def _idx_to_subsize(idx, starts, ends):
+    return ends[idx] - starts[idx]
+
+
+def _idx_to_start_parity(idx, starts, parity):
+    return (starts[idx] + parity) % 2
+
+
+def _get_idx_to_child_kind(starts, ends, new_geom_info_list, parity):
+    def idx_to_child_kind(idx):
+        for i, (subsize, parity) in enumerate(new_geom_info_list):
+            subsize_ = _idx_to_subsize(idx, starts, ends)
+            parity_ = _idx_to_start_parity(idx, starts, parity)
+            if (subsize_, parity_) == (subsize, parity):
+                return i
+
+    return idx_to_child_kind
+
+
+def q_fun1D(geom_info, nparts, q_idx_range_fun=q_idx_range_open):
+    size, parity = geom_info
+    assert size > nparts
+    quotient = ceil(size / nparts)
+    limits = [quotient * i for i in range(nparts)] + [size]
     starts = limits[:-1]
     ends = limits[1:]
 
-    def coord_to_idx(x):
-        relative_x = x - start
+    new_geom_info_list = _get_new_geom_info_list(starts, ends, parity)
+
+    def coord_to_idxs(relative_x):
         min_idx, max_idx = q_idx_range_fun(relative_x, quotient, nparts)
+        real_idx = relative_x // quotient
+        r = relative_x % quotient
 
         return [
             Box(
-                idx=idx % nparts,  # for boundary conditions
-                rest=x,
-                cached_flag=(idx != relative_x // quotient))
+                # % is modulo, for boundary conditions
+                # NOTE: % is REST instead in C/C++.
+                idx=idx % nparts,
+                rest=r,
+                cached_flag=(idx != real_idx))
             for idx in range(min_idx, max_idx)
         ]
 
-    idx_to_coord = None # None because it's not a leaf
+    def idx_to_coord(idx, offset):
+        return quotient * idx + offset
 
-    start_ends = list(zip(starts, ends))
+    idx_to_child_kind = _get_idx_to_child_kind(starts, ends,
+                                               new_geom_info_list, parity)
 
-    return start_ends, coord_to_idx, idx_to_coord, "q"
+    return Box(new_geom_info_list=new_geom_info_list,
+               coord_to_idxs=coord_to_idxs,
+               idx_to_coord=idx_to_coord,
+               idx_to_child_kind=idx_to_child_kind,
+               comments="q")
 
 
 def q_fun1D_openbc(geom_info, nparts):
@@ -85,50 +113,59 @@ def q_fun1D_periodicbc(geom_info, nparts):
 
 
 def hbb_fun1D(geom_info, halo):
-    '''
-    Using the absolute rest / absolute sub-range choice.
-    '''
     assert halo != 0
-    start, end = geom_info
+    size, parity = geom_info
+    assert size > 2*halo
 
-    limits = [start - halo, start, start + halo, end - halo, end, end + halo]
+    limits = [-halo, 0, halo, size - halo, size, size + halo]
     starts = limits[:-1]
     ends = limits[1:]
 
-    def coord_to_idx(x):
-        if not start - halo <= x < end + halo:
+    new_geom_info_list = _get_new_geom_info_list(starts, ends, parity)
+
+    def coord_to_idxs(relative_x):
+        if not limits[0] <= relative_x < limits[-1]:
             return []
         else:
             idx, local_rest = next(
-                (i, x - s)  #
-                for i, (s, e) in enumerate(zip(starts, ends)) if s <= x < e)
+                (i, relative_x - s)  #
+                for i, (s, e) in enumerate(zip(starts, ends))
+                if s <= relative_x < e)
 
             return [Box(
                 idx=idx,  #
-                rest=x,  #
+                rest=local_rest,  #
                 cached_flag=False)]
 
-    idx_to_coord = None  # None because it's not a leaf
+    def idx_to_coord(idx, offset):
+        return starts[idx] + offset
 
-    start_ends = list(zip(starts, ends))
+    idx_to_child_kind = _get_idx_to_child_kind(starts, ends,
+                                               new_geom_info_list, parity)
 
-    return start_ends, coord_to_idx, idx_to_coord, "hbb"
+    return Box(new_geom_info_list=new_geom_info_list,
+               coord_to_idxs=coord_to_idxs,
+               idx_to_coord=idx_to_coord,
+               idx_to_child_kind=idx_to_child_kind,
+               comments="hbb")
 
 
 def leaf_fun1D(geom_info):
-    '''
-    Here we use the relative rest / relative sub-range  choice.
-    '''
-    start, end = geom_info
+    size, parity = geom_info
 
-    def coord_to_idx(x):
-        if start <= x < end:
-            relative_x = x - start
+    def coord_to_idxs(relative_x):
+        if 0 <= relative_x < size:
             return [Box(idx=relative_x, rest=0, cached_flag=False)]
         else:
             return []
 
-    def idx_to_coord(idx):
-        return start+idx
+    def idx_to_coord(idx, offset):
+        return idx
 
-    return [1], coord_to_idx, idx_to_coord, "leaf"
+    idx_to_child_kind = None
+
+    return Box(new_geom_info_list=[None],
+               coord_to_idxs=coord_to_idxs,
+               idx_to_coord=idx_to_coord,
+               idx_to_child_kind=idx_to_child_kind,
+               comments=f"leaf")

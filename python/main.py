@@ -8,6 +8,11 @@ sizes = [40, 40, 40, 40]
 
 X, Y, Z, T = list(range(4))
 
+# NO: hbb after EO does not work.
+# EO must be at the end
+# or possibly at the beginning
+# (then leading to unconventional setups)
+
 partitioners_list = [
     ("MPI X", q(X, 2)),
     ("MPI Y", q(Y, 4)),
