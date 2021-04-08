@@ -1,12 +1,40 @@
 #!/usr/bin/env python3
-from tree import tree_apply, get_max_depth, get_all_paths
+from tree import tree_apply, get_max_depth, get_all_paths, tree_apply_memoized
 from box import Box
+from partitioners import partitioners_dict
 
 DEBUG = False
 count = 0
 
 
-def get_partitioning(ranges, partitioners):
+def unpack_geom_infos(geom_infos, dimension_info):
+    if type(dimension_info) == tuple:
+        return tuple([
+            geom_info for geom_info, f in zip(geom_infos, dimension_info) if f
+        ])
+    elif type(dimension_info) == int:
+        return geom_infos[dimension_info]
+    else:
+        raise ValueError("dimension info should be a tuple.")
+
+
+def repack_geom_infos(old_geom_infos, new_geom_infos, dimension_info):
+    if type(dimension_info) == tuple:
+        indices = [i for i, f in enumerate(dimension_info) if f]
+        res = list(old_geom_infos)
+        for i, new_geom_info in zip(indices, new_geom_infos):
+            res[i] = new_geom_info
+        res += new_geom_infos[len(dimension_info):]
+    elif type(dimension_info) == int:
+        res = list(old_geom_infos)
+        res[dimension_info] = new_geom_infos
+    else:
+        raise ValueError("dimension info should be a tuple.")
+
+    return tuple(res)
+
+
+def get_partitioning(geom_infos, partitioners):
     """
     Creates a tree of partitionings
     from an initial range specification
@@ -21,33 +49,37 @@ def get_partitioning(ranges, partitioners):
         In this case, node is actually size.
         """
         geom_info, partitioners = node
-        name, partitioner = partitioners[0]
+        name, dimension_info, partitioner_name, partitioner_parameters = partitioners[
+            0]
         other_partitioners = partitioners[1:]
-        partition = partitioner(geom_info)
+        unpacked_geom_info = unpack_geom_infos(geom_info, dimension_info)
+        partitioner = partitioners_dict[partitioner_name](partitioner_parameters)
+        partition = partitioner(unpacked_geom_info, dimension_info)
 
-        return ([(new_geom_info, other_partitioners)
-                 for new_geom_info in partition.new_geom_info_list]
-                if other_partitioners else [])
+        children = ([
+            (repack_geom_infos(geom_info, new_geom_info, dimension_info),
+             other_partitioners)
+            for new_geom_info in partition.sub_geom_info_list()
+        ] if other_partitioners else [])
+        return children
 
     def pop_stack(node, children):
         geom_info, partitioners = node
-        name, partitioner = partitioners[0]
-        partition = partitioner(geom_info)
+        name, dimension_info, partitioner_name, partitioner_parameters = partitioners[
+            0]
+        unpacked_geom_info = unpack_geom_infos(geom_info, dimension_info)
+        partitioner = partitioners_dict[partitioner_name](partitioner_parameters)
+        partition = partitioner(unpacked_geom_info, dimension_info)
 
         if DEBUG:
             global count
             print(name, geom_info, count)
             count += 1
 
-        return Box(sub_partitionings=children,
-                   coords_to_idxs=partition.coords_to_idxs,
-                   idx_to_coords=partition.idx_to_coords,
-                   idx_to_child_kind=partition.idx_to_child_kind,
-                   name=name,
-                   comments=partition.comments)
+        return Box(sub_partitionings=children, name=name, partition=partition)
 
-    return tree_apply(
-        node=(ranges, partitioners),
+    return tree_apply_memoized(
+        node=(geom_infos, partitioners),
         iterate_children=iterate_children,
         pop_stack=pop_stack,
     )
@@ -70,7 +102,7 @@ def partitioning_to_str(partitions, prefix, max_level):
         if max_level == 0:
             return ""
         header_line1 = "".join((prefix, "+", n.name))
-        header_line2 = "".join((prefix, " ", n.comments))
+        header_line2 = "".join((prefix, " ", n.partition.comments))
         children_lines = children
         return "\n".join([
             header_line1,
@@ -110,7 +142,8 @@ def get_indices_tree(partitioning, coordinates):
 
     def pop_stack(node, children):
         partitioning, coordinates, name = node
-        possible_indices = partitioning.indexer(coordinates)
+        coordinates
+        possible_indices = partitioning.partition.coord_to_idxs(unpacked_coordinates)
         real_value = next(v for v in possible_indices if not v.cached_flag)
         return ((real_value.idx), children)
 

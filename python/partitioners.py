@@ -1,19 +1,36 @@
 #!/usr/bin/env python3
-from wrappers import objectify
-import multidimensional as md
+from eo_partitioning import EO_factory
+from hbb1D import HBB1D_factory
+from leaf1D import Leaf1D_factory
+from q1D import Q1D_factory, q_idx_range_open, q_idx_range_periodic
 
 
-def eo(cbflags):
-    return objectify(md.eo_fun, cbflags)
+def eo(_):
+    return lambda geom_info, cbflags: EO_factory(geom_info, cbflags)
 
 
-def q(dimension, nparts):
-    return objectify(md.q_fun, dimension, nparts)
+def qper(nparts):
+    return lambda geom_info, dimension: Q1D_factory(geom_info, nparts, dimension,
+                                            q_idx_range_periodic)
 
 
-def hbb(dimension, halo):
-    return objectify(md.hbb_fun, dimension, halo)
+def qopen(nparts):
+    return lambda geom_info, dimension: Q1D_factory(geom_info, nparts, dimension,
+                                            q_idx_range_open)
 
 
-def leaf(dimension):
-    return objectify(md.leaf_fun, dimension)
+def hbb(halo):
+    return lambda geom_info, dimension: HBB1D_factory(geom_info, halo, dimension)
+
+
+def leaf(_):
+    return lambda geom_info, dimension: Leaf1D_factory(geom_info, dimension)
+
+
+partitioners_dict = {
+    "qper" : qper,
+    "qopen": qopen,
+    "hbb": hbb,
+    "eo": eo,
+    "leaf": leaf,
+}

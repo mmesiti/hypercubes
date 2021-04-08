@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from functools import cache
 
 def tree_apply(
     # the root/node of the tree
@@ -23,6 +24,24 @@ def tree_apply(
         node,
         [
             tree_apply(n, iterate_children, pop_stack)
+            for n in iterate_children(node)
+        ],
+    )
+
+@cache
+def tree_apply_memoized(
+    node,
+    iterate_children,
+    pop_stack,
+):
+    '''
+    Same, but for hashable args
+    '''
+
+    return pop_stack(
+        node,
+        [
+            tree_apply_memoized(n, iterate_children, pop_stack)
             for n in iterate_children(node)
         ],
     )
