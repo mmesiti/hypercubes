@@ -1,36 +1,34 @@
 #!/usr/bin/env python3
 from partitioning1D import Partitioning1D
 from partitioning import IndexResult
-
+from dimensionalise import dimensionalise
 
 all_hbb1ds = dict()
 
-saved = 0
-def HBB1D_factory(geom_info, halo, dimension):
-    key = (geom_info, halo, dimension)
-    if key not in all_hbb1ds:
-        all_hbb1ds[key] = _HBB1D(*key)
-    else:
-        global saved
-        saved += 1
-    return all_hbb1ds[key]
 
+@dimensionalise
+class HBB1D(Partitioning1D):
 
-class _HBB1D(Partitioning1D):
-    def __init__(self, geom_info, halo, dimension):
+    def __init__(self, geom_info, dimension, halo):
         self.size, self.parity = geom_info
         self.dimension = dimension
         self.halo = halo
 
         assert halo != 0
         assert self.size > 2 * halo
+        key = (geom_info, halo, dimension)
+        if key not in all_hbb1ds:
+            all_hbb1ds[key] = self
 
     def _key(self):
-        return (self.size,self.parity,self.dimension,self.halo)
+        return (self.size, self.parity, self.dimension, self.halo)
 
     @property
     def limits(self):
-        return [-self.halo, 0, self.halo, self.size - self.halo, self.size, self.size + self.halo]
+        return [
+            -self.halo, 0, self.halo, self.size - self.halo, self.size,
+            self.size + self.halo
+        ]
 
     @property
     def comments(self):

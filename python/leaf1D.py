@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
 from partitioning1D import Partitioning1D
 from partitioning import IndexResult
+from dimensionalise import dimensionalise
 
 
 all_leaf1ds = dict()
 
-saved = 0
-def Leaf1D_factory(geom_info, dimension):
-    key = (geom_info, dimension)
-    if key not in all_leaf1ds:
-        all_leaf1ds[key] = _Leaf1D(*key)
-    else:
-        global saved
-        saved += 1
-    return all_leaf1ds[key]
 
+@dimensionalise
+class Leaf1D(Partitioning1D):
 
-class _Leaf1D(Partitioning1D):
     def __init__(self, geom_info, dimension):
         self.size, self.parity = geom_info
         self.dimension = dimension
+        key = (geom_info, dimension)
+        if key not in all_leaf1ds:
+            all_leaf1ds[key] = self
 
     def _key(self):
         return (self.size, self.parity, self.dimension)

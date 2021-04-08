@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from collections import namedtuple
 
-IndexResult = namedtuple("IndexResult", ["idx", "res", "cached_flag"])
+IndexResult = namedtuple("IndexResult", ["idx", "rest", "cached_flag"])
 
 
 class Partitioning:

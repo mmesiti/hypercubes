@@ -1,34 +1,34 @@
 #!/usr/bin/env python3
-from eo_partitioning import EO_factory
-from hbb1D import HBB1D_factory
-from leaf1D import Leaf1D_factory
-from q1D import Q1D_factory, q_idx_range_open, q_idx_range_periodic
+from eo_partitioning import EO
+from hbb1D import HBB1D
+from leaf1D import Leaf1D
+from q1D import Q1D
 
 
 def eo(_):
-    return lambda geom_info, cbflags: EO_factory(geom_info, cbflags)
+    return lambda geom_info, cbflags: EO(geom_info, cbflags)
 
 
 def qper(nparts):
-    return lambda geom_info, dimension: Q1D_factory(geom_info, nparts, dimension,
-                                            q_idx_range_periodic)
+    return lambda geom_info, dimension: Q1D(geom_info,  dimension,nparts,
+                                            "PERIODIC")
 
 
 def qopen(nparts):
-    return lambda geom_info, dimension: Q1D_factory(geom_info, nparts, dimension,
-                                            q_idx_range_open)
+    return lambda geom_info, dimension: Q1D(geom_info,  dimension,nparts,
+                                            "OPEN")
 
 
 def hbb(halo):
-    return lambda geom_info, dimension: HBB1D_factory(geom_info, halo, dimension)
+    return lambda geom_info, dimension: HBB1D(geom_info,  dimension, halo)
 
 
 def leaf(_):
-    return lambda geom_info, dimension: Leaf1D_factory(geom_info, dimension)
+    return lambda geom_info, dimension: Leaf1D(geom_info, dimension)
 
 
 partitioners_dict = {
-    "qper" : qper,
+    "qper": qper,
     "qopen": qopen,
     "hbb": hbb,
     "eo": eo,

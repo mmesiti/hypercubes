@@ -4,19 +4,8 @@ import eo
 
 all_eos = dict()
 
-saved = 0
-def EO_factory(geom_info, cbflags):
-    key = (geom_info, cbflags)
-    #return _EO(*key)
-    if key not in all_eos:
-        all_eos[key] = _EO(*key)
-    else:
-        global saved
-        saved += 1
-    return all_eos[key]
 
-
-class _EO(Partitioning):
+class EO(Partitioning):
     def __init__(self, geom_info, cbflags):
         self.sizes = [s for s, p in geom_info]
         self.parities = [p for s, p in geom_info]
@@ -24,6 +13,10 @@ class _EO(Partitioning):
 
         self.cbsizes = [s for s, f in zip(self.sizes, cbflags) if f]
         self.cumcbsizes = eo.get_cumsizes(self.cbsizes)
+
+        key = (geom_info, cbflags)
+        if key not in all_eos:
+            all_eos[key] = self
 
     @property
     def comments(self):
@@ -37,32 +30,33 @@ class _EO(Partitioning):
         nsites_with_origin_parity = self.cumcbsizes[
             -1] - nsites_with_opposite_parity
 
-        new_sizes = [nsites_with_origin_parity, nsites_with_opposite_parity]
+        new_sizes = (nsites_with_origin_parity, nsites_with_opposite_parity)
         neven_sites = new_sizes[origin_parity]
         nodd_sites = new_sizes[1 - origin_parity]
 
-        nsites = [neven_sites
-                  ] + ([nodd_sites] if nodd_sites != neven_sites else [])
+        nsites = (neven_sites, ) + (
+            (nodd_sites, ) if nodd_sites != neven_sites else ())
 
-        old_geom_info_cbremoved = [(1, None) if f else s
-                                   for s, f in zip(self.sizes, self.cbflags)]
-        return [old_geom_info_cbremoved + [(new_r, None)] for new_r in nsites]
+        old_geom_info_cbremoved = tuple(
+            (1, None) if f else s for s, f in zip(self.sizes, self.cbflags))
+        return tuple(old_geom_info_cbremoved + ((new_r, None), )
+                     for new_r in nsites)
 
-    def coord_to_idxs(self, relative_xs):
-        relative_cbxs = [x for x, f in zip(relative_xs, self.cbflags) if f]
+    def coords_to_idxs(self, relative_xs):
+        relative_cbxs = tuple(x for x, f in zip(relative_xs, self.cbflags)
+                              if f)
 
         eo_idx, idxh = eo.lex_coord_to_eoidx(relative_cbxs, self.cumcbsizes)
 
-        rests_cbremoved = [
+        rests_cbremoved = tuple(
             0 if f else relative_x
-            for relative_x, f in zip(relative_xs, self.cbflags)
-        ]
+            for relative_x, f in zip(relative_xs, self.cbflags))
 
         # cached = not all(0 <= x < s for x, s in zip(xs, sizes))
         return [
             IndexResult(
                 idx=eo_idx,  #
-                rests=rests_cbremoved + [idxh],  #
+                rest=rests_cbremoved + (idxh, ),  #
                 cached_flag=False)  # cached?
         ]
 
@@ -83,7 +77,6 @@ class _EO(Partitioning):
 
     def idx_to_child_kind(self, idx):
         eo_idx = idx
-        #if len(new_geom_info_list) == 1:
         if self.cumcbsizes[-1] % 2 == 0:
             return 0
         else:

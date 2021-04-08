@@ -3,9 +3,6 @@ from partitioning import Partitioning
 
 
 class Partitioning1D(Partitioning):
-    def __init__(self, geom_info, comments):
-        pass
-
     @property
     def starts(self):
         return self.limits[:-1]
@@ -22,6 +19,7 @@ class Partitioning1D(Partitioning):
             (subsize, parity) for subsize, parity in zip(subsizes, parities))
 
         return list(all_kinds)
+
 
     def coord_to_idxs(self, relative_x):
         '''
@@ -47,9 +45,9 @@ class Partitioning1D(Partitioning):
         def _idx_to_start_parity(idx, starts, parity):
             return (starts[idx] + parity) % 2
 
+        subsize_ = _idx_to_subsize(idx, self.starts, self.ends)
+        parity_ = _idx_to_start_parity(idx, self.starts, self.parity)
         for i, (subsize, parity) in enumerate(self.sub_geom_info_list()):
-            subsize_ = _idx_to_subsize(idx, self.starts, self.ends)
-            parity_ = _idx_to_start_parity(idx, self.starts, parity)
             if (subsize_, parity_) == (subsize, parity):
                 return i
 

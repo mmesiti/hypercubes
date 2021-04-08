@@ -1,0 +1,4 @@
+all_partitions.txt
+tree_repr.txt
+.hypothesis
+__pycache__
