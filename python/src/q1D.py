@@ -56,18 +56,23 @@ class Q1D(Partitioning1D):
         return [self._quotient * i for i in range(self.nparts)] + [self.size]
 
     def coord_to_idxs(self, relative_x):
-        min_idx, max_idx = bc_funcs[self.bc](relative_x, self._quotient,
-                                             self.nparts)
+        min_idx, max_idx = bc_funcs[self.bc](relative_x, self._quotient, self.nparts)
         real_idx = relative_x // self._quotient
-        r = relative_x % self._quotient
+        real_rest = relative_x % self._quotient
+
+        def ghost_limits(idx):
+            return idx * self._quotient + (self.size - self.nparts * self._quotient) * (
+                idx // self.nparts
+            )
 
         return [
             IndexResult(
                 # % is modulo, for boundary conditions
                 # NOTE: % is REST instead in C/C++.
                 idx=idx % self.nparts,
-                rest=r,
-                cached_flag=(idx != real_idx))
+                rest=relative_x - ghost_limits(idx),
+                cached_flag=(idx != real_idx),
+            )
             for idx in range(min_idx, max_idx)
         ]
 

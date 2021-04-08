@@ -8,7 +8,6 @@ all_hbb1ds = dict()
 
 @dimensionalise
 class HBB1D(Partitioning1D):
-
     def __init__(self, geom_info, dimension, halo):
         self.size, self.parity = geom_info
         self.dimension = dimension
@@ -26,8 +25,12 @@ class HBB1D(Partitioning1D):
     @property
     def limits(self):
         return [
-            -self.halo, 0, self.halo, self.size - self.halo, self.size,
-            self.size + self.halo
+            -self.halo,
+            0,
+            self.halo,
+            self.size - self.halo,
+            self.size,
+            self.size + self.halo,
         ]
 
     @property
@@ -41,14 +44,9 @@ class HBB1D(Partitioning1D):
             idx, local_rest = next(
                 (i, relative_x - s)  #
                 for i, (s, e) in enumerate(zip(self.starts, self.ends))
-                if s <= relative_x < e)
-
-            return [
-                IndexResult(
-                    idx=idx,  #
-                    rest=local_rest,  #
-                    cached_flag=False)
-            ]
+                if s <= relative_x < e
+            )
+            return [IndexResult(idx=idx, rest=local_rest, cached_flag=False)]  #  #
 
     def idx_to_coord(self, idx, offset):
         return self.starts[idx] + offset
