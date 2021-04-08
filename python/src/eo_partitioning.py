@@ -7,16 +7,18 @@ all_eos = dict()
 
 class EO(Partitioning):
     def __init__(self, geom_info, cbflags):
-        self.sizes = [s for s, p in geom_info]
-        self.parities = [p for s, p in geom_info]
+        self.sizes = tuple(s for s, p in geom_info)
+        self.parities = tuple(p for s, p in geom_info)
         self.cbflags = cbflags
 
-        self.cbsizes = [s for s, f in zip(self.sizes, cbflags) if f]
+        self.cbsizes = tuple(s for s, f in zip(self.sizes, cbflags) if f)
         self.cumcbsizes = eo.get_cumsizes(self.cbsizes)
 
-        key = (geom_info, cbflags)
-        if key not in all_eos:
-            all_eos[key] = self
+        if self._key() not in all_eos:
+            all_eos[self._key()] = self
+
+    def _key(self):
+        return (self.sizes, self.parities, self.cbflags)
 
     @property
     def comments(self):

@@ -40,9 +40,8 @@ class Q1D(Partitioning1D):
         self._quotient = ceil(self.size / self.nparts)
         assert self.size > nparts
         assert self._quotient * (self.nparts - 1) < self.size, "Not supported."
-        key = (geom_info, nparts, dimension, boundary_condition)
-        if key not in all_q1ds:
-            all_q1ds[key] = self
+        if self._key() not in all_q1ds:
+            all_q1ds[self._key()] = self
 
     def _key(self):
         return (self.size, self.parity, self.dimension, self.nparts, self.bc)

@@ -15,9 +15,8 @@ class HBB1D(Partitioning1D):
 
         assert halo != 0
         assert self.size > 2 * halo
-        key = (geom_info, halo, dimension)
-        if key not in all_hbb1ds:
-            all_hbb1ds[key] = self
+        if self._key() not in all_hbb1ds:
+            all_hbb1ds[self._key()] = self
 
     def _key(self):
         return (self.size, self.parity, self.dimension, self.halo)

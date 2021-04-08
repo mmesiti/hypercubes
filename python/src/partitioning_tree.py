@@ -3,9 +3,6 @@ from tree import tree_apply, get_max_depth, get_all_paths, tree_apply_memoized
 from box import Box
 from partitioners import partitioners_dict
 
-DEBUG = False
-count = 0
-
 
 def get_partitioning(geom_infos, partitioners):
     """
@@ -41,11 +38,6 @@ def get_partitioning(geom_infos, partitioners):
         partitioner = partitioners_dict[partitioner_name](
             partitioner_parameters)
         partition = partitioner(geom_info, dimension_info)
-
-        if DEBUG:
-            global count
-            print(name, geom_info, count)
-            count += 1
 
         return Box(sub_partitionings=children, name=name, partition=partition)
 
@@ -85,10 +77,6 @@ def partitioning_to_str(partitions, prefix, max_level):
         iterate_children=iterate_children,
         pop_stack=pop_stack,
     )
-
-
-def print_partitioning(partitions, prefix, max_level):
-    print(partitioning_to_str(partitions, prefix, max_level))
 
 
 def get_indices_tree(partitioning, coordinates):
