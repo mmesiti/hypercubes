@@ -20,6 +20,15 @@ class Leaf1D(Partitioning1D):
         return (self.size, self.parity, self.dimension)
 
     @property
+    def limits(self):
+        '''
+        Leaves cannot be subdivided any more.
+        This is just to allow the recursion to proceed
+        to the other dimensions.
+        '''
+        return [0, 1]
+
+    @property
     def comments(self):
         return f" Leaf1D - Dimension: {self.dimension}, size: {self.size}, parity: {self.parity}"
 

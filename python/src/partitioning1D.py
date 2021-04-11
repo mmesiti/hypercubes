@@ -12,7 +12,13 @@ class Partitioning1D(Partitioning):
         return self.limits[1:]
 
     def sub_geom_info_list(self):
-        parities = [(self.parity + s) % 2 for s in self.starts]
+        def partition_parity(start):
+            if self.parity is not None:
+                return (self.parity + start) % 2
+            else:
+                return None
+
+        parities = [partition_parity(s) for s in self.starts]
         subsizes = [e - s for s, e in zip(self.starts, self.ends)]
 
         all_kinds = set(

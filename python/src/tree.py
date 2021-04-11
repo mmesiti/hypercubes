@@ -22,10 +22,10 @@ def tree_apply(
 
     return pop_stack(
         node,
-        [
+        tuple(
             tree_apply(n, iterate_children, pop_stack)
             for n in iterate_children(node)
-        ],
+        ),
     )
 
 @cache
@@ -40,10 +40,10 @@ def tree_apply_memoized(
 
     return pop_stack(
         node,
-        [
+        tuple(
             tree_apply_memoized(n, iterate_children, pop_stack)
             for n in iterate_children(node)
-        ],
+        ),
     )
 
 
@@ -62,21 +62,39 @@ def get_all_paths(node):
         if len(children) != 0:  # node case
             # we get a list of lists for each child
             cs = [c for children_list in children_lists for c in children_list]
-            return [[n] + child for child in cs]
+            return tuple((n,) + child for child in cs)
         else:  # leaf case
-            (n, _) = node
-            return [[n]]
+            return ((n,),)
 
     return tree_apply(node, iterate_children, pop_stack)
 
 
-def get_max_depth(node):
+def get_flat_list_of_subtrees(level, node,
+                              get_children = lambda x: x[1],):
+    '''
+    '''
     def iterate_children(node):
-        _, children = node
-        return children
+        level, other = node
+        children = get_children(other)
+        return tuple((level-1, c) for c in children)
 
     def pop_stack(node, children):
-        n, _ = node
+        level, other = node
+        children_lists = children
+        if len(children) != 0 and level > 0:  # node case
+            # we get a list of lists for each child
+            return tuple(c for children_list in children_lists for c in children_list)
+        else:  # leaf case
+            return (other,)
+
+    return tree_apply((level,node), iterate_children, pop_stack)
+
+
+def get_max_depth(node, get_children = lambda x: x[1]):
+    def iterate_children(node):
+        return get_children(node)
+
+    def pop_stack(_, children):
         lengths = children
         if lengths:
             return 1 + max(lengths)
@@ -84,3 +102,27 @@ def get_max_depth(node):
             return 1
 
     return tree_apply(node, iterate_children, pop_stack)
+
+
+def uniquefy_tree(tree):
+    def itch(node):
+        _, cs = node
+        return tuple(cs)
+
+    def pops(node, children):
+        m, _ = node
+        return (m, tuple(set(children)))
+
+    return tree_apply(tree,itch,pops)
+
+
+def count_elements(tree):
+    def itch(node):
+        _, cs = node
+        return cs
+
+    def pops(node, children):
+        m, _ = node
+        return 1+sum(children)
+
+    return tree_apply(tree,itch,pops)

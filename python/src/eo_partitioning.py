@@ -38,7 +38,7 @@ class EO(Partitioning):
         nsites = (neven_sites,) + ((nodd_sites,) if nodd_sites != neven_sites else ())
 
         old_geom_info_cbremoved = tuple(
-            (1, None) if f else s for s, f in zip(self.sizes, self.cbflags)
+            (1, None) if f else (s,p) for s,p, f in zip(self.sizes,self.parities, self.cbflags)
         )
         return tuple(old_geom_info_cbremoved + ((new_r, None),) for new_r in nsites)
 
