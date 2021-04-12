@@ -69,11 +69,7 @@ def get_all_paths(node):
     return tree_apply(node, iterate_children, pop_stack)
 
 
-def get_flat_list_of_subtrees(
-    level,
-    node,
-    get_children=lambda x: x[1],
-):
+def get_flat_list_of_subtrees(level, node):
     def iterate_children(node):
         level, (n,children) = node
         return tuple((level - 1, c) for c in children)
@@ -91,9 +87,10 @@ def get_flat_list_of_subtrees(
     return tree_apply((level, node), iterate_children, pop_stack)
 
 
-def get_max_depth(node, get_children=lambda x: x[1]):
+def get_max_depth(node):
     def iterate_children(node):
-        return get_children(node)
+        _, children = node
+        return children
 
     def pop_stack(_, children):
         lengths = children
@@ -142,3 +139,31 @@ def get_leaves_list(max_idx_tree):
         return tuple(c for cs in css for c in cs) if css else (n, )
 
     return tree_apply(max_idx_tree, itch, pops)
+
+
+def ziptree(*trees):
+    def itch(node):
+        print("itch",node)
+        ts = node
+        assert len({len(t) for t in ts}) == 1
+        css = tuple(cs for _,cs in ts)
+        return tuple(zip(*css))
+
+    def pops(node,children_results):
+        ts = node
+        ns = tuple(n for n,_ in ts)
+        return ns, children_results
+
+    return tree_apply(trees,itch,pops)
+
+
+def nodemap(tree,f):
+    def itch(node):
+        _,cs = node
+        return cs
+
+    def pops(node,children_results):
+        n,_ = node
+        return f(n), children_results
+
+    return tree_apply(tree,itch,pops)

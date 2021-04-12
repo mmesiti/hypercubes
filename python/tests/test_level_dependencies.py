@@ -6,10 +6,8 @@ import pytest
 import os
 
 
-
-
 def show_partitioning(partitioning, name):
-    os.makedirs("examples", exist_ok = True )
+    os.makedirs("examples", exist_ok=True)
     with open(f"examples/{name}-full.txt", 'w') as f:
         f.write(pt.partitioning_to_str(partitioning, '', 20))
     max_idx_tree = max_idx.get_max_idx_tree(partitioning)
@@ -119,7 +117,6 @@ def test_1D_localdofs(level1, level2):
     partitioning = partitioning1D_localdofs(level1, level2)
     deps = ld.get_levels_dependencies(partitioning)
     show_partitioning(partitioning, f"localdof-{level1}-{level2}")
-
 
     expected_deps = dict(zip(range(7), [[]] * 7))
     dependent_levels = [i for i in range(7) if i not in [level1, level2 + 1]]

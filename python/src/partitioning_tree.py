@@ -155,7 +155,7 @@ def get_relevant_indices_flat(tree_indices):
     ]
 
 
-def get_coord_from_idx(partitioning, idx,dimensions):
+def get_coord_from_idx(partitioning, idx, dimensions):
     def itch(node):
         (partition, children), indices, level = node
         if len(indices) > 1:
