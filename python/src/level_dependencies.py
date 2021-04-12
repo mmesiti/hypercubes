@@ -71,5 +71,8 @@ def find_dependencies(dependency_matrix):
 
 def get_levels_dependencies(partitioning):
     max_idx_tree = max_idx.get_max_idx_tree(partitioning)
+    #print(max_idx.max_idx_tree_str(max_idx_tree))
     dm = find_dependency_matrix(max_idx_tree)
+    print("in get levels dependencies")
+    print(dependency_matrix_to_df(dm))
     return find_dependencies(dm)

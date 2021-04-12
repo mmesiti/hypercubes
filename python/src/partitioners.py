@@ -10,21 +10,23 @@ def eo(_):
 
 
 def qper(nparts):
-    return lambda geom_info, dimension, name: Q1D(geom_info, dimension, name, nparts,
-                                            "PERIODIC")
+    return lambda geom_info, dimension, name: Q1D(geom_info, dimension, name,
+                                                  nparts, "PERIODIC")
 
 
 def qopen(nparts):
-    return lambda geom_info, dimension, name: Q1D(geom_info, dimension, name, nparts,
-                                            "OPEN")
+    return lambda geom_info, dimension, name: Q1D(geom_info, dimension, name,
+                                                  nparts, "OPEN")
 
 
 def hbb(halo):
-    return lambda geom_info, dimension, name: HBB1D(geom_info, dimension, name, halo)
+    return lambda geom_info, dimension, name: HBB1D(geom_info, dimension, name,
+                                                    halo)
 
 
 def leaf(_):
-    return lambda geom_info, dimension, name: Leaf1D(geom_info, dimension,name )
+    return lambda geom_info, dimension, name: Leaf1D(geom_info, dimension, name
+                                                     )
 
 
 partitioners_dict = {
