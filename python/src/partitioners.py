@@ -6,25 +6,25 @@ from q1D import Q1D
 
 
 def eo(_):
-    return lambda geom_info, cbflags: EO(geom_info, cbflags)
+    return lambda geom_info, cbflags, name: EO(geom_info, cbflags, name)
 
 
 def qper(nparts):
-    return lambda geom_info, dimension: Q1D(geom_info,  dimension,nparts,
+    return lambda geom_info, dimension, name: Q1D(geom_info, dimension, name, nparts,
                                             "PERIODIC")
 
 
 def qopen(nparts):
-    return lambda geom_info, dimension: Q1D(geom_info,  dimension,nparts,
+    return lambda geom_info, dimension, name: Q1D(geom_info, dimension, name, nparts,
                                             "OPEN")
 
 
 def hbb(halo):
-    return lambda geom_info, dimension: HBB1D(geom_info,  dimension, halo)
+    return lambda geom_info, dimension, name: HBB1D(geom_info, dimension, name, halo)
 
 
 def leaf(_):
-    return lambda geom_info, dimension: Leaf1D(geom_info, dimension)
+    return lambda geom_info, dimension, name: Leaf1D(geom_info, dimension,name )
 
 
 partitioners_dict = {

@@ -31,9 +31,10 @@ all_q1ds = dict()
 
 @dimensionalise
 class Q1D(Partitioning1D):
-    def __init__(self, geom_info, dimension, nparts, boundary_condition):
+    def __init__(self, geom_info, dimension, name, nparts, boundary_condition):
         self.size, self.parity = geom_info
         self.dimension = dimension
+        self.name = name
         self.nparts = nparts
         self.bc = boundary_condition
 
@@ -44,25 +45,32 @@ class Q1D(Partitioning1D):
             all_q1ds[self._key()] = self
 
     def _key(self):
-        return (self.size, self.parity, self.dimension, self.nparts, self.bc)
+        return (self.size, self.parity, self.dimension, self.name, self.nparts,
+                self.bc)
+
+    def __repr__(self):
+        key = self._key()
+        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
 
     @property
     def comments(self):
-        return f" Q1D - Dimension: {self.dimension}, size: {self.size}, parity: {self.parity}, nparts: {self.nparts}"
+        fmt = "(size:{}, parity:{}, dimension:{}, name:{}, nparts:{}, bc:{})"
+        return f" Q1D " + fmt.format(*self._key())
 
     @property
     def limits(self):
         return [self._quotient * i for i in range(self.nparts)] + [self.size]
 
     def coord_to_idxs(self, relative_x):
-        min_idx, max_idx = bc_funcs[self.bc](relative_x, self._quotient, self.nparts)
+        min_idx, max_idx = bc_funcs[self.bc](relative_x, self._quotient,
+                                             self.nparts)
         real_idx = relative_x // self._quotient
         real_rest = relative_x % self._quotient
 
         def ghost_limits(idx):
-            return idx * self._quotient + (self.size - self.nparts * self._quotient) * (
-                idx // self.nparts
-            )
+            return idx * self._quotient + (
+                self.size - self.nparts * self._quotient) * (idx //
+                                                             self.nparts)
 
         return [
             IndexResult(
@@ -71,8 +79,7 @@ class Q1D(Partitioning1D):
                 idx=idx % self.nparts,
                 rest=relative_x - ghost_limits(idx),
                 cached_flag=(idx != real_idx),
-            )
-            for idx in range(min_idx, max_idx)
+            ) for idx in range(min_idx, max_idx)
         ]
 
     def idx_to_coord(self, idx, offset):

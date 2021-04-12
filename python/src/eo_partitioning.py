@@ -6,10 +6,11 @@ all_eos = dict()
 
 
 class EO(Partitioning):
-    def __init__(self, geom_info, cbflags):
+    def __init__(self, geom_info, cbflags, name):
         self.sizes = tuple(s for s, p in geom_info)
         self.parities = tuple(p for s, p in geom_info)
         self.cbflags = cbflags
+        self.name = name
 
         self.cbsizes = tuple(s for s, f in zip(self.sizes, cbflags) if f)
         self.cumcbsizes = eo.get_cumsizes(self.cbsizes)
@@ -18,12 +19,19 @@ class EO(Partitioning):
             all_eos[self._key()] = self
 
     def _key(self):
-        return (self.sizes, self.parities, self.cbflags)
+        return (self.sizes, self.parities, self.cbflags, self.name)
+
+    def __repr__(self):
+        key = self._key()
+        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
 
     @property
     def comments(self):
         cbfls = "".join(["T" if f else "F" for f in self.cbflags])
-        return f" sizes: {self.sizes}, parities: {self.parities}, nsites: {self.cumcbsizes[-1]} Affected dirs: {cbfls}"
+        fmt = "(sizes:{}, parities:{}, cbflags:{}, name:{})"
+        key = list(self._key())
+        key[2] = cbfls
+        return f" EO "+ fmt.format(*key)
 
     def sub_geom_info_list(self):
         origin_parity = sum(p for p, f in zip(self.parities, self.cbflags)) % 2

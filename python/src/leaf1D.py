@@ -10,14 +10,22 @@ all_leaf1ds = dict()
 @dimensionalise
 class Leaf1D(Partitioning1D):
 
-    def __init__(self, geom_info, dimension):
+    def __init__(self, geom_info, dimension, name):
         self.size, self.parity = geom_info
         self.dimension = dimension
+        self.name = name
         if self._key() not in all_leaf1ds:
             all_leaf1ds[self._key()] = self
 
     def _key(self):
-        return (self.size, self.parity, self.dimension)
+        return (self.size, self.parity, self.name, self.dimension)
+
+    def __repr__(self):
+        key = self._key()
+        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
+
+    #def __eq__(self, other):
+    #    return self._key() == other._key()
 
     @property
     def limits(self):
@@ -30,7 +38,8 @@ class Leaf1D(Partitioning1D):
 
     @property
     def comments(self):
-        return f" Leaf1D - Dimension: {self.dimension}, size: {self.size}, parity: {self.parity}"
+        fmt = "(size:{}, parity:{}, name:{}, dimension:{})"
+        return f" Leaf1D " + fmt.format(*self._key())
 
     def coord_to_idxs(self, relative_x):
         if 0 <= relative_x < self.size:

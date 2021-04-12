@@ -8,14 +8,18 @@ def dimensionalise(cls):
     and returns a multi-d capable class.
     '''
     class Dimensionalised:
-        def __init__(self, geom_infos, dimension, *args, **kwargs):
+        def __init__(self, geom_infos, dimension, name, *args, **kwargs):
             self.geom_infos = geom_infos
             self.dimension = dimension
+            self.name = name
             geom_info = self.geom_infos[self.dimension]
 
-            pass_args = (geom_info, dimension) + args
+            pass_args = (geom_info, dimension, name) + args
 
             self.wrapped = cls(*pass_args, **kwargs)
+
+        def __repr__(self):
+            return repr(self.wrapped)
 
         def __getattr__(self, name):
             return getattr(self.wrapped, name)

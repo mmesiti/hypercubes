@@ -8,9 +8,10 @@ all_hbb1ds = dict()
 
 @dimensionalise
 class HBB1D(Partitioning1D):
-    def __init__(self, geom_info, dimension, halo):
+    def __init__(self, geom_info, dimension, name, halo):
         self.size, self.parity = geom_info
         self.dimension = dimension
+        self.name = name
         self.halo = halo
 
         assert halo != 0
@@ -19,7 +20,11 @@ class HBB1D(Partitioning1D):
             all_hbb1ds[self._key()] = self
 
     def _key(self):
-        return (self.size, self.parity, self.dimension, self.halo)
+        return (self.size, self.parity, self.dimension, self.name, self.halo)
+
+    def __repr__(self):
+        key = self._key()
+        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
 
     @property
     def limits(self):
@@ -34,7 +39,8 @@ class HBB1D(Partitioning1D):
 
     @property
     def comments(self):
-        return f" HBB1D - Dimension: {self.dimension}, size: {self.size}, parity: {self.parity}, halo: {self.halo}"
+        fmt = "(size:{}, parity:{}, dimension:{}, name:{}, halo:{})"
+        return f" HBB1D " + fmt.format(*self._key())
 
     def coord_to_idxs(self, relative_x):
         if not self.limits[0] <= relative_x < self.limits[-1]:
@@ -43,9 +49,9 @@ class HBB1D(Partitioning1D):
             idx, local_rest = next(
                 (i, relative_x - s)  #
                 for i, (s, e) in enumerate(zip(self.starts, self.ends))
-                if s <= relative_x < e
-            )
-            return [IndexResult(idx=idx, rest=local_rest, cached_flag=False)]  #  #
+                if s <= relative_x < e)
+            return [IndexResult(idx=idx, rest=local_rest,
+                                cached_flag=False)]  #  #
 
     def idx_to_coord(self, idx, offset):
         return self.starts[idx] + offset

@@ -24,7 +24,7 @@ def get_partitioning(geom_infos, partitioners):
         other_partitioners = partitioners[1:]
         partitioner = partitioners_dict[partitioner_name](
             partitioner_parameters)
-        partition = partitioner(geom_info, dimension_info)
+        partition = partitioner(geom_info, dimension_info, name)
 
         children = ([(new_geom_info, other_partitioners)
                      for new_geom_info in partition.sub_geom_info_list()]
@@ -37,9 +37,9 @@ def get_partitioning(geom_infos, partitioners):
             0]
         partitioner = partitioners_dict[partitioner_name](
             partitioner_parameters)
-        partition = partitioner(geom_info, dimension_info)
+        partition = partitioner(geom_info, dimension_info, name)
 
-        return Box(name=name, partition=partition), children
+        return partition, children
 
     return tree_apply_memoized(
         node=(geom_infos, partitioners),
@@ -64,7 +64,7 @@ def partitioning_to_str(partitions, prefix, max_level):
         if max_level == 0:
             return ""
         header_line1 = "".join((prefix, "+", n.name))
-        header_line2 = "".join((prefix, " ", n.partition.comments))
+        header_line2 = "".join((prefix, " ", n.comments))
         children_lines = children
         return "\n".join([
             header_line1,
@@ -86,19 +86,19 @@ def get_indices_tree(partitioning, coordinates):
     so a bifurcation at that level is necessary.
     """
     def iterate_children(node):
-        (partitioning,children), coordinates, name = node
-        possible_indices = partitioning.partition.coords_to_idxs(coordinates)
+        (partition, children), coordinates, name = node
+        possible_indices = partition.coords_to_idxs(coordinates)
         real_value = next(v for v in possible_indices if not v.cached_flag)
         rest = real_value.rest
-        child_type = partitioning.partition.idx_to_child_kind(real_value.idx)
+        child_type = partition.idx_to_child_kind(real_value.idx)
         sub_partitionings = children
 
         return [(sub_partitionings[child_type], rest,
-                 partitioning.name)] if sub_partitionings else []
+                 partition.name)] if sub_partitionings else []
 
     def pop_stack(node, children):
-        (partitioning,_), coordinates, name = node
-        possible_indices = partitioning.partition.coords_to_idxs(coordinates)
+        (partition, _), coordinates, name = node
+        possible_indices = partition.coords_to_idxs(coordinates)
         real_value = next(v for v in possible_indices if not v.cached_flag)
         return ((real_value.idx), children)
 
@@ -117,7 +117,7 @@ def get_indices_tree_with_ghosts(partitioning, coordinates):
         idx, cached_flags, partitioning, coordinates, name = node
         if partitioning:
             partition, children = partitioning
-            possible_indices = partition.partition.coords_to_idxs(
+            possible_indices = partition.coords_to_idxs(
                 coordinates)
             sub_partitionings = children 
 
@@ -125,7 +125,7 @@ def get_indices_tree_with_ghosts(partitioning, coordinates):
                 (
                     i.idx,  #
                     i.cached_flag,  #
-                    sub_partitionings[partition.partition.idx_to_child_kind(
+                    sub_partitionings[partition.idx_to_child_kind(
                         i.idx)] if sub_partitionings else None,  #
                     i.rest,  #
                     partition.name)  #
