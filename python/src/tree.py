@@ -105,7 +105,7 @@ def get_max_depth(node, get_children=lambda x: x[1]):
     return tree_apply(node, iterate_children, pop_stack)
 
 
-def uniquefy_tree(tree):
+def _uniquefy_tree(tree):
     def itch(node):
         _, cs = node
         return tuple(cs)
@@ -113,18 +113,6 @@ def uniquefy_tree(tree):
     def pops(node, children):
         m, _ = node
         return (m, tuple(set(children)))
-
-    return tree_apply(tree, itch, pops)
-
-
-def count_elements(tree):
-    def itch(node):
-        _, cs = node
-        return cs
-
-    def pops(node, children):
-        m, _ = node
-        return 1 + sum(children)
 
     return tree_apply(tree, itch, pops)
 
@@ -144,21 +132,7 @@ def truncate_tree(max_idx_tree, level):
     return tree_apply((level, max_idx_tree), itch, pops)
 
 
-def get_leaves_set(max_idx_tree):
-    def itch(node):
-        (_, cs) = node
-        return cs
-
-    def pops(node, cs):
-        (m, _) = node
-        return set.union(*cs) if cs else {m}
-
-    return tree_apply(max_idx_tree, itch, pops)
-
-
-def get_leaves_list(max_idx_tree,
-                    get_children=lambda x: x[1],
-                    get_head=lambda x: x[0]):
+def get_leaves_list(max_idx_tree):
     def itch(node):
         _, cs = node
         return cs

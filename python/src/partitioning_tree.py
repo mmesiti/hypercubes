@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from tree import tree_apply, get_max_depth, get_all_paths, tree_apply_memoized
-from box import Box
 from partitioners import partitioners_dict
 
 
@@ -50,7 +49,7 @@ def get_partitioning(geom_infos, partitioners):
 
 def partitioning_to_str(partitions, prefix, max_level):
     def iterate_children(node):
-        (n,children), prefix, max_level = node
+        (n, children), prefix, max_level = node
         new_prefix = prefix + "   "
         next_level = []
         if children:
@@ -155,3 +154,26 @@ def get_relevant_indices_flat(tree_indices):
         for index in idxs if len(index) == max_depth
     ]
 
+
+def get_coord_from_idx(partitioning, idx,dimensions):
+    def itch(node):
+        (partition, children), indices, level = node
+        if len(indices) > 1:
+            idx = indices[0]
+            child_kind = partition.idx_to_child_kind(idx)
+            return [(children[child_kind], indices[1:], level+1)]
+        else:
+            return ()
+
+    def pops(node, children_results):
+        (partition, children), indices, level = node
+        idx = indices[0]
+
+        if children_results:
+            offsets = children_results[0]
+        else:
+            offsets = (0,)*dimensions
+
+        return partition.idx_to_coords(idx, offsets)
+
+    return tree_apply((partitioning, idx, 0),itch,pops)

@@ -34,11 +34,3 @@ class Partitioning:
     def max_idx_value(self):
         pass
 
-    # up for removal - just use tuples and a dict
-    def __hash__(self):
-        return hash(self._key())
-
-    def __eq__(self, other):
-        if isinstance(other, Partitioning):
-            return self._key() == other._key()
-        return NotImplemented

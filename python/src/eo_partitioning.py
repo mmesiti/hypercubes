@@ -14,6 +14,7 @@ class EO(Partitioning):
 
         self.cbsizes = tuple(s for s, f in zip(self.sizes, cbflags) if f)
         self.cumcbsizes = eo.get_cumsizes(self.cbsizes)
+        self.nsites = self.cumcbsizes[-1]
 
         if self._key() not in all_eos:
             all_eos[self._key()] = self
@@ -36,8 +37,8 @@ class EO(Partitioning):
     def sub_geom_info_list(self):
         origin_parity = sum(p for p, f in zip(self.parities, self.cbflags)) % 2
 
-        nsites_with_opposite_parity = self.cumcbsizes[-1] // 2
-        nsites_with_origin_parity = self.cumcbsizes[-1] - nsites_with_opposite_parity
+        nsites_with_opposite_parity = self.nsites // 2
+        nsites_with_origin_parity = self.nsites - nsites_with_opposite_parity
 
         new_sizes = (nsites_with_origin_parity, nsites_with_opposite_parity)
         neven_sites = new_sizes[origin_parity]
@@ -73,17 +74,17 @@ class EO(Partitioning):
         """
         dimensionality = len(self.sizes)
         eo_idx = idx
-        idxh = offsets[dimensionality + 1]
+        idxh = offsets[dimensionality]
         cbcoords = eo.lexeo_idx_to_coord(eo_idx, idxh, self.cbsizes)
         coordinates = list(offsets[:dimensionality])
-        dimensions_to_change = [d for d, f in enumerate(self.cbflags) if f]
+        dimensions_to_change = tuple(d for d, f in enumerate(self.cbflags) if f)
         for cbcoord, dimension in zip(cbcoords, dimensions_to_change):
             coordinates[dimension] = cbcoord
-        return coordinates
+        return tuple(coordinates)
 
     def idx_to_child_kind(self, idx):
         eo_idx = idx
-        if self.cumcbsizes[-1] % 2 == 0:
+        if self.nsites % 2 == 0:
             return 0
         else:
             return eo_idx

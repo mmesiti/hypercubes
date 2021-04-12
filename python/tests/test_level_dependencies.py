@@ -3,16 +3,24 @@ import level_dependencies as ld
 import partitioning_tree as pt
 import max_idx
 import pytest
+import os
 
 
-def show_partitioning(partitioning):
-    print(pt.partitioning_to_str(partitioning, '', 20))
+
+
+def show_partitioning(partitioning, name):
+    os.makedirs("examples", exist_ok = True )
+    with open(f"examples/{name}-full.txt", 'w') as f:
+        f.write(pt.partitioning_to_str(partitioning, '', 20))
     max_idx_tree = max_idx.get_max_idx_tree(partitioning)
-    print(max_idx.max_idx_tree_str(max_idx_tree))
+    with open(f"examples/{name}-maxidx.txt", 'w') as f:
+        f.write(max_idx.max_idx_tree_str(max_idx_tree))
     dm = ld.find_dependency_matrix(max_idx_tree)
-    print(ld.dependency_matrix_to_df(dm))
+    with open(f"examples/{name}-dm.txt", 'w') as f:
+        f.write(str(ld.dependency_matrix_to_df(dm)))
     deps = ld.get_levels_dependencies(partitioning)
-    print(deps)
+    with open(f"examples/{name}-deps.txt", 'w') as f:
+        f.write(str(deps))
 
 
 def partitioning1D_level2even():
@@ -36,7 +44,7 @@ def partitioning1D_level2even():
 def test_1D_level2even():
     partitioning = partitioning1D_level2even()
     deps = ld.get_levels_dependencies(partitioning)
-    show_partitioning(partitioning)
+    show_partitioning(partitioning, "1Dlevel2even")
     assert deps[0] == []
     assert deps[1] == []
     assert deps[2] == []
@@ -65,7 +73,7 @@ def partitioning1D_level2odd():
 def test_1D_level2odd():
     partitioning = partitioning1D_level2odd()
     deps = ld.get_levels_dependencies(partitioning)
-    show_partitioning(partitioning)
+    show_partitioning(partitioning, "1Dlevel2odd")
     assert deps[0] == []
     assert deps[1] == []
     assert deps[2] == []
@@ -110,8 +118,8 @@ def partitioning1D_localdofs(level1, level2):
 def test_1D_localdofs(level1, level2):
     partitioning = partitioning1D_localdofs(level1, level2)
     deps = ld.get_levels_dependencies(partitioning)
+    show_partitioning(partitioning, f"localdof-{level1}-{level2}")
 
-    #show_partitioning(partitioning)
 
     expected_deps = dict(zip(range(7), [[]] * 7))
     dependent_levels = [i for i in range(7) if i not in [level1, level2 + 1]]
@@ -160,6 +168,7 @@ def partitioning4Dnocache():
 def test_4Dnocache():
     partitioning = partitioning4Dnocache()
     deps = ld.get_levels_dependencies(partitioning)
+    show_partitioning(partitioning, "4Dnocache")
 
     assert deps[0] == []
     assert deps[1] == []
@@ -204,6 +213,7 @@ def partitioning4Deasy():
 def test_4Deasy():
     partitioning = partitioning4Deasy()
     deps = ld.get_levels_dependencies(partitioning)
+    show_partitioning(partitioning, "4Deasy")
 
     assert deps[0] == []
     assert deps[1] == []

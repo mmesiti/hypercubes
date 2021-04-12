@@ -49,7 +49,7 @@ class Leaf1D(Partitioning1D):
         return idx
 
     def idx_to_child_kind(self, idx):
-        pass
+        return 0
 
     def max_idx_value(self):
         return self.size
