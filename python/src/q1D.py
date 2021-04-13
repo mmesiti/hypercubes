@@ -65,7 +65,6 @@ class Q1D(Partitioning1D):
         min_idx, max_idx = bc_funcs[self.bc](relative_x, self._quotient,
                                              self.nparts)
         real_idx = relative_x // self._quotient
-        real_rest = relative_x % self._quotient
 
         def ghost_limits(idx):
             return idx * self._quotient + (

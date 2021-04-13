@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 import partitioning_tree as pt
 
+from os import getenv
+
+
+def nexamples(examples):
+    if getenv("FAST"):
+        return 10
+    else:
+        return examples
+
 
 def partitioning4D():
     """

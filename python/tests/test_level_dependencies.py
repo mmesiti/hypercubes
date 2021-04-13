@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import level_dependencies as ld
 import partitioning_tree as pt
-import max_idx
+import tree
 import pytest
 import os
 
@@ -10,9 +10,9 @@ def show_partitioning(partitioning, name):
     os.makedirs("examples", exist_ok=True)
     with open(f"examples/{name}-full.txt", 'w') as f:
         f.write(pt.partitioning_to_str(partitioning, '', 20))
-    max_idx_tree = max_idx.get_max_idx_tree(partitioning)
+    max_idx_tree = pt.get_max_idx_tree(partitioning)
     with open(f"examples/{name}-maxidx.txt", 'w') as f:
-        f.write(max_idx.max_idx_tree_str(max_idx_tree))
+        f.write(tree.tree_str(max_idx_tree))
     dm = ld.find_dependency_matrix(max_idx_tree)
     with open(f"examples/{name}-dm.txt", 'w') as f:
         f.write(str(ld.dependency_matrix_to_df(dm)))

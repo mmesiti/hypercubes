@@ -4,7 +4,7 @@ import tree
 import pytest
 from hypothesis import given, settings, HealthCheck
 from hypothesis import strategies as st
-from fixtures import get_bulk_sites, get_border_sites, partitioning4D
+from fixtures import get_bulk_sites, get_border_sites, partitioning4D, nexamples
 
 
 @pytest.fixture
@@ -75,7 +75,7 @@ def test_real_only(partitioning4Dfixture):
     assert expected_idx == idxs[0]
 
 
-@settings(max_examples=1000,
+@settings(max_examples=nexamples(1000),
           suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(xs=st.lists(st.integers(min_value=0, max_value=41),
                    min_size=4,

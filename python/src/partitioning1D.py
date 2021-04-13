@@ -24,8 +24,7 @@ class Partitioning1D(Partitioning):
         all_kinds = set(
             (subsize, parity) for subsize, parity in zip(subsizes, parities))
 
-        return list(all_kinds)
-
+        return tuple(all_kinds)
 
     def coord_to_idxs(self, relative_x):
         '''

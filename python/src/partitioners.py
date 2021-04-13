@@ -29,10 +29,15 @@ def leaf(_):
                                                      )
 
 
+def end(_):
+    return lambda geom_info, dimension, name: None
+
+
 partitioners_dict = {
     "qper": qper,
     "qopen": qopen,
     "hbb": hbb,
     "eo": eo,
     "leaf": leaf,
+    "end":end,
 }

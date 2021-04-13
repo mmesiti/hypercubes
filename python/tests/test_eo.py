@@ -2,9 +2,10 @@
 import eo
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from fixtures import nexamples
 
 
-@settings(max_examples=1000)
+@settings(max_examples=nexamples(1000))
 @given(st.lists(st.integers(min_value=1, max_value=10), min_size=1,
                 max_size=6), st.data())
 def test_coord_eoidx_conversion_pair(sizes, data):
@@ -21,7 +22,7 @@ def test_coord_eoidx_conversion_pair(sizes, data):
     assert coords2 == coords, info
 
 
-@settings(max_examples=1000)
+@settings(max_examples=nexamples(1000))
 @given(sizes=st.lists(st.integers(min_value=1, max_value=10), min_size=1,
                       max_size=6),
        data=st.data())

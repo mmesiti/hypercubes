@@ -2,8 +2,10 @@
 import eo
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from fixtures import nexamples
 
 
+@settings(max_examples=nexamples(100))
 @given(st.lists(st.integers(min_value=1, max_value=10), min_size=4,
                 max_size=4))
 def test_coord_idx_conversion_pair(sizes):
@@ -31,7 +33,7 @@ def count_eo(sizes):
     return counts
 
 
-@settings(deadline=800)
+@settings(deadline=2000, max_examples=nexamples(100))
 @given(st.lists(st.integers(min_value=1, max_value=10), min_size=1,
                 max_size=6))
 def test_e_ge_o(sizes):

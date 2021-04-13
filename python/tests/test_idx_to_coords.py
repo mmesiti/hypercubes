@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import partitioning_tree as pt
 import fixtures
+from fixtures import nexamples
 import tree
 
 import pytest
@@ -20,7 +21,6 @@ def partitioning4Dnoeo():
     geom_infos = tuple((s, 0) for s in sizes)
 
     X, Y, Z, T = list(range(4))
-    EXTRA = T + 1
 
     partitioners_list = (
         ("MPI X", X, "qper", 4),
@@ -44,7 +44,7 @@ def partitioning4Dnoeo():
     return pt.get_partitioning(geom_infos, partitioners_list)
 
 
-@settings(max_examples=1000,
+@settings(max_examples=nexamples(1000),
           suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(xs=st.lists(st.integers(min_value=0, max_value=41),
                    min_size=4,

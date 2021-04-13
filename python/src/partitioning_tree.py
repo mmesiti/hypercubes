@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from tree import tree_apply, get_max_depth, get_all_paths, tree_apply_memoized
+from tree import tree_apply, get_max_depth, get_all_paths, tree_apply_memoized, nodemap
 from partitioners import partitioners_dict
 
 
@@ -177,3 +177,9 @@ def get_coord_from_idx(partitioning, idx, dimensions):
         return partition.idx_to_coords(idx, offsets)
 
     return tree_apply((partitioning, idx, 0),itch,pops)
+
+
+# This requires a tree as produced by
+# "tree_partitioning.get_partitioning"
+def get_max_idx_tree(partitioning):
+    return nodemap(partitioning, lambda n: n.max_idx_value())
