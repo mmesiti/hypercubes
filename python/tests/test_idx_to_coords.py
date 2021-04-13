@@ -39,6 +39,7 @@ def partitioning4Dnoeo():
         ("Leaf Y", Y, "leaf", None),
         ("Leaf Z", Z, "leaf", None),
         ("Leaf T", T, "leaf", None),
+        ("END",None,"end",None),
     )
 
     return pt.get_partitioning(geom_infos, partitioners_list)
@@ -77,6 +78,7 @@ def test_idx_to_coords1D(xs):
         ("MPI X", X, "qper", 2),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END",None,"end",None),
     )
 
     partitioning = pt.get_partitioning(geom_infos, partitioners_list)
@@ -109,6 +111,7 @@ def test_idx_to_coords_full(xs):
         ("MPI Y", Y, "qper", 2),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END",None,"end",None),
     )
 
     partitioning = pt.get_partitioning(geom_infos, partitioners_list)

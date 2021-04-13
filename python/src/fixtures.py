@@ -47,6 +47,7 @@ def partitioning4D():
         ("halos T", T, "hbb", 1),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END", None, "end", None),
     )
 
     return pt.get_partitioning(geom_infos, partitioners_list)
@@ -66,7 +67,7 @@ def partitioning1D():
     In-part idx: |0|0123|0|0|012|0|0|0123|0|0|012|0|0|0123|0|0|012|0|0|012|0|0|01|0|
     In-part size: 1 4    1 1 3   1 1 4    1 1 3   1 1 4    1 1 3   1 1 3   1 1 2  1
     """
-    sizes = (42, )
+    sizes = (42,)
 
     geom_infos = tuple((s, 0) for s in sizes)
 
@@ -78,6 +79,7 @@ def partitioning1D():
         ("halos X", X, "hbb", 1),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END", None, "end", None),
     )
 
     return pt.get_partitioning(geom_infos, partitioners_list)
@@ -94,3 +96,31 @@ def get_border_sites():
     units = "0560167127823781"
     return [int(t) * 10 + int(u) for t, u in zip(tens, units)]
 
+
+def symmetric_case():
+    sizes = (64,) * 4
+
+    geom_infos = tuple((s, 0) for s in sizes)
+
+    X, Y, Z, T = list(range(4))
+    EXTRA = T + 1
+
+    partitioners_list = (
+        ("MPI X", X, "qper", 4),
+        ("MPI Y", Y, "qper", 4),
+        ("MPI Z", Z, "qper", 4),
+        ("MPI T", T, "qper", 4),
+        ("VECTOR X", X, "qopen", 2),
+        ("VECTOR Y", Y, "qopen", 2),
+        ("VECTOR Z", Z, "qopen", 2),
+        ("VECTOR T", T, "qopen", 2),
+        ("halos X", X, "hbb", 1),
+        ("halos Y", Y, "hbb", 1),
+        ("halos Z", Z, "hbb", 1),
+        ("halos T", T, "hbb", 1),
+        ("EO", tuple(True for _ in sizes), "eo", None),
+        ("EO-flattened", EXTRA, "leaf", None),
+        ("END", None, "end", None),
+    )
+
+    return pt.get_partitioning(geom_infos, partitioners_list)

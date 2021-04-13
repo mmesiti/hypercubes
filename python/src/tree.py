@@ -256,3 +256,8 @@ def tree_str(tree):
         return "\n".join((head,) + children_results)
 
     return tree_apply(("", tree), itch, pops)
+
+
+def first_nodes_list(tree):
+    n, cs = tree
+    return [n] + (first_nodes_list(cs[0]) if cs else [])

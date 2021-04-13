@@ -4,7 +4,7 @@ import partitioning_tree as pt
 
 
 def find_dependency_matrix(max_idx_tree):
-    max_depth = tree.get_max_depth(max_idx_tree)
+    max_depth = tree.get_max_depth(max_idx_tree)-1
     m = dict()
 
     def check_subtrees_distribution_equal(t):
@@ -71,7 +71,6 @@ def find_dependencies(dependency_matrix):
 
 def get_levels_dependencies(partitioning):
     max_idx_tree = pt.get_max_idx_tree(partitioning)
-    #print(max_idx.max_idx_tree_str(max_idx_tree))
     dm = find_dependency_matrix(max_idx_tree)
     print("in get levels dependencies")
     print(dependency_matrix_to_df(dm))

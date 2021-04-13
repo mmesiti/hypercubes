@@ -34,6 +34,7 @@ def partitioning1D_level2even():
         ("halos X", X, "hbb", 1),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END",None,"end",None)
     )
 
     return pt.get_partitioning(geom_infos, partitioners_list)
@@ -63,6 +64,7 @@ def partitioning1D_level2odd():
         ("halos X", X, "hbb", 1),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END",None,"end",None),
     )
 
     return pt.get_partitioning(geom_infos, partitioners_list)
@@ -95,6 +97,7 @@ def partitioning1D_localdofs(level1, level2):
         ("halos X", X, "hbb", 1),
         ("EO", (True, False, False), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END",None,"end",None),
     )
 
     independent1 = ("LocalDOFs2", Z, "leaf", None)
@@ -157,6 +160,7 @@ def partitioning4Dnocache():
         ("VECTOR T", T, "qopen", 2),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END",None,"end",None),
     )
 
     return pt.get_partitioning(geom_infos, partitioners_list)
@@ -202,6 +206,7 @@ def partitioning4Deasy():
         ("halos T", T, "hbb", 1),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
+        ("END",None,"end",None),
     )
 
     return pt.get_partitioning(geom_infos, partitioners_list)

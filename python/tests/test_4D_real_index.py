@@ -4,7 +4,13 @@ import tree
 import pytest
 from hypothesis import given, settings, HealthCheck
 from hypothesis import strategies as st
-from fixtures import get_bulk_sites, get_border_sites, partitioning4D, nexamples
+from fixtures import (
+    get_bulk_sites,
+    get_border_sites,
+    partitioning4D,
+    nexamples,
+    partitioning1D,
+)
 
 
 @pytest.fixture
@@ -20,6 +26,18 @@ def border_indices():
 @pytest.fixture(scope="session")
 def partitioning4Dfixture():
     return partitioning4D()
+
+
+@pytest.fixture(scope="session")
+def partitioning1Dfixture():
+    return partitioning1D()
+
+
+def test_real_only_1D(partitioning1Dfixture):
+    it = pt.get_indices_tree(partitioning1Dfixture, (20,))
+    idxs = tree.get_all_paths(it)
+    exp_idx = (1, 1, 2, 0, 1)
+    assert exp_idx == idxs[0]
 
 
 def test_real_only(partitioning4Dfixture):
@@ -75,11 +93,11 @@ def test_real_only(partitioning4Dfixture):
     assert expected_idx == idxs[0]
 
 
-@settings(max_examples=nexamples(1000),
-          suppress_health_check=[HealthCheck.function_scoped_fixture])
-@given(xs=st.lists(st.integers(min_value=0, max_value=41),
-                   min_size=4,
-                   max_size=4))
+@settings(
+    max_examples=nexamples(1000),
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+@given(xs=st.lists(st.integers(min_value=0, max_value=41), min_size=4, max_size=4))
 def test_ghosts(xs, partitioning4Dfixture, border_indices, bulk_indices):
     nborders = len([x for x in xs if x in border_indices])
     nbulk = len([x for x in xs if x in bulk_indices])
@@ -87,7 +105,7 @@ def test_ghosts(xs, partitioning4Dfixture, border_indices, bulk_indices):
 
     itwg = pt.get_indices_tree_with_ghosts(partitioning4Dfixture, xs)
     idxs = pt.get_relevant_indices_flat(itwg)
-    assert len(idxs) == 2**nborders
+    assert len(idxs) == 2 ** nborders
 
 
 if __name__ == "__main__":
