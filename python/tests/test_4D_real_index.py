@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import partitioning_tree as pt
+import partition_class_tree as pt
 import tree
 import pytest
 from hypothesis import given, settings, HealthCheck

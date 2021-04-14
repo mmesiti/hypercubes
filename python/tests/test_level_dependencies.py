@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import level_dependencies as ld
-import partitioning_tree as pt
+import partition_class_tree as pt
 import tree
 import pytest
 import os

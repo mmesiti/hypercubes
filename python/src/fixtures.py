@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import partitioning_tree as pt
+import partition_class_tree as pt
 
 from os import getenv
 
@@ -9,6 +9,30 @@ def nexamples(examples):
         return 10
     else:
         return examples
+
+
+def partitioners_list_4D_42():
+    X, Y, Z, T = list(range(4))
+    EXTRA = T + 1
+
+    partitioners_list = (
+        ("MPI X", X, "qper", 4),
+        ("MPI Y", Y, "qper", 4),
+        ("MPI Z", Z, "qper", 4),
+        ("MPI T", T, "qper", 4),
+        ("VECTOR X", X, "qopen", 2),
+        ("VECTOR Y", Y, "qopen", 2),
+        ("VECTOR Z", Z, "qopen", 2),
+        ("VECTOR T", T, "qopen", 2),
+        ("halos X", X, "hbb", 1),
+        ("halos Y", Y, "hbb", 1),
+        ("halos Z", Z, "hbb", 1),
+        ("halos T", T, "hbb", 1),
+        ("EO", (True,)*4, "eo", None),
+        ("EO-flattened", EXTRA, "leaf", None),
+        ("END", None, "end", None),
+    )
+    return partitioners_list
 
 
 def partitioning4D():
@@ -29,28 +53,23 @@ def partitioning4D():
 
     geom_infos = tuple((s, 0) for s in sizes)
 
-    X, Y, Z, T = list(range(4))
-    EXTRA = T + 1
+    partitioners_list = partitioners_list_4D_42()
 
-    partitioners_list = (
+    return pt.get_partitioning(geom_infos, partitioners_list)
+
+
+def partitioners_list_1D_42():
+    X, EXTRA = list(range(2))
+
+    return (
         ("MPI X", X, "qper", 4),
-        ("MPI Y", Y, "qper", 4),
-        ("MPI Z", Z, "qper", 4),
-        ("MPI T", T, "qper", 4),
         ("VECTOR X", X, "qopen", 2),
-        ("VECTOR Y", Y, "qopen", 2),
-        ("VECTOR Z", Z, "qopen", 2),
-        ("VECTOR T", T, "qopen", 2),
         ("halos X", X, "hbb", 1),
-        ("halos Y", Y, "hbb", 1),
-        ("halos Z", Z, "hbb", 1),
-        ("halos T", T, "hbb", 1),
-        ("EO", tuple(True for _ in sizes), "eo", None),
+        ("EO", (True,), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
         ("END", None, "end", None),
     )
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
 
 
 def partitioning1D():
@@ -71,16 +90,7 @@ def partitioning1D():
 
     geom_infos = tuple((s, 0) for s in sizes)
 
-    X, EXTRA = list(range(2))
-
-    partitioners_list = (
-        ("MPI X", X, "qper", 4),
-        ("VECTOR X", X, "qopen", 2),
-        ("halos X", X, "hbb", 1),
-        ("EO", tuple(True for _ in sizes), "eo", None),
-        ("EO-flattened", EXTRA, "leaf", None),
-        ("END", None, "end", None),
-    )
+    partitioners_list = partitioners_list_1D_42()
 
     return pt.get_partitioning(geom_infos, partitioners_list)
 

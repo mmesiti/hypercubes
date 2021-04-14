@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import tree
-import partitioning_tree as pt
+import partition_class_tree as pt
 
 
 def find_dependency_matrix(max_idx_tree):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import partitioning_tree as pt
+import partition_class_tree as pt
 import tree
 from fixtures import get_bulk_sites, get_border_sites, partitioning1D
 
