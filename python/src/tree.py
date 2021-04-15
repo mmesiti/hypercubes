@@ -24,8 +24,8 @@ def tree_apply(
     return pop_stack(
         node,
         tuple(
-            tree_apply(n, iterate_children, pop_stack) for n in iterate_children(node)
-        ),
+            tree_apply(n, iterate_children, pop_stack)
+            for n in iterate_children(node)),
     )
 
 
@@ -43,8 +43,7 @@ def tree_apply_memoized(
         node,
         tuple(
             tree_apply_memoized(n, iterate_children, pop_stack)
-            for n in iterate_children(node)
-        ),
+            for n in iterate_children(node)),
     )
 
 
@@ -53,7 +52,6 @@ def get_all_paths(node):
     Get the full paths from the root
     to every leaf of the tree, as a list.
     """
-
     def iterate_children(node):
         _, children = node
         return children
@@ -64,9 +62,9 @@ def get_all_paths(node):
         if len(children) != 0:  # node case
             # we get a list of lists for each child
             cs = [c for children_list in children_lists for c in children_list]
-            return tuple((n,) + child for child in cs)
+            return tuple((n, ) + child for child in cs)
         else:  # leaf case
-            return ((n,),)
+            return ((n, ), )
 
     return tree_apply(node, iterate_children, pop_stack)
 
@@ -81,9 +79,10 @@ def get_flat_list_of_subtrees(level, node):
         children_lists = children
         if len(children) != 0 and level > 0:  # node case
             # we get a list of lists for each child
-            return tuple(c for children_list in children_lists for c in children_list)
+            return tuple(c for children_list in children_lists
+                         for c in children_list)
         else:  # leaf case
-            return ((n, cs),)
+            return ((n, cs), )
 
     return tree_apply((level, node), iterate_children, pop_stack)
 
@@ -101,18 +100,6 @@ def get_max_depth(node):
             return 1
 
     return tree_apply(node, iterate_children, pop_stack)
-
-
-def _uniquefy_tree(tree):
-    def itch(node):
-        _, cs = node
-        return tuple(cs)
-
-    def pops(node, children):
-        m, _ = node
-        return (m, tuple(set(children)))
-
-    return tree_apply(tree, itch, pops)
 
 
 def truncate_tree(max_idx_tree, level):
@@ -137,7 +124,7 @@ def get_leaves_list(max_idx_tree):
 
     def pops(node, css):
         n, _ = node
-        return tuple(c for cs in css for c in cs) if css else (n,)
+        return tuple(c for cs in css for c in cs) if css else (n, )
 
     return tree_apply(max_idx_tree, itch, pops)
 
@@ -179,7 +166,6 @@ def collapse_level(tree, level_to_collapse, child_to_replace):
     needs to exist in all subtrees.
     DOES NOT WORK ON LEAVES.
     """
-
     def itch(node):
         level, (_, cs) = node
         return tuple(((level - 1), c) for c in cs)
@@ -199,7 +185,6 @@ def bring_level_on_top(tree, level):
     """
     DOES NOT WORK ON LEAVES.
     """
-
     def find_nchildren_level(tree, level):
         tt = truncate_tree(tree, level + 1)
         subtrees = get_flat_list_of_subtrees(level, tt)
@@ -215,7 +200,8 @@ def bring_level_on_top(tree, level):
 
     nchildren = find_nchildren_level(tree, level)
     node_representative = find_node_representative(tree, level)
-    new_subtrees = tuple(collapse_level(tree, level, ic) for ic in range(nchildren))
+    new_subtrees = tuple(
+        collapse_level(tree, level, ic) for ic in range(nchildren))
     return node_representative, new_subtrees
 
 
@@ -228,10 +214,10 @@ def swap_levels(tree, new_level_ordering):
     as there is a lot of shared code
     between the two functions.
     """
-
     def get_new_sub_level_ordering(new_level_ordering):
         lvl_removed = new_level_ordering[0]
-        return tuple((l - 1) if l > lvl_removed else l for l in new_level_ordering[1:])
+        return tuple(
+            (l - 1) if l > lvl_removed else l for l in new_level_ordering[1:])
 
     if len(new_level_ordering) == 0:
         return tree
@@ -253,7 +239,7 @@ def tree_str(tree):
     def pops(node, children_results):
         prefix, (m, _) = node
         head = prefix + str(m)
-        return "\n".join((head,) + children_results)
+        return "\n".join((head, ) + children_results)
 
     return tree_apply(("", tree), itch, pops)
 
@@ -261,3 +247,12 @@ def tree_str(tree):
 def first_nodes_list(tree):
     n, cs = tree
     return [n] + (first_nodes_list(cs[0]) if cs else [])
+
+
+def depth_first_flatten(tree):
+    n, cs = tree
+    sub_results = (depth_first_flatten(c) for c in cs)
+    res = (n, )
+    for sub_res in sub_results:
+        res = res + sub_res
+    return res

@@ -20,13 +20,6 @@ class Leaf1D(Partitioning1D):
     def _key(self):
         return (self.size, self.parity, self.name, self.dimension)
 
-    def __repr__(self):
-        key = self._key()
-        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
-
-    #def __eq__(self, other):
-    #    return self._key() == other._key()
-
     @property
     def limits(self):
         '''
@@ -39,7 +32,7 @@ class Leaf1D(Partitioning1D):
     @property
     def comments(self):
         fmt = "(size:{}, parity:{}, name:{}, dimension:{})"
-        return f" Leaf1D " + fmt.format(*self._key())
+        return " Leaf1D " + fmt.format(*self._key())
 
     def coord_to_idxs(self, relative_x):
         if 0 <= relative_x < self.size:

@@ -18,9 +18,6 @@ def dimensionalise(cls):
 
             self.wrapped = cls(*pass_args, **kwargs)
 
-        def __repr__(self):
-            return repr(self.wrapped)
-
         def __getattr__(self, name):
             return getattr(self.wrapped, name)
 

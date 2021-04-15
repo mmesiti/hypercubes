@@ -23,10 +23,6 @@ class EO(Partitioning):
     def _key(self):
         return (self.sizes, self.parities, self.cbflags, self.name)
 
-    def __repr__(self):
-        key = self._key()
-        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
-
     @property
     def comments(self):
         cbfls = "".join(["T" if f else "F" for f in self.cbflags])

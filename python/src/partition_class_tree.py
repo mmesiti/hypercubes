@@ -13,33 +13,30 @@ def get_partitioning(geom_infos, partitioners):
     A node is represented
     by the ranges that represent lattice partition.
     """
-
     def iterate_children(node):
         """
         In this case, node is actually size.
         """
         geom_info, partitioners = node
-        (name, dimension_info, partitioner_name, partitioner_parameters) = partitioners[
-            0
-        ]
+        (name, dimension_info, partitioner_name,
+         partitioner_parameters) = partitioners[0]
         other_partitioners = partitioners[1:]
-        partitioner = partitioners_dict[partitioner_name](partitioner_parameters)
+        partitioner = partitioners_dict[partitioner_name](
+            partitioner_parameters)
         partition_class = partitioner(geom_info, dimension_info, name)
 
-        children = (
-            tuple(
-                (new_geom_info, other_partitioners)
-                for new_geom_info in partition_class.sub_geom_info_list()
-            )
-            if other_partitioners
-            else ()
-        )
+        children = (tuple(
+            (new_geom_info, other_partitioners)
+            for new_geom_info in partition_class.sub_geom_info_list())
+                    if other_partitioners else ())
         return children
 
     def pop_stack(node, children):
         geom_info, partitioners = node
-        name, dimension_info, partitioner_name, partitioner_parameters = partitioners[0]
-        partitioner = partitioners_dict[partitioner_name](partitioner_parameters)
+        name, dimension_info, partitioner_name, partitioner_parameters = partitioners[
+            0]
+        partitioner = partitioners_dict[partitioner_name](
+            partitioner_parameters)
         partition_class = partitioner(geom_info, dimension_info, name)
 
         return partition_class, children
@@ -69,13 +66,10 @@ def partitioning_to_str(partitions, prefix, max_level):
         header_line1 = "".join((prefix, "+", n.name))
         header_line2 = "".join((prefix, " ", n.comments))
         children_lines = children
-        return "\n".join(
-            [
-                header_line1,
-                header_line2,
-            ]
-            + [line for line in children_lines if len(line) != 0]
-        )
+        return "\n".join([
+            header_line1,
+            header_line2,
+        ] + [line for line in children_lines if len(line) != 0])
 
     return tree_apply(
         node=(partitions, prefix, max_level),
@@ -95,7 +89,7 @@ def get_indices_tree(partitioning, coordinates):
 
     def iterate_children(node):
         (partition_class, children), coordinates, name = node
-        if children == (leaf,):
+        if children == (leaf, ):
             return ()
 
         possible_indices = partition_class.coords_to_idxs(coordinates)
@@ -104,11 +98,8 @@ def get_indices_tree(partitioning, coordinates):
         child_type = partition_class.idx_to_child_kind(real_value.idx)
         sub_partitionings = children
 
-        return (
-            ((sub_partitionings[child_type], rest, partition_class.name),)
-            if sub_partitionings
-            else ()
-        )
+        return (((sub_partitionings[child_type], rest,
+                  partition_class.name), ) if sub_partitionings else ())
 
     def pop_stack(node, children):
         (partition_class, _), coordinates, name = node
@@ -116,10 +107,9 @@ def get_indices_tree(partitioning, coordinates):
             possible_indices = partition_class.coords_to_idxs(coordinates)
             real_value = next(v for v in possible_indices if not v.cached_flag)
             return ((real_value.idx), children)
-        if children == ():
-            return None
 
-    return tree_apply((partitioning, coordinates, ""), iterate_children, pop_stack)
+    return tree_apply((partitioning, coordinates, ""), iterate_children,
+                      pop_stack)
 
 
 def get_indices_tree_with_ghosts(partitioning, coordinates):
@@ -129,38 +119,30 @@ def get_indices_tree_with_ghosts(partitioning, coordinates):
     in multiple ways,
     so a bifurcation at that level is necessary.
     """
-
     def iterate_children(node):
         idx, cached_flags, partitioning, coordinates, name = node
-        if partitioning:
-            partition_class, children = partitioning
-            if partition_class is None:
-                return ()
-            possible_indices = partition_class.coords_to_idxs(coordinates)
-            sub_partitionings = children
-
-            return tuple(
-                (
-                    i.idx,  #
-                    i.cached_flag,  #
-                    sub_partitionings[partition_class.idx_to_child_kind(i.idx)]
-                    if sub_partitionings
-                    else None,  #
-                    i.rest,  #
-                    partition_class.name,
-                )  #
-                for i in possible_indices
-            )
-        else:
+        partition_class, children = partitioning
+        if partition_class is None:
             return ()
+        possible_indices = partition_class.coords_to_idxs(coordinates)
+        sub_partitionings = children
+
+        return tuple((
+            i.idx,  #
+            i.cached_flag,  #
+            sub_partitionings[partition_class.idx_to_child_kind(i.idx)]
+            if sub_partitionings else None,  #
+            i.rest,  #
+            partition_class.name,
+        )  #
+                     for i in possible_indices)
 
     def pop_stack(node, children):
         idx, cached_flags, _, coordinates, name = node
         return ((idx, cached_flags, name), children)
 
-    return tree_apply(
-        ("0", False, partitioning, coordinates, "ROOT"), iterate_children, pop_stack
-    )
+    return tree_apply(("0", False, partitioning, coordinates, "ROOT"),
+                      iterate_children, pop_stack)
 
 
 def get_relevant_indices_flat(tree_indices):
@@ -170,11 +152,10 @@ def get_relevant_indices_flat(tree_indices):
 
     return [
         (
-            len([_ for _, flag, name in index if flag]),  # count of cache flags
+            len([_ for _, flag, name in index
+                 if flag]),  # count of cache flags
             [(idx, flag, name) for idx, flag, name in index[1:]],
-        )
-        for index in idxs
-        if len(index) == max_depth
+        ) for index in idxs if len(index) == max_depth
     ]
 
 
@@ -195,7 +176,7 @@ def get_coord_from_idx(partitioning, idx, dimensions):
         if children_results:
             offsets = children_results[0]
         else:
-            offsets = (0,) * dimensions
+            offsets = (0, ) * dimensions
 
         return partition_class.idx_to_coords(idx, offsets)
 
@@ -205,4 +186,22 @@ def get_coord_from_idx(partitioning, idx, dimensions):
 # This requires a tree as produced by
 # "tree_partitioning.get_partitioning"
 def get_max_idx_tree(partitioning):
-    return nodemap(partitioning, lambda n: n.max_idx_value() if n is not None else None)
+    return nodemap(partitioning, lambda n: n.max_idx_value()
+                   if n is not None else None)
+
+
+def validate_idx(partitioning, idx):
+    '''
+    Make sure that idx is in the right range.
+    '''
+    leaf = (None, ())
+
+    def _validate(p, idx):
+        if p == leaf:
+            return True
+        partition, children = p
+        valid = idx[0] < partition.max_idx_value() and idx[0] >= 0
+        return valid and _validate(
+            children[partition.idx_to_child_kind(idx[0])], idx[1:])
+
+    return _validate(partitioning, idx)

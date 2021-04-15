@@ -48,10 +48,6 @@ class Q1D(Partitioning1D):
         return (self.size, self.parity, self.dimension, self.name, self.nparts,
                 self.bc)
 
-    def __repr__(self):
-        key = self._key()
-        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
-
     @property
     def comments(self):
         fmt = "(size:{}, parity:{}, dimension:{}, name:{}, nparts:{}, bc:{})"

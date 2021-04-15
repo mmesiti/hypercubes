@@ -22,10 +22,6 @@ class HBB1D(Partitioning1D):
     def _key(self):
         return (self.size, self.parity, self.dimension, self.name, self.halo)
 
-    def __repr__(self):
-        key = self._key()
-        return ("(" + ", ".join(["{}"] * len(key)) + ")").format(*key)
-
     @property
     def limits(self):
         return [
