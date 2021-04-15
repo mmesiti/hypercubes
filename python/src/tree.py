@@ -77,10 +77,7 @@ def truncate_tree(max_idx_tree, level):
 def get_leaves_list(max_idx_tree):
     n, children = max_idx_tree
     children_results = tuple(get_leaves_list(c) for c in children)
-    if children_results:
-        return tuple(c for cs in children_results for c in cs)
-    else:
-        return (n,)
+    return tuple(c for cs in children_results for c in cs) if children_results else (n,)
 
 
 def ziptree(*trees):
