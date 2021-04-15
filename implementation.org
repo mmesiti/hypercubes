@@ -1,0 +1,86 @@
+#+TITLE: Implementation
+
+The way a lattice is partitioned
+is expressed by writing down a list of ~Partitioners~.
+
+The partitioners take in input a lattice portion
+and return a ~Partition Class~ object
+and a list of lattice portions resulting from the partitioning.
+
+* Partition classes
+They are defined as a list of ~(size, parity)~ pairs - one per dimension.
+A partition class corresponds to a number of real partitions.
+The reason to use partition classes instead of concrete partitions
+is that the number of concrete partitions can be huge,
+especially if not filtered.
+The number of partition classes can be several order of magnitude smaller,
+especially for lattices that can be split in a very symmetric way.
+
+* Partitioners
+There are partitioners that are intrinsically mono-dimensional,
+i.e., they can work only in 1D.
+** 1-Dimensional partitioners
+A small number of 1D partitioners is provided.
+A base class - ~Partitioner1D~ is provided.
+*** Q
+This partitioner splits a 1-D partition
+in a specified number of sub-partitions.
+The sizes of the sub-partitions are going to be
+all equal to the *quotient* of the division,
+except possibly the last, which will always be
+smaller than or equal to the others.
+
+Example: Total size = 42, number of partitions = 4.
+This will lead to 3 partitions of 11 sites
+and 1 partition of 9 sites.
+
+The ~Q~ partitioner can return 1,2 or 3 partition classes
+that can differ in size and parity.
+
+**NOTE**: it is required that
+#+begin_src
+ceiling(size/nparts)*(nparts-1) < size
+#+end_src
+otherwise it will not be geometrically possible
+to produce the partitions.
+*** HBB - Halo, Border, Bulk
+This partitioner splits a 1-D partition into
+3 partitions - the start, the middle, and the end.
+The start and the end have a given size.
+In addition to these 3 partitions,
+two other "halo" partitions are added.
+
+The ~HBB~ partitioner can return 1,2 or 3 partition classes.
+*** Leaf
+This assumes no *geometrical* partitioning is going to happen.
+This partitioner returns a single partition class.
+** Dimensionalised Partitioners
+A 1-D partitioner can be "Dimensionalised"
+(i.e., be made able to accept n-dimensional lattice partitions)
+via a decorator (in Python)
+of a template specialisation in C++.
+** EO Partitioning
+The even-odd sub-partitioning of a n-dimensional lattice partition
+can have a very complicated structure.
+Notice that out of n dimensions
+only a subset could be involved in the "checkerboarding",
+as for example not all the dimensions of the lattice
+may represent physical directions.
+The ~EO~ partitioner takes as input a n-dimensional partition
+and returns up to 2 n+1-dimensional partition classes,
+where the checkerboarded dimensions are collapsed to size 1.
+The extent of the new partitions (classes) in the additional dimension
+is equal to the amount of even or odd sites.
+
+
+* Trees
+At each step in the partitioning process,
+a partition class is divided into
+1 or more partition classes,
+thus building a tree.
+
+A Tree type is represented as a recursive type,
+e.g.,:
+#+begin_src
+template <typename Node> using Tree = std::tuple<Node,std::vector<std::shared_ptr<Node>>>
+#+end_src

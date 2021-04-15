@@ -7,6 +7,9 @@ and managing the memory layout.
 
 *Nothing clever or revolutionary here*.
 
+In this document the main ideas are discussed,
+the [[implementation.org][implementation]] is described separately.
+
 * Main Ideas
 Hypercubic lattices have
 "partitioning" symmetries
@@ -15,9 +18,13 @@ most general memory layout that can be sensibly adopted.
 
 By "partitioning symmetry",
 I refer to the fact that if we partition
+#+begin_src
 `----------------`
+#+end_src
 into
+#+begin_src
 `|----|----|----|----|`
+#+end_src
 each one of the 4 chunk has the same shape.
 
 HPC machines tend to have
@@ -318,7 +325,7 @@ which are non trivial to transpose,
 and are better represented as trees.
 
 The most general structure
-is a directed acyclic graph
+would be a directed acyclic graph
 where the nodes are the levels,
 and the arcs the dependences between them.
 By dependence,
@@ -326,7 +333,6 @@ I mean the fact that the range for an index
 at a certain level depends ~b~ on
 the values of the indices at another other level
 ~a~, or potentially on more than one leve.
-
 
 
 The implementation could decide
@@ -337,13 +343,12 @@ to transpose such array is
 padding and masking.
 
 ** EO ordering
-Proposed solution:
-- requires at least one dimension to be even
-  *in the "local" memory layout*
-  in order to have still homogeneous partitions;
-- Increase the dimensionality of the array by 1,
-  and another index which will be 0 or 1
-- make the chosen even direction half of its original value
+Each portion of a lattice
+can be divided into even and odd sites.
+If the global lattice extents
+are even in the dimensions
+in which the boundary conditions are periodic,
+then the lattice is a bipartite graph.
 
 ** Halos, Borders, and bulk
 Splitting each portion of a lattice
@@ -380,7 +385,8 @@ We can, though, allocate only
 the ones that we are interested in
 by defining them all and then
 filtering out the ones we do not want,
-according to different requirements:
+according to different requirements,
+e.g.:
 - having size > 0
 - having at least nd_min sides > 1
 
