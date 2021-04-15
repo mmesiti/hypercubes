@@ -1,45 +1,37 @@
 #!/usr/bin/env python3
-from tree import tree_apply
 
-
-def get_size_tree(partition_class_tree, partition_exists_predicate):
+def get_size_tree(partition_class_tree, partition_exists_pred):
     '''
     Returns a tree of concrete partitions,
     NOT partition classes.
     '''
-
     leaf = (None, ())
 
-    def itch(node):
-        (partition_class, children), top_idx = node
-        if children == (leaf, ):
-            return ()
+    def size(n):
+        print(n)
+        (s, idx), cs = n
+        return s
 
-        children_to_process = []
-        for i in range(partition_class.max_idx_value()):
-            new_pc = children[partition_class.idx_to_child_kind(i)]
-            new_idx = top_idx + (i, )
-            # The predicate needs not
-            # the first index
-            new_idx_for_predicate = new_idx[1:]
-            if partition_exists_predicate(new_idx_for_predicate):
-                children_to_process.append((new_pc, new_idx))
-
-        return tuple(children_to_process)
-
-    def pops(node, children_results):
-        (partition_class, children), top_idx = node
-        if not children_results:
+    def _get_size_tree(node, top_idx):
+        partition_class, children = node
+        children_results = ()
+        if children != (leaf, ):
+            for i in range(partition_class.max_idx_value()):
+                new_pc = children[partition_class.idx_to_child_kind(i)]
+                new_idx = top_idx + (i, )
+                # The predicate needs not the first index
+                if partition_exists_pred(new_idx[1:]):
+                    r = _get_size_tree(new_pc, new_idx)
+                    if size(r) > 0:
+                        children_results += (r,)
+        else:
             return (partition_class.max_idx_value(), top_idx[-1]), ()
-        total_size = sum(cr[0][0] for cr in children_results)
 
-        selected_children_results = tuple(
-            ((s, idx), cs) for (s, idx), cs in children_results if s > 0)
+        total_size = sum(size(cr) for cr in children_results)
 
-        return (total_size, top_idx[-1]), selected_children_results
+        return (total_size, top_idx[-1]), children_results
 
-    # A first index 'None' is added
-    return tree_apply((partition_class_tree, (None, )), itch, pops)
+    return _get_size_tree(partition_class_tree, (None, ))
 
 
 def get_start_tree(size_tree):

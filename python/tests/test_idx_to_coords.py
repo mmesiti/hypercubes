@@ -45,6 +45,15 @@ def partitioning4Dnoeo():
     return pt.get_partitioning(geom_infos, partitioners_list)
 
 
+def test_idx_to_coords_noeo_1(  partitioning4Dnoeo):
+    xst = (2,34,14,2)
+    it = pt.get_indices_tree(partitioning4Dnoeo, xst)
+    idxs = tree.get_all_paths(it)
+    for idx in idxs:
+        res = pt.get_coord_from_idx(partitioning4Dnoeo, idx, 4)
+        assert res == xst
+
+
 @settings(max_examples=nexamples(1000),
           suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(xs=st.lists(st.integers(min_value=0, max_value=41),

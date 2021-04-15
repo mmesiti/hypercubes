@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 import partition_class_tree as pt
-import tree
 from fixtures import get_bulk_sites, get_border_sites, partitioning1D
 
 import pytest
 
 
 def print_itwg(itwg):
-    def itch(node):
-        prefix, data = node
-        return [(prefix + " ", d) for d in data[1]]
-
-    def pops(node, cs):
-        prefix, data = node
+    def _print_itwg(prefix, data):
+        children_results = tuple(_print_itwg(prefix + " ", d) for d in data[1])
         m = prefix + str(data[0])
-        return "\n".join((m,) + cs)
+        return "\n".join((m, ) + children_results)
 
-    print(tree.tree_apply(("", itwg), itch, pops))
+    print(_print_itwg("", itwg))
 
 
 @pytest.fixture
@@ -26,7 +21,7 @@ def partitioning1D_fixture():
 
 def site_check(x, expected_copies, partitioning):
 
-    itwg = pt.get_indices_tree_with_ghosts(partitioning, (x,))
+    itwg = pt.get_indices_tree_with_ghosts(partitioning, (x, ))
     idxs = pt.get_relevant_indices_flat(itwg)
     assert len(idxs) == expected_copies
 

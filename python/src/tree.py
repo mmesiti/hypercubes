@@ -1,33 +1,5 @@
 #!/usr/bin/env python3
 
-
-def tree_apply(
-    # the root/node of the tree
-    # plus any information
-    # that needs to be passed down the tree
-    # to the subsequent levels of recursion
-    node,
-    # a function that creates an iterator on the children
-    # (including the information
-    # that needs to be passed
-    #  to the children)
-    iterate_children,
-    # a function that aggregates the results
-    # it is called last in the recursion,
-    # so it basically pops the stack.
-    # It is also responsible
-    # for terminating the recursion.
-    pop_stack,
-):
-
-    return pop_stack(
-        node,
-        tuple(
-            tree_apply(n, iterate_children, pop_stack)
-            for n in iterate_children(node)),
-    )
-
-
 def get_all_paths(node):
     """
     Get the full paths from the root
