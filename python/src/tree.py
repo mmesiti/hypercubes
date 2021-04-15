@@ -58,50 +58,33 @@ def get_flat_list_of_subtrees(level, node):
 
 
 def get_max_depth(node):
-    def iterate_children(node):
-        _, children_to_process = node
-        return children_to_process
-
-    def pop_stack(_, children_results):
-        lengths = children_results
-        if lengths:
-            return 1 + max(lengths)
-        else:  # leaf case
-            return 1
-
-    return tree_apply(node, iterate_children, pop_stack)
+    _, cs = node
+    lengths = tuple(get_max_depth(c) for c in cs)
+    if lengths:
+        return 1 + max(lengths)
+    else:  # leaf case
+        return 1
 
 
 def truncate_tree(max_idx_tree, level):
-    def itch(node):
-        level, (_, cs) = node
-        if level > 0:
-            return tuple((level - 1, c) for c in cs)
-        else:
-            return ()
-
-    def pops(node, cs):
-        level, (m, _) = node
-        return (m, cs)
-
-    return tree_apply((level, max_idx_tree), itch, pops)
+    (m, cs) = max_idx_tree
+    if level > 0:
+        return m, tuple(truncate_tree(c, level - 1) for c in cs)
+    else:
+        return m, ()
 
 
 def get_leaves_list(max_idx_tree):
-    def itch(node):
-        _, cs = node
-        return cs
-
-    def pops(node, css):
-        n, _ = node
-        return tuple(c for cs in css for c in cs) if css else (n,)
-
-    return tree_apply(max_idx_tree, itch, pops)
+    n, children = max_idx_tree
+    children_results = tuple(get_leaves_list(c) for c in children)
+    if children_results:
+        return tuple(c for cs in children_results for c in cs)
+    else:
+        return (n,)
 
 
 def ziptree(*trees):
     def itch(node):
-        print("itch", node)
         ts = node
         assert len({len(t) for t in ts}) == 1
         css = tuple(cs for _, cs in ts)
