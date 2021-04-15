@@ -81,18 +81,13 @@ def get_leaves_list(max_idx_tree):
 
 
 def ziptree(*trees):
-    def itch(node):
-        ts = node
-        assert len({len(t) for t in ts}) == 1
-        css = tuple(cs for _, cs in ts)
-        return tuple(zip(*css))
+    ts = trees
+    assert len({len(t) for t in ts}) == 1
+    ns = tuple(n for n, _ in ts)
+    css = tuple(cs for _, cs in ts)
+    children_results = tuple(ziptree(*t) for t in zip(*css))
 
-    def pops(node, children_results):
-        ts = node
-        ns = tuple(n for n, _ in ts)
-        return ns, children_results
-
-    return tree_apply(trees, itch, pops)
+    return ns, children_results
 
 
 def nodemap(tree, f):
