@@ -4,3 +4,4 @@ tree_repr.txt
 __pycache__
 .coverage
 htmlcov
+examples
