@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-from tree import tree_apply, get_max_depth, get_all_paths, tree_apply_memoized, nodemap
+from tree import tree_apply, get_max_depth, get_all_paths, nodemap
 from partitioners import partitioners_dict
+
+from functools import cache
 
 
 def get_partitioning(geom_infos, partitioners):
@@ -13,11 +15,8 @@ def get_partitioning(geom_infos, partitioners):
     A node is represented
     by the ranges that represent lattice partition.
     """
-    def iterate_children(node):
-        """
-        In this case, node is actually size.
-        """
-        geom_info, partitioners = node
+    @cache
+    def _get_partitioning(geom_info, partitioners):
         (name, dimension_info, partitioner_name,
          partitioner_parameters) = partitioners[0]
         other_partitioners = partitioners[1:]
@@ -25,27 +24,14 @@ def get_partitioning(geom_infos, partitioners):
             partitioner_parameters)
         partition_class = partitioner(geom_info, dimension_info, name)
 
-        children = (tuple(
-            (new_geom_info, other_partitioners)
+        children_results = (tuple(
+            _get_partitioning(new_geom_info, other_partitioners)
             for new_geom_info in partition_class.sub_geom_info_list())
                     if other_partitioners else ())
-        return children
 
-    def pop_stack(node, children):
-        geom_info, partitioners = node
-        name, dimension_info, partitioner_name, partitioner_parameters = partitioners[
-            0]
-        partitioner = partitioners_dict[partitioner_name](
-            partitioner_parameters)
-        partition_class = partitioner(geom_info, dimension_info, name)
+        return partition_class, children_results
 
-        return partition_class, children
-
-    return tree_apply_memoized(
-        node=(geom_infos, partitioners),
-        iterate_children=iterate_children,
-        pop_stack=pop_stack,
-    )
+    return _get_partitioning(geom_infos, partitioners)
 
 
 def partitioning_to_str(partitions, prefix, max_level):

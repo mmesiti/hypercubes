@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from functools import cache
 
 
 def tree_apply(
@@ -29,24 +28,6 @@ def tree_apply(
     )
 
 
-@cache
-def tree_apply_memoized(
-    node,
-    iterate_children,
-    pop_stack,
-):
-    """
-    Same, but for hashable args
-    """
-
-    return pop_stack(
-        node,
-        tuple(
-            tree_apply_memoized(n, iterate_children, pop_stack)
-            for n in iterate_children(node)),
-    )
-
-
 def get_all_paths(node):
     """
     Get the full paths from the root
@@ -56,10 +37,10 @@ def get_all_paths(node):
         _, children = node
         return children
 
-    def pop_stack(node, children):
+    def pop_stack(node, children_results):
         n, _ = node
-        children_lists = children
-        if len(children) != 0:  # node case
+        children_lists = children_results
+        if len(children_results) != 0:  # node case
             # we get a list of lists for each child
             cs = [c for children_list in children_lists for c in children_list]
             return tuple((n, ) + child for child in cs)
