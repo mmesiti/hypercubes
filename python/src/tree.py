@@ -23,8 +23,8 @@ def tree_apply(
     return pop_stack(
         node,
         tuple(
-            tree_apply(n, iterate_children, pop_stack) for n in iterate_children(node)
-        ),
+            tree_apply(n, iterate_children, pop_stack)
+            for n in iterate_children(node)),
     )
 
 
@@ -35,26 +35,24 @@ def get_all_paths(node):
     """
     n, children = node
     children_results = tuple(get_all_paths(n) for n in children)
-    children_lists = children_results
     if len(children_results) != 0:  # node case
         # we get a list of lists for each child
-        cs = [c for children_list in children_lists for c in children_list]
-        return tuple((n,) + child for child in cs)
+        cs = [c for children_list in children_results for c in children_list]
+        return tuple((n, ) + child for child in cs)
     else:  # leaf case
-        return ((n,),)
+        return ((n, ), )
 
 
 def get_flat_list_of_subtrees(level, node):
     (n, children) = node
-    children_to_process = tuple((level - 1, c) for c in children)
     children_lists = tuple(
-        get_flat_list_of_subtrees(l, c) for l, c in children_to_process
-    )
+        get_flat_list_of_subtrees(level - 1, c) for c in children)
     if len(children_lists) != 0 and level > 0:  # node case
         # we get a list of lists for each child
-        return tuple(c for children_list in children_lists for c in children_list)
+        return tuple(c for children_list in children_lists
+                     for c in children_list)
     else:  # leaf case
-        return ((n, children),)
+        return ((n, children), )
 
 
 def get_max_depth(node):
@@ -77,7 +75,8 @@ def truncate_tree(max_idx_tree, level):
 def get_leaves_list(max_idx_tree):
     n, children = max_idx_tree
     children_results = tuple(get_leaves_list(c) for c in children)
-    return tuple(c for cs in children_results for c in cs) if children_results else (n,)
+    return tuple(c for cs in children_results
+                 for c in cs) if children_results else (n, )
 
 
 def ziptree(*trees):
@@ -91,15 +90,9 @@ def ziptree(*trees):
 
 
 def nodemap(tree, f):
-    def itch(node):
-        _, cs = node
-        return cs
-
-    def pops(node, children_results):
-        n, _ = node
-        return f(n), children_results
-
-    return tree_apply(tree, itch, pops)
+    n, cs = tree
+    children_results = tuple(nodemap(c, f) for c in cs)
+    return f(n), children_results
 
 
 def collapse_level(tree, level_to_collapse, child_to_replace):
@@ -111,27 +104,23 @@ def collapse_level(tree, level_to_collapse, child_to_replace):
     needs to exist in all subtrees.
     DOES NOT WORK ON LEAVES.
     """
-
-    def itch(node):
-        level, (_, cs) = node
-        return tuple(((level - 1), c) for c in cs)
-
-    def pops(node, children_results):
-        level, (n, children) = node
+    def _collapse_level(level, node):
+        (n, children) = node
+        children_results = tuple(
+            _collapse_level(level - 1, c) for c in children)
         if level == 0:
             res = children[child_to_replace]
         else:
             res = (n, children_results)
         return res
 
-    return tree_apply((level_to_collapse, tree), itch, pops)
+    return _collapse_level(level_to_collapse, tree)
 
 
 def bring_level_on_top(tree, level):
     """
     DOES NOT WORK ON LEAVES.
     """
-
     def find_nchildren_level(tree, level):
         tt = truncate_tree(tree, level + 1)
         subtrees = get_flat_list_of_subtrees(level, tt)
@@ -147,7 +136,8 @@ def bring_level_on_top(tree, level):
 
     nchildren = find_nchildren_level(tree, level)
     node_representative = find_node_representative(tree, level)
-    new_subtrees = tuple(collapse_level(tree, level, ic) for ic in range(nchildren))
+    new_subtrees = tuple(
+        collapse_level(tree, level, ic) for ic in range(nchildren))
     return node_representative, new_subtrees
 
 
@@ -160,10 +150,10 @@ def swap_levels(tree, new_level_ordering):
     as there is a lot of shared code
     between the two functions.
     """
-
     def get_new_sub_level_ordering(new_level_ordering):
         lvl_removed = new_level_ordering[0]
-        return tuple((l - 1) if l > lvl_removed else l for l in new_level_ordering[1:])
+        return tuple(
+            (l - 1) if l > lvl_removed else l for l in new_level_ordering[1:])
 
     if len(new_level_ordering) == 0:
         return tree
@@ -178,16 +168,13 @@ def swap_levels(tree, new_level_ordering):
 # This requires a tree as produced by
 # get_max_idx_tree
 def tree_str(tree):
-    def itch(node):
-        prefix, (_, cs) = node
-        return tuple((prefix + "  ", c) for c in cs)
-
-    def pops(node, children_results):
-        prefix, (m, _) = node
+    def _tree_str(prefix, node):
+        (m, cs) = node
+        children_results = tuple(_tree_str(prefix + "  ", c) for c in cs)
         head = prefix + str(m)
-        return "\n".join((head,) + children_results)
+        return "\n".join((head, ) + children_results)
 
-    return tree_apply(("", tree), itch, pops)
+    return _tree_str("", tree)
 
 
 def first_nodes_list(tree):
@@ -198,7 +185,7 @@ def first_nodes_list(tree):
 def depth_first_flatten(tree):
     n, cs = tree
     sub_results = (depth_first_flatten(c) for c in cs)
-    res = (n,)
+    res = (n, )
     for sub_res in sub_results:
         res = res + sub_res
     return res

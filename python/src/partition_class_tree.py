@@ -27,7 +27,7 @@ def get_partitioning(geom_infos, partitioners):
         children_results = (tuple(
             _get_partitioning(new_geom_info, other_partitioners)
             for new_geom_info in partition_class.sub_geom_info_list())
-                    if other_partitioners else ())
+                            if other_partitioners else ())
 
         return partition_class, children_results
 
@@ -35,33 +35,25 @@ def get_partitioning(geom_infos, partitioners):
 
 
 def partitioning_to_str(partitions, prefix, max_level):
-    def iterate_children(node):
-        (n, children), prefix, max_level = node
-        new_prefix = prefix + "   "
-        next_level = []
-        if children:
-            for child in children[:-1]:
-                next_level.append((child, new_prefix + "|", max_level - 1))
-            next_level.append((children[-1], new_prefix + " ", max_level - 1))
-        return next_level
+    (n, children) = partitions
+    new_prefix = prefix + "   "
+    children_results = []
+    if children:
+        for child in children[:-1]:
+            children_results.append(
+                partitioning_to_str(child, new_prefix + "|", max_level - 1))
+        children_results.append(
+            partitioning_to_str(children[-1], new_prefix + " ", max_level - 1))
 
-    def pop_stack(node, children):
-        (n, _), prefix, max_level = node
-        if max_level == 0 or n is None:
-            return ""
-        header_line1 = "".join((prefix, "+", n.name))
-        header_line2 = "".join((prefix, " ", n.comments))
-        children_lines = children
-        return "\n".join([
-            header_line1,
-            header_line2,
-        ] + [line for line in children_lines if len(line) != 0])
-
-    return tree_apply(
-        node=(partitions, prefix, max_level),
-        iterate_children=iterate_children,
-        pop_stack=pop_stack,
-    )
+    if max_level == 0 or n is None:
+        return ""
+    header_line1 = "".join((prefix, "+", n.name))
+    header_line2 = "".join((prefix, " ", n.comments))
+    children_lines = children_results
+    return "\n".join([
+        header_line1,
+        header_line2,
+    ] + [line for line in children_lines if len(line) != 0])
 
 
 def get_indices_tree(partitioning, coordinates):
@@ -73,29 +65,27 @@ def get_indices_tree(partitioning, coordinates):
     """
     leaf = (None, ())
 
-    def iterate_children(node):
-        (partition_class, children), coordinates, name = node
-        if children == (leaf, ):
-            return ()
-
-        possible_indices = partition_class.coords_to_idxs(coordinates)
-        real_value = next(v for v in possible_indices if not v.cached_flag)
-        rest = real_value.rest
-        child_type = partition_class.idx_to_child_kind(real_value.idx)
-        sub_partitionings = children
-
-        return (((sub_partitionings[child_type], rest,
-                  partition_class.name), ) if sub_partitionings else ())
-
-    def pop_stack(node, children):
-        (partition_class, _), coordinates, name = node
+    def _get_indices_tree(partitioning, coordinates, name):
+        partition_class, children = partitioning
         if partition_class:
             possible_indices = partition_class.coords_to_idxs(coordinates)
             real_value = next(v for v in possible_indices if not v.cached_flag)
-            return ((real_value.idx), children)
+        else:
+            return
+        if children in ((leaf, ), ()):
+            children_results = ()
+        else:
+            rest = real_value.rest
+            child_type = partition_class.idx_to_child_kind(real_value.idx)
 
-    return tree_apply((partitioning, coordinates, ""), iterate_children,
-                      pop_stack)
+            r = _get_indices_tree(
+                children[child_type],  #
+                rest,  #
+                partition_class.name)
+            children_results = (r, )
+        return (real_value.idx, children_results)
+
+    return _get_indices_tree(partitioning, coordinates, "")
 
 
 def get_indices_tree_with_ghosts(partitioning, coordinates):
