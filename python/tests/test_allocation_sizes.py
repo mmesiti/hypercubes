@@ -18,8 +18,9 @@ def simple_size_tree():
         ("END", None, "end", None),
     )
 
-    partitioning = pct.get_partitioning(
-        ((32, 0), ),
+    geom_info = ((32, 0), )
+    partitioning = pct.get_partition_class_tree(
+        geom_info,
         partitioners_list,
     )
 
@@ -49,7 +50,7 @@ def less_simple_size_tree():
         ("END", None, "end", None),
     )
 
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((32, 0), ),
         partitioners_list,
     )
@@ -80,7 +81,7 @@ def test_all_allocated_simple2(less_simple_size_tree):
 def test_all_allocated():
     partitioners_list = fixtures.partitioners_list_1D_42()
 
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((42, 0), ),
         partitioners_list,
     )
@@ -95,13 +96,13 @@ def test_all_allocated():
 def test_only_bb_allocated():
     partitioners_list = fixtures.partitioners_list_1D_42()
 
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((42, 0), ),
         partitioners_list,
     )
 
     def predicate(i):
-        return pps.get_NmD_predicate(0)(partitioners_list, i)
+        return pps.get_NmD_halo_predicate(0)(partitioners_list, i)
 
     size_tree = pt.get_size_tree(partitioning, predicate)
 
@@ -113,14 +114,14 @@ def test_only_bb_allocated():
 def test_single_mpi_rank():
     partitioners_list = fixtures.partitioners_list_1D_42()
 
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((42, 0), ),
         partitioners_list,
     )
 
     def predicate(idx):
         return (pps.only_specific_mpi_rank(partitioners_list, idx, (3, ))
-                and pps.get_NmD_predicate(0)(partitioners_list, idx))
+                and pps.get_NmD_halo_predicate(0)(partitioners_list, idx))
 
     size_tree = pt.get_size_tree(partitioning, predicate)
 
@@ -132,7 +133,7 @@ def test_single_mpi_rank():
 def test_single_mpi_rank_4D_bulk():
     partitioners_list = fixtures.partitioners_list_4D_42()
 
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((42, 0), ) * 4,
         partitioners_list,
     )
@@ -140,7 +141,7 @@ def test_single_mpi_rank_4D_bulk():
     def predicate(idx):
         MPI_Rank = (3, 3, 3, 3)
         return (pps.only_specific_mpi_rank(partitioners_list, idx, MPI_Rank)
-                and pps.get_NmD_predicate(0)(partitioners_list, idx))
+                and pps.get_NmD_halo_predicate(0)(partitioners_list, idx))
 
     size_tree = pt.get_size_tree(partitioning, predicate)
 
@@ -152,7 +153,7 @@ def test_single_mpi_rank_4D_bulk():
 def test_single_mpi_rank_4D_bulkand3Dhalo():
     partitioners_list = fixtures.partitioners_list_4D_42()
 
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((42, 0), ) * 4,
         partitioners_list,
     )
@@ -160,7 +161,7 @@ def test_single_mpi_rank_4D_bulkand3Dhalo():
     def predicate(idx):
         MPI_Rank = (3, 3, 3, 3)
         return (pps.only_specific_mpi_rank(partitioners_list, idx, MPI_Rank)
-                and pps.get_NmD_predicate(1)(partitioners_list, idx))
+                and pps.get_NmD_halo_predicate(1)(partitioners_list, idx))
 
     size_tree = pt.get_size_tree(partitioning, predicate)
 
@@ -190,7 +191,7 @@ def test_single_mpi_rank_4D_bulkand3Dhalo_simpler():
         ("END", None, "end", None),
     )
 
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((42, 0), ) * 4,
         partitioners_list,
     )
@@ -198,7 +199,7 @@ def test_single_mpi_rank_4D_bulkand3Dhalo_simpler():
     def predicate(idx):
         MPI_Rank = (3, 3, 3, 3)
         return (pps.only_specific_mpi_rank(partitioners_list, idx, MPI_Rank)
-                and pps.get_NmD_predicate(4)(partitioners_list, idx))
+                and pps.get_NmD_halo_predicate(4)(partitioners_list, idx))
 
     size_tree = pt.get_size_tree(partitioning, predicate)
 
@@ -242,7 +243,7 @@ def test_no_zero_size_partitions():
 
     '''
     partitioners_list = fixtures.partitioners_list_1D_42()
-    partitioning = pct.get_partitioning(
+    partitioning = pct.get_partition_class_tree(
         ((42, 0), ),
         partitioners_list,
     )

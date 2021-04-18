@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def get_all_paths(node):
     """
     Get the full paths from the root

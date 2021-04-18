@@ -21,10 +21,9 @@ def dimensionalise(cls):
         def __getattr__(self, name):
             return getattr(self.wrapped, name)
 
-        def _merge_in(self, value, list_):
-            return tuple(
-                value if i == self.dimension else l
-                for i, l in enumerate(list_))
+        def _merge_in(self, value, iterable):
+            return tuple(value if i == self.dimension else l
+                         for i, l in enumerate(iterable))
 
         def coords_to_idxs(self, relative_xs):
             relative_x = relative_xs[self.dimension]
@@ -36,8 +35,7 @@ def dimensionalise(cls):
                     idx=r1D.idx,
                     rest=self._merge_in(r1D.rest, relative_xs),
                     cached_flag=r1D.cached_flag,
-                ) for r1D in results1D
-            )
+                ) for r1D in results1D)
 
         def sub_geom_info_list(self):
 
@@ -50,5 +48,10 @@ def dimensionalise(cls):
             coord = self.wrapped.idx_to_coord(idx, offset)
 
             return self._merge_in(coord, offsets)
+
+        def idx_to_sizes(self, idx, sizes):
+            size = self.wrapped.idx_to_size(idx)
+
+            return self._merge_in(size, sizes)
 
     return Dimensionalised

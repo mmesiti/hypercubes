@@ -32,7 +32,7 @@ def test_only_bulk_and_borders(idhbb, p4D42):
         0
     ]  #
 
-    assert pps.get_NmD_predicate(0)(p4D42, idx) == res
+    assert pps.get_NmD_halo_predicate(0)(p4D42, idx) == res
 
 
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
@@ -57,7 +57,7 @@ def test_only_bulk_and_borders(idhbb, D, p4D42):
     ]  #
 
     res = halo_dimensionality <= D
-    predicate = pps.get_NmD_predicate(D)
+    predicate = pps.get_NmD_halo_predicate(D)
     assert predicate(p4D42, idx) == res
 
 

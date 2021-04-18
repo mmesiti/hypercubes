@@ -4,7 +4,7 @@ import partition_class_tree as pt
 
 
 def find_dependency_matrix(max_idx_tree):
-    max_depth = tree.get_max_depth(max_idx_tree)-1
+    max_depth = tree.get_max_depth(max_idx_tree) - 1
     m = dict()
 
     def check_subtrees_distribution_equal(t):
@@ -12,37 +12,31 @@ def find_dependency_matrix(max_idx_tree):
         The conditions here may need refinement.
         '''
         subtrees = tree.get_flat_list_of_subtrees(1, t)
-        leaves_lists = [
-            tree.get_leaves_list(tr) for tr in subtrees
-        ]
+        leaves_lists = [tree.get_leaves_list(tr) for tr in subtrees]
         # NOTE: if sublist are equal,
         # then this does not mean
         # that the distribution are equal,
         # but this is a necessary condition
         # (except in cases where there is only a single value).
-        sublist_equal = all( lista ==
-                             listb for lista, listb
-                             in zip(leaves_lists[:-1], leaves_lists[1:]))
+        sublist_equal = all(
+            lista == listb
+            for lista, listb in zip(leaves_lists[:-1], leaves_lists[1:]))
 
         # In case sublist have different lentghs
         # but there is only one value
-        only_one_value =  len(set.union(*[set(l) for l in leaves_lists])) == 1
+        only_one_value = len(set.union(*[set(l) for l in leaves_lists])) == 1
 
         res = sublist_equal or only_one_value
         return res
 
-
     for end_depth in range(max_depth):
         m[(end_depth, end_depth)] = True
-        truncated = tree.truncate_tree(
-            max_idx_tree,
-            end_depth)
+        truncated = tree.truncate_tree(max_idx_tree, end_depth)
         for start_depth in range(end_depth):
-            subtrees = tree.get_flat_list_of_subtrees(
-                start_depth,
-                truncated)
+            subtrees = tree.get_flat_list_of_subtrees(start_depth, truncated)
             m[(end_depth, start_depth)] = all(
-                check_subtrees_distribution_equal(subtree) for subtree in subtrees)
+                check_subtrees_distribution_equal(subtree)
+                for subtree in subtrees)
     return m
 
 

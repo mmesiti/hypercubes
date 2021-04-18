@@ -28,9 +28,14 @@ class Partitioning:
         '''
         pass
 
+    def idx_to_sizes(self, idx, sizes):
+        '''
+        Return the sizes of the partition indexed by idx.
+        '''
+        pass
+
     def idx_to_child_kind(self, idx):
         pass
 
     def max_idx_value(self):
         pass
-

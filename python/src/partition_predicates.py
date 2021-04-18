@@ -21,8 +21,8 @@ def only_NmD_halos(partitioners_list, idx, D):
     return True
 
 
-def get_NmD_predicate(D):
-    return lambda p, i : only_NmD_halos(p,i,D)
+def get_NmD_halo_predicate(D):
+    return lambda p, i: only_NmD_halos(p, i, D)
 
 
 def only_specific_mpi_rank(partitioners_list, idx, MPI_ranks):
@@ -37,4 +37,4 @@ def only_specific_mpi_rank(partitioners_list, idx, MPI_ranks):
 
 
 def get_mpi_rank_predicate(MPI_ranks):
-    return lambda p, i : only_specific_mpi_rank(p,i,MPI_ranks)
+    return lambda p, i: only_specific_mpi_rank(p, i, MPI_ranks)

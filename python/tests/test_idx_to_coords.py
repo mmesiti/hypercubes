@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import partition_class_tree as pt
+import partition_class_tree as pct
 import fixtures
 from fixtures import nexamples
 import tree
@@ -39,18 +39,18 @@ def partitioning4Dnoeo():
         ("Leaf Y", Y, "leaf", None),
         ("Leaf Z", Z, "leaf", None),
         ("Leaf T", T, "leaf", None),
-        ("END",None,"end",None),
+        ("END", None, "end", None),
     )
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pct.get_partition_class_tree(geom_infos, partitioners_list)
 
 
-def test_idx_to_coords_noeo_1(  partitioning4Dnoeo):
-    xst = (2,34,14,2)
-    it = pt.get_indices_tree(partitioning4Dnoeo, xst)
+def test_idx_to_coords_noeo_1(partitioning4Dnoeo):
+    xst = (2, 34, 14, 2)
+    it = pct.get_indices_tree(partitioning4Dnoeo, xst)
     idxs = tree.get_all_paths(it)
     for idx in idxs:
-        res = pt.get_coord_from_idx(partitioning4Dnoeo, idx, 4)
+        res = pct.get_coord_from_idx(partitioning4Dnoeo, idx, 4)
         assert res == xst
 
 
@@ -61,10 +61,10 @@ def test_idx_to_coords_noeo_1(  partitioning4Dnoeo):
                    max_size=4))
 def test_idx_to_coords_noeo(xs, partitioning4Dnoeo):
     xst = tuple(xs)
-    it = pt.get_indices_tree(partitioning4Dnoeo, xst)
+    it = pct.get_indices_tree(partitioning4Dnoeo, xst)
     idxs = tree.get_all_paths(it)
     for idx in idxs:
-        res = pt.get_coord_from_idx(partitioning4Dnoeo, idx, 4)
+        res = pct.get_coord_from_idx(partitioning4Dnoeo, idx, 4)
         assert res == xst
 
 
@@ -87,16 +87,16 @@ def test_idx_to_coords1D(xs):
         ("MPI X", X, "qper", 2),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
-        ("END",None,"end",None),
+        ("END", None, "end", None),
     )
 
-    partitioning = pt.get_partitioning(geom_infos, partitioners_list)
+    partitioning = pct.get_partition_class_tree(geom_infos, partitioners_list)
 
     xst = tuple(xs)
-    it = pt.get_indices_tree(partitioning, xst)
+    it = pct.get_indices_tree(partitioning, xst)
     idxs = tree.get_all_paths(it)
     for idx in idxs:
-        res = pt.get_coord_from_idx(partitioning, idx, 2)
+        res = pct.get_coord_from_idx(partitioning, idx, 2)
         assert res == xst
 
 
@@ -109,7 +109,7 @@ def test_idx_to_coords1D(xs):
     (21, 0),
     (22, 10),
 ])
-def test_idx_to_coords_full(xs):
+def test_idx_to_coords_2D(xs):
     sizes = (44, 42)
     geom_infos = tuple((s, 0) for s in sizes)
 
@@ -120,14 +120,49 @@ def test_idx_to_coords_full(xs):
         ("MPI Y", Y, "qper", 2),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
-        ("END",None,"end",None),
+        ("END", None, "end", None),
     )
 
-    partitioning = pt.get_partitioning(geom_infos, partitioners_list)
+    partitioning = pct.get_partition_class_tree(geom_infos, partitioners_list)
 
     xst = tuple(xs)
-    it = pt.get_indices_tree(partitioning, xst)
+    it = pct.get_indices_tree(partitioning, xst)
     idxs = tree.get_all_paths(it)
     for idx in idxs:
-        res = pt.get_coord_from_idx(partitioning, idx, 3)
+        res = pct.get_coord_from_idx(partitioning, idx, 3)
         assert res == xst
+
+
+@pytest.mark.parametrize(
+    "idx,coord",
+    [
+        ((1, ), (21, )),
+        ((1, 0), (21, )),
+        ((1, 0, 0), (20, )),  # halo
+        ((1, 1), (32, )),
+        ((1, 1, 0), (31, )),  # halo
+        ((1, 1, 1), (32, )),  # border
+        ((0, ), (0, )),
+        ((
+            0,
+            0,
+        ), (0, )),
+        ((0, 0, 0), (-1, )),  # halo
+    ])
+def test_idx_truncated_to_coords1D(idx, coord):
+    sizes = (42, )
+    geom_infos = tuple((s, 0) for s in sizes)
+
+    X = 0
+
+    partitioners_list = (
+        ("MPI X", X, "qper", 2),
+        ("VECTOR X", X, "qopen", 2),
+        ("HBB X", X, "hbb", 1),
+        ("END", None, "end", None),
+    )
+
+    partition_class_tree = pct.get_partition_class_tree(
+        geom_infos, partitioners_list)
+
+    assert coord == pct.get_coord_from_idx(partition_class_tree, idx, 1)

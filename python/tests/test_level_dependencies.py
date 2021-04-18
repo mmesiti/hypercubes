@@ -9,7 +9,7 @@ import os
 def show_partitioning(partitioning, name):
     os.makedirs("examples", exist_ok=True)
     with open(f"examples/{name}-full.txt", 'w') as f:
-        f.write(pt.partitioning_to_str(partitioning, '', 20))
+        f.write(pt.partition_class_tree_to_str(partitioning, '', 20))
     max_idx_tree = pt.get_max_idx_tree(partitioning)
     with open(f"examples/{name}-maxidx.txt", 'w') as f:
         f.write(tree.tree_str(max_idx_tree))
@@ -28,16 +28,13 @@ def partitioning1D_level2even():
 
     X, EXTRA = list(range(2))
 
-    partitioners_list = (
-        ("MPI X", X, "qper", 2),
-        ("VECTOR X", X, "qopen", 2),
-        ("halos X", X, "hbb", 1),
-        ("EO", tuple(True for _ in sizes), "eo", None),
-        ("EO-flattened", EXTRA, "leaf", None),
-        ("END",None,"end",None)
-    )
+    partitioners_list = (("MPI X", X, "qper", 2), ("VECTOR X", X, "qopen", 2),
+                         ("halos X", X, "hbb",
+                          1), ("EO", tuple(True for _ in sizes), "eo",
+                               None), ("EO-flattened", EXTRA, "leaf",
+                                       None), ("END", None, "end", None))
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)
 
 
 def test_1D_level2even():
@@ -64,10 +61,10 @@ def partitioning1D_level2odd():
         ("halos X", X, "hbb", 1),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
-        ("END",None,"end",None),
+        ("END", None, "end", None),
     )
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)
 
 
 def test_1D_level2odd():
@@ -97,7 +94,7 @@ def partitioning1D_localdofs(level1, level2):
         ("halos X", X, "hbb", 1),
         ("EO", (True, False, False), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
-        ("END",None,"end",None),
+        ("END", None, "end", None),
     )
 
     independent1 = ("LocalDOFs2", Z, "leaf", None)
@@ -111,7 +108,7 @@ def partitioning1D_localdofs(level1, level2):
 
     {print(p) for p in partitioners_list}
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)
 
 
 @pytest.mark.parametrize("level1,level2",
@@ -160,10 +157,10 @@ def partitioning4Dnocache():
         ("VECTOR T", T, "qopen", 2),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
-        ("END",None,"end",None),
+        ("END", None, "end", None),
     )
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)
 
 
 def test_4Dnocache():
@@ -206,10 +203,10 @@ def partitioning4Deasy():
         ("halos T", T, "hbb", 1),
         ("EO", tuple(True for _ in sizes), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
-        ("END",None,"end",None),
+        ("END", None, "end", None),
     )
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)
 
 
 def test_4Deasy():

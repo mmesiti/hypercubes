@@ -56,5 +56,8 @@ class Partitioning1D(Partitioning):
             if (subsize_, parity_) == (subsize, parity):
                 return i
 
+    def idx_to_size(self, idx):
+        return self.ends[idx] - self.starts[idx]
+
     def max_idx_value(self):
         pass

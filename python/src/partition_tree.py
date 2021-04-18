@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def get_size_tree(partition_class_tree, partition_exists_pred):
     '''
     Returns a tree of concrete partitions,
@@ -23,7 +24,7 @@ def get_size_tree(partition_class_tree, partition_exists_pred):
                 if partition_exists_pred(new_idx[1:]):
                     r = _get_size_tree(new_pc, new_idx)
                     if size(r) > 0:
-                        children_results += (r,)
+                        children_results += (r, )
         else:
             return (partition_class.max_idx_value(), top_idx[-1]), ()
 
@@ -69,7 +70,7 @@ def get_start_idx(size_tree):
         return (get_idx(children[0]), ) + get_start_idx(children[0])
 
 
-def iterate(size_tree, idxs, direction):
+def iterate(size_tree, idxs):
     '''
     `ptree` is a tree of concrete partitions,
     where each node is in the form

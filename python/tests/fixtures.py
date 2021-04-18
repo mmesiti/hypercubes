@@ -28,7 +28,7 @@ def partitioners_list_4D_42():
         ("halos Y", Y, "hbb", 1),
         ("halos Z", Z, "hbb", 1),
         ("halos T", T, "hbb", 1),
-        ("EO", (True,)*4, "eo", None),
+        ("EO", (True, ) * 4, "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
         ("END", None, "end", None),
     )
@@ -55,7 +55,7 @@ def partitioning4D():
 
     partitioners_list = partitioners_list_4D_42()
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)
 
 
 def partitioners_list_1D_42():
@@ -65,11 +65,10 @@ def partitioners_list_1D_42():
         ("MPI X", X, "qper", 4),
         ("VECTOR X", X, "qopen", 2),
         ("halos X", X, "hbb", 1),
-        ("EO", (True,), "eo", None),
+        ("EO", (True, ), "eo", None),
         ("EO-flattened", EXTRA, "leaf", None),
         ("END", None, "end", None),
     )
-
 
 
 def partitioning1D():
@@ -86,13 +85,13 @@ def partitioning1D():
     In-part idx: |0|0123|0|0|012|0|0|0123|0|0|012|0|0|0123|0|0|012|0|0|012|0|0|01|0|
     In-part size: 1 4    1 1 3   1 1 4    1 1 3   1 1 4    1 1 3   1 1 3   1 1 2  1
     """
-    sizes = (42,)
+    sizes = (42, )
 
     geom_infos = tuple((s, 0) for s in sizes)
 
     partitioners_list = partitioners_list_1D_42()
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)
 
 
 def get_bulk_sites():
@@ -108,7 +107,7 @@ def get_border_sites():
 
 
 def symmetric_case():
-    sizes = (64,) * 4
+    sizes = (64, ) * 4
 
     geom_infos = tuple((s, 0) for s in sizes)
 
@@ -133,4 +132,4 @@ def symmetric_case():
         ("END", None, "end", None),
     )
 
-    return pt.get_partitioning(geom_infos, partitioners_list)
+    return pt.get_partition_class_tree(geom_infos, partitioners_list)

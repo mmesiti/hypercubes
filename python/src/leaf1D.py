@@ -3,13 +3,11 @@ from partitioning1D import Partitioning1D
 from partitioning import IndexResult
 from dimensionalise import dimensionalise
 
-
 all_leaf1ds = dict()
 
 
 @dimensionalise
 class Leaf1D(Partitioning1D):
-
     def __init__(self, geom_info, dimension, name):
         self.size, self.parity = geom_info
         self.dimension = dimension

@@ -5,7 +5,7 @@ from partitioners import partitioners_dict
 from functools import cache
 
 
-def get_partitioning(geom_infos, partitioners):
+def get_partition_class_tree(geom_infos, partitioners):
     """
     Creates a tree of partitionings
     from an initial range specification
@@ -34,16 +34,18 @@ def get_partitioning(geom_infos, partitioners):
     return _get_partitioning(geom_infos, partitioners)
 
 
-def partitioning_to_str(partitions, prefix, max_level):
-    (n, children) = partitions
+def partition_class_tree_to_str(partition_class_tree, prefix, max_level):
+    (n, children) = partition_class_tree
     new_prefix = prefix + "   "
     children_results = []
     if children:
         for child in children[:-1]:
             children_results.append(
-                partitioning_to_str(child, new_prefix + "|", max_level - 1))
+                partition_class_tree_to_str(child, new_prefix + "|",
+                                            max_level - 1))
         children_results.append(
-            partitioning_to_str(children[-1], new_prefix + " ", max_level - 1))
+            partition_class_tree_to_str(children[-1], new_prefix + " ",
+                                        max_level - 1))
 
     if max_level == 0 or n is None:
         return ""
@@ -56,7 +58,7 @@ def partitioning_to_str(partitions, prefix, max_level):
     ] + [line for line in children_lines if len(line) != 0])
 
 
-def get_indices_tree(partitioning, coordinates):
+def get_indices_tree(partition_class_tree, coordinates):
     """
     Get index tree.
     A certain location can be reached
@@ -65,8 +67,8 @@ def get_indices_tree(partitioning, coordinates):
     """
     leaf = (None, ())
 
-    def _get_indices_tree(partitioning, coordinates, name):
-        partition_class, children = partitioning
+    def _get_indices_tree(partition_class_tree, coordinates, name):
+        partition_class, children = partition_class_tree
         possible_indices = partition_class.coords_to_idxs(coordinates)
         real_value = next(v for v in possible_indices if not v.cached_flag)
 
@@ -83,19 +85,19 @@ def get_indices_tree(partitioning, coordinates):
             children_results = (r, )
         return (real_value.idx, children_results)
 
-    return _get_indices_tree(partitioning, coordinates, "")
+    return _get_indices_tree(partition_class_tree, coordinates, "")
 
 
-def get_indices_tree_with_ghosts(partitioning, coordinates):
+def get_indices_tree_with_ghosts(partition_class_tree, coordinates):
     """
     Get index tree.
     A certain location can be reached
     in multiple ways,
     so a bifurcation at that level is necessary.
     """
-    def _get_indices_tree_with_ghosts(idx, cached_flags, partitioning,
+    def _get_indices_tree_with_ghosts(idx, cached_flags, partition_class_tree,
                                       coordinates, name):
-        partition_class, children = partitioning
+        partition_class, children = partition_class_tree
         if partition_class is None:
             children_results = ()
         else:
@@ -113,8 +115,8 @@ def get_indices_tree_with_ghosts(partitioning, coordinates):
 
         return ((idx, cached_flags, name), children_results)
 
-    return _get_indices_tree_with_ghosts("0", False, partitioning, coordinates,
-                                         "ROOT")
+    return _get_indices_tree_with_ghosts("0", False, partition_class_tree,
+                                         coordinates, "ROOT")
 
 
 def get_relevant_indices_flat(tree_indices):
@@ -131,32 +133,44 @@ def get_relevant_indices_flat(tree_indices):
     ]
 
 
-def get_coord_from_idx(partitioning, idx, dimensions):
-    def _get_coord_from_idx(partitioning, indices, level):
-        (partition_class, children) = partitioning
+def get_coord_from_idx(partition_class_tree, idx, dimensions):
+    def _get_coord_from_idx(partition_class_tree, indices):
+        (partition_class, children) = partition_class_tree
+        idx = indices[0]
         if len(indices) > 1:
-            idx = indices[0]
             child_kind = partition_class.idx_to_child_kind(idx)
-            offsets = _get_coord_from_idx(children[child_kind], indices[1:],
-                                          level + 1)
+            offsets = _get_coord_from_idx(children[child_kind], indices[1:])
         else:
             offsets = (0, ) * dimensions
 
-        idx = indices[0]
-
         return partition_class.idx_to_coords(idx, offsets)
 
-    return _get_coord_from_idx(partitioning, idx, 0)
+    return _get_coord_from_idx(partition_class_tree, idx)
+
+
+def get_sizes_from_idx(partition_class_tree, idx, root_sizes):
+    def _get_sizes_from_idx(tree, indices, root_sizes):
+        (partition_class, children) = tree
+        idx = indices[0]
+        sizes = partition_class.idx_to_sizes(idx, root_sizes)
+        if len(indices) > 1:
+            child_kind = partition_class.idx_to_child_kind(idx)
+            sizes = _get_sizes_from_idx(children[child_kind], indices[1:],
+                                        sizes)
+
+        return sizes
+
+    return _get_sizes_from_idx(partition_class_tree, idx, root_sizes)
 
 
 # This requires a tree as produced by
 # "tree_partitioning.get_partitioning"
-def get_max_idx_tree(partitioning):
-    return nodemap(partitioning, lambda n: n.max_idx_value()
+def get_max_idx_tree(partition_class_tree):
+    return nodemap(partition_class_tree, lambda n: n.max_idx_value()
                    if n is not None else None)
 
 
-def validate_idx(partitioning, idx):
+def validate_idx(partition_class_tree, idx):
     '''
     Make sure that idx is in the right range.
     '''
@@ -170,4 +184,17 @@ def validate_idx(partitioning, idx):
         return valid and _validate(
             children[partition.idx_to_child_kind(idx[0])], idx[1:])
 
-    return _validate(partitioning, idx)
+    return _validate(partition_class_tree, idx)
+
+
+def get_partition_limits(partition_class_tree, idx, root_sizes):
+    '''
+    Get real partition ranges out of a list of partitioners
+    and a (truncated) list of indices.
+    '''
+    dimensions = len(root_sizes)
+    starts = get_coord_from_idx(partition_class_tree, idx, dimensions)
+    sizes = get_sizes_from_idx(partition_class_tree, idx, root_sizes)
+    ends = tuple(s + sz for s, sz in zip(starts, sizes))
+
+    return tuple(zip(starts, ends))

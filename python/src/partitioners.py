@@ -39,5 +39,5 @@ partitioners_dict = {
     "hbb": hbb,
     "eo": eo,
     "leaf": leaf,
-    "end":end,
+    "end": end,
 }
