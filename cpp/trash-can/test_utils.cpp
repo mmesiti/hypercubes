@@ -1,6 +1,6 @@
 #define BOOST_TEST_MODULE utils
 #include <boost/test/included/unit_test.hpp>
-#include "utils.hpp"
+#include "../include/utils.hpp"
 #include <vector>
 #include <list>
 #include <string>
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(TupleCutter_vector){
         auto selector = [i](auto v){return v[i];};
         auto tcut = TupleCutter<2>::cut(vs,selector);
 
-        auto expected = std::make_tuple(v0[i],v1[i],v2[i]);
+        auto expected = std::make_tuple(v0[i], v1[i], v2[i]);
 
         bool cond = expected == tcut;
         BOOST_TEST(cond);

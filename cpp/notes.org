@@ -1,0 +1,11 @@
+#+TITLE: CPP implementation Notes
+
+- Using ~std::array~ for collections
+  whose length is known at compile time
+- Using ~std::vector~ for collections
+  whose length is unkown at compile time
+
+* Size vs Coordinate
+Sizes and coordinates are semantically different
+but are at the moment represented by ~std::array<int,Dimension>~
+anyway.
