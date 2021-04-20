@@ -33,6 +33,7 @@ template <int level> struct Coordinate {
   rtype operator OP(int f) const { return rtype(value OP f); }
 
   DEFINTOP(Coord, *)
+  DEFINTOP(ChildCoord, /)
 
 #undef DEFINTOP
 

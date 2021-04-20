@@ -27,10 +27,10 @@ template <int Dimensionality> struct LocalEOBlock : LocalBlock<Dimensionality> {
 };
 
 template <int Dimensionality> class LocalLattice {
-  using NDPortion = array<Dimension::Portion, Dimensionality>;
+  using NDPortion = array<Side::Portion, Dimensionality>;
   using Location = array<int, Dimensionality>;
 
-  array<Dimension, Dimensionality> dimensions;
+  array<Side, Dimensionality> dimensions;
 
   NDPortion get_nd_portion(int i);
   NDPortion get_nd_portion(Location x);

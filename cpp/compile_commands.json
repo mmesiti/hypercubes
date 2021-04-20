@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/michele/cpp_lattice_projects/hypercubes/cpp/build",
+  "command": "/usr/bin/c++  -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/../include  -o CMakeFiles/test_utils.dir/test_utils.cpp.o -c /home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_utils.cpp",
+  "file": "/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_utils.cpp"
+}
+]
