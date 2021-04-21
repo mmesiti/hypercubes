@@ -1,7 +1,22 @@
 [
 {
   "directory": "/home/michele/cpp_lattice_projects/hypercubes/cpp/build",
-  "command": "/usr/bin/c++  -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/../include  -o CMakeFiles/test_utils.dir/test_utils.cpp.o -c /home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_utils.cpp",
-  "file": "/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_utils.cpp"
+  "command": "/usr/bin/c++  -I/home/michele/cpp_lattice_projects/hypercubes/cpp/./include  -o CMakeFiles/eo.dir/src/eo.cpp.o -c /home/michele/cpp_lattice_projects/hypercubes/cpp/src/eo.cpp",
+  "file": "/home/michele/cpp_lattice_projects/hypercubes/cpp/src/eo.cpp"
+},
+{
+  "directory": "/home/michele/cpp_lattice_projects/hypercubes/cpp/build/tests",
+  "command": "/usr/bin/c++  -I/home/michele/cpp_lattice_projects/hypercubes/cpp/./include -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/../include -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/.  -o CMakeFiles/utils.dir/utils.cpp.o -c /home/michele/cpp_lattice_projects/hypercubes/cpp/tests/utils.cpp",
+  "file": "/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/utils.cpp"
+},
+{
+  "directory": "/home/michele/cpp_lattice_projects/hypercubes/cpp/build/tests",
+  "command": "/usr/bin/c++  -I/home/michele/cpp_lattice_projects/hypercubes/cpp/./include -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/../include -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/.  -o CMakeFiles/test_rilist.dir/test_rilist.cpp.o -c /home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_rilist.cpp",
+  "file": "/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_rilist.cpp"
+},
+{
+  "directory": "/home/michele/cpp_lattice_projects/hypercubes/cpp/build/tests",
+  "command": "/usr/bin/c++  -I/home/michele/cpp_lattice_projects/hypercubes/cpp/./include -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/../include -I/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/.  -o CMakeFiles/test_eo.dir/test_eo.cpp.o -c /home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_eo.cpp",
+  "file": "/home/michele/cpp_lattice_projects/hypercubes/cpp/tests/test_eo.cpp"
 }
 ]

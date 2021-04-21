@@ -1,43 +1,56 @@
-#define BOOST_TEST_MODULE eo
+#define BOOST_TEST_MODULE test_eo
+#include <boost/test/data/test_case.hpp>
 #include <boost/test/included/unit_test.hpp>
 
 #include "eo.hpp"
-#include "random_int_list.hpp"
 #include "utils.hpp"
+#include <cstdlib>
 #include <iostream>
-#include <random>
 
-namespace std {
-
-std::ostream &operator<<(std::ostream &os, std::vector<int> const &v) {
-  os << "{";
-  for (const auto &x : v) {
-    os << x << ", ";
-  }
-  os << "}\n";
-
-  return os;
-};
-
-} // namespace std
-BOOST_AUTO_TEST_SUITE(eo)
-
+using namespace hypercubes::slow;
 namespace bdata = boost::unit_test::data;
+BOOST_AUTO_TEST_SUITE(test_eo)
 
-BOOST_DATA_TEST_CASE(test_of_utils,
-                     (data::minmax(1, 10) + bdata::random(1, 10)) ^
-                         bdata::xrange(10),
-                     val, idx) {
+const bool debug = false;
 
-  std::cout << val << " " << idx << std::endl;
-  BOOST_TEST(true);
+BOOST_AUTO_TEST_CASE(test_lex_idx_to_coord) {
+
+  std::vector<int> sizes{3, 3, 3};
+  std::vector<int> exp_coord{1, 2, 2};
+  int i = 1 + 2 * 3 + 2 * 3 * 3;
+  auto coord = eo::lex_idx_to_coord(i, sizes);
+  BOOST_TEST(coord == exp_coord);
+
+  if (debug) { // constexpr
+    std::cout << "exp_coord: " << exp_coord;
+    std::cout << "coord: " << coord;
+  }
 }
 
-BOOST_DATA_TEST_CASE(test_of_utils_2,
-                     data::rilist(1, 10, 1, 6) ^ bdata::xrange(10), val, idx) {
+BOOST_DATA_TEST_CASE(test_eo_idx_conversion_pair,
+                     data::rilist(1, 10, 1, 6) ^ bdata::xrange(410), sizes,
+                     count) {
+  const auto cumsizes = eo::get_cumsizes(sizes);
+  const int isite_max = *cumsizes.rbegin();
+  const int i = std::rand() % isite_max;
 
-  std::cout << idx << std::endl;
-  BOOST_TEST(true);
+  auto coords = eo::lex_idx_to_coord(i, sizes);
+
+  Parity eoflag;
+  int idxh;
+  std::tie(eoflag, idxh) = eo::lex_coord_to_eoidx(coords, cumsizes);
+
+  auto coords2 = eo::lexeo_idx_to_coord(eoflag, idxh, sizes);
+
+  bool success = coords2 == coords;
+  if (not success) { 
+    std::cout << "cumsizes: " << cumsizes;
+    std::cout << "i: " << i << std::endl;
+    std::cout << "coords: " << coords;
+    std::cout << "eoflags,idxh: " << eoflag << ", " << idxh << std::endl;
+    std::cout << "coords2: " << coords2;
+  }
+  BOOST_TEST(success);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

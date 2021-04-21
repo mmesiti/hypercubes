@@ -1,11 +1,57 @@
 #+TITLE: CPP implementation Notes
 
+* ~std::vector~ vs ~std::array~
+In general:
 - Using ~std::array~ for collections
-  whose length is known at compile time
+  whose length is known at compile time,
+  **and it is comfortable doing so**.
 - Using ~std::vector~ for collections
-  whose length is unkown at compile time
+  whose length is unkown at compile time.
+To keep things simple,
+I'll start using ~std::vector~ everywhere.
+Switching from ~std::vector~ to ~std::array~
+to increase type safety will be done incrementally.
+When possible, some choices will be made
+to make the code versatile enough
+so that the switch is easier.
 
 * Size vs Coordinate
 Sizes and coordinates are semantically different
 but are at the moment represented by ~std::array<int,Dimension>~
 anyway.
+
+* Tests and hypothesis
+** Notes on rando numbers
+For simplicity, we use ~std::rand()~ from ~cstdlib~.
+Quality of random numbers is not of concern here.
+
+** Random int vector generator
+A random int vector generator has been implemented
+(~rilist~ for brevity)
+that fits the "concept" of data generator
+(as required by ~boost/test~):
+- has an ~arity~ enum
+- has a ~begin()~ method
+  that returns a forward iterator
+  (the iterator class is implemented idiomatically
+  as an class internal to ~rilist~).
+  The "concept" of forward iterator is
+- Has a ~size()~ method.
+In addition to implementing those internal properties,
+we also need to "register" the class
+with the ~is_dataset~ metafunction.
+See [[https://www.boost.org/doc/libs/1_76_0/libs/test/doc/html/boost_test/tests_organization/test_cases/test_case_generation/datasets.html][the example from the official documentation]].
+
+Since we are also returning vectors of ~int~,
+we need to make sure that those values can be printed
+for logging purposes, as described [[https://www.boost.org/doc/libs/1_76_0/libs/test/doc/html/boost_test/test_output/test_tools_support_for_logging/testing_tool_output_disable.html][here]].
+To this purpose, an overload of ~std::operator<<~
+is provided.
+
+* Notes on ~eo.hpp~
+Outside of test cases,
+the dimension of the lattice is known at compile time,
+so we would use ~std::array~,
+but in the tests we want to make sure
+the algorithms work for any number of dimensions,
+so we refrain from specifying
