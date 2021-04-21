@@ -1,8 +1,8 @@
 #ifndef PARTITIONING_H_
 #define PARTITIONING_H_
 #include <array>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace hypercubes {
 namespace slow {
@@ -21,11 +21,11 @@ struct SizeParity {
 };
 
 template <int Dimensions> class IPartitioning {
-  public:
+public:
   using Coordinates = std::array<int, Dimensions>;
   using Sizes = std::array<int, Dimensions>;
-  using GeomInfos = std::array<SizeParity,Dimensions>;
-    
+  using GeomInfos = std::array<SizeParity, Dimensions>;
+
   virtual std::array<SizeParity, Dimensions> sub_geom_info_list() = 0;
   virtual std::vector<IndexResult> coord_to_idxs(Coordinates coord) = 0;
   virtual Coordinates idx_to_coords(int idx, Coordinates offset) = 0;

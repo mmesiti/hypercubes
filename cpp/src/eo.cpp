@@ -27,15 +27,17 @@ IntList lex_idx_to_coord(int lexi, const IntList &sizes) {
 }
 
 Parity coord_to_eo(const IntList &coords) {
-    int sum = 0;
-    for(auto x: coords) sum+= x;
-    return (sum%2==0)?Parity::EVEN:Parity::ODD;
+  int sum = 0;
+  for (auto x : coords)
+    sum += x;
+  return (sum % 2 == 0) ? Parity::EVEN : Parity::ODD;
 }
 
 int lex_coord_to_idx(const IntList &coords, const IntList &cumsizes) {
-    int idx = 0;
-    for(int i =0; i < coords.size(); ++i) idx += coords[i]*cumsizes[i];
-    return idx;
+  int idx = 0;
+  for (int i = 0; i < coords.size(); ++i)
+    idx += coords[i] * cumsizes[i];
+  return idx;
 }
 
 std::tuple<Parity, int> lex_coord_to_eoidx(const IntList &coords,
@@ -47,9 +49,11 @@ std::tuple<Parity, int> lex_coord_to_eoidx(const IntList &coords,
 }
 
 IntList lexeo_idx_to_coord(Parity eoflag, int idxh, const IntList &sizes) {
-  auto coordinates = lex_idx_to_coord(2*idxh, sizes);
-  if(eoflag == coord_to_eo(coordinates)) return coordinates;
-  else return lex_idx_to_coord(2*idxh+1, sizes);
+  auto coordinates = lex_idx_to_coord(2 * idxh, sizes);
+  if (eoflag == coord_to_eo(coordinates))
+    return coordinates;
+  else
+    return lex_idx_to_coord(2 * idxh + 1, sizes);
 }
 
 void ensuresize(IntList &l, int s) { l.resize(s); }

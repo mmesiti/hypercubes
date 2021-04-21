@@ -5,13 +5,14 @@
 
 template <int N> struct TupleCutter {
   template <typename Tuple> static auto cut(Tuple t) {
-    auto trivial_selector = [](auto t){return t;};
-    return cut(t,trivial_selector);
+    auto trivial_selector = [](auto t) { return t; };
+    return cut(t, trivial_selector);
   }
 
-  template <typename Tuple, typename Selector> static auto cut(Tuple t, Selector s) {
+  template <typename Tuple, typename Selector>
+  static auto cut(Tuple t, Selector s) {
     auto head = std::make_tuple(s(std::get<N>(t)));
-    auto tail = TupleCutter<N - 1>::cut(t,s);
+    auto tail = TupleCutter<N - 1>::cut(t, s);
     return std::tuple_cat(tail, head);
   }
 };
@@ -19,11 +20,12 @@ template <int N> struct TupleCutter {
 template <> struct TupleCutter<0> {
 
   template <typename Tuple> static auto cut(Tuple t) {
-    auto trivial_selector = [](auto t){return t;};
-    return cut(t,trivial_selector);
+    auto trivial_selector = [](auto t) { return t; };
+    return cut(t, trivial_selector);
   }
 
-  template <typename Tuple, typename Selector> static auto cut(Tuple t, Selector s) {
+  template <typename Tuple, typename Selector>
+  static auto cut(Tuple t, Selector s) {
     return std::make_tuple(s(std::get<0>(t)));
   }
 };

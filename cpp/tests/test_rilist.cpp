@@ -31,10 +31,10 @@ BOOST_DATA_TEST_CASE(test_rilist_limits,
                      data::rilist(1, 10, 1, 6) ^ bdata::xrange(1000), sizes,
                      count) {
 
-  bool success = std::all_of(sizes.begin(), sizes.end(), //
+  bool success = std::all_of(sizes.begin(), sizes.end(),              //
                              [](int i) { return i >= 1 && i <= 10; }) //
-                 and sizes.size()<=10 //
-                 and sizes.size() >=1; //
+                 and sizes.size() <= 10                               //
+                 and sizes.size() >= 1;                               //
   if (not success)
     std::cout << sizes;
 

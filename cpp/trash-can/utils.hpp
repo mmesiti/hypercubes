@@ -1,9 +1,9 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-#include <boost/test/included/unit_test.hpp>
-#include <boost/test/data/test_case.hpp>
 #include <boost/test/data/monomorphic.hpp>
+#include <boost/test/data/test_case.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 namespace data {
 
@@ -38,7 +38,6 @@ private:
   int min, max;
 };
 
-  
 } // namespace data
 
 template <>
