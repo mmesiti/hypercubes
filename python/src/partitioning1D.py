@@ -44,13 +44,10 @@ class Partitioning1D(Partitioning):
         pass
 
     def idx_to_child_kind(self, idx):
-        def _idx_to_subsize(idx, starts, ends):
-            return ends[idx] - starts[idx]
-
         def _idx_to_start_parity(idx, starts, parity):
             return (starts[idx] + parity) % 2
 
-        subsize_ = _idx_to_subsize(idx, self.starts, self.ends)
+        subsize_ = self.idx_to_size(idx)
         parity_ = _idx_to_start_parity(idx, self.starts, self.parity)
         for i, (subsize, parity) in enumerate(self.sub_geom_info_list()):
             if (subsize_, parity_) == (subsize, parity):

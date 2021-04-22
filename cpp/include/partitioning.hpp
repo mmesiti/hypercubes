@@ -3,22 +3,12 @@
 #include <array>
 #include <string>
 #include <vector>
+#include <ostream>
+#include "geometry.hpp"
 
 namespace hypercubes {
 namespace slow {
 
-struct IndexResult {
-  int idx;
-  int rest;
-  int cached_flag;
-};
-
-enum Parity { EVEN, ODD };
-
-struct SizeParity {
-  int size;
-  Parity parity;
-};
 
 template <int Dimensions> class IPartitioning {
 public:
@@ -37,5 +27,10 @@ public:
 
 } // namespace slow
 } // namespace hypercubes
+
+namespace std {
+  std::ostream& operator<<(std::ostream& os, hypercubes::slow::Parity p);
+  //bool operator<();
+}
 
 #endif // PARTITIONING_H_

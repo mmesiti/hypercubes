@@ -7,7 +7,7 @@ include_directories(../include .)
 add_library(utils utils.cpp)
 
 add_executable(test_eo test_eo.cpp)
-target_link_libraries(test_eo eo utils)
+target_link_libraries(test_eo eo utils geometry)
 
 add_executable(test_rilist test_rilist.cpp)
 target_link_libraries(test_rilist utils)
