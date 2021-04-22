@@ -1,14 +1,12 @@
 #ifndef PARTITIONING_H_
 #define PARTITIONING_H_
+#include "geometry.hpp"
 #include <array>
 #include <string>
 #include <vector>
-#include <ostream>
-#include "geometry.hpp"
 
 namespace hypercubes {
 namespace slow {
-
 
 template <int Dimensions> class IPartitioning {
 public:
@@ -27,10 +25,5 @@ public:
 
 } // namespace slow
 } // namespace hypercubes
-
-namespace std {
-  std::ostream& operator<<(std::ostream& os, hypercubes::slow::Parity p);
-  //bool operator<();
-}
 
 #endif // PARTITIONING_H_

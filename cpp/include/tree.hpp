@@ -3,11 +3,10 @@
 #include <tuple>
 #include <vector>
 
-namespace hypercubes{
-    namespace slow{
-        template <class Node> using Tree = std::tuple<Node,std::vector<Node>>;
-    }
+namespace hypercubes {
+namespace slow {
+template <class Node> using Tree = std::tuple<Node, std::vector<Node>>;
 }
-
+} // namespace hypercubes
 
 #endif // TREE_H_

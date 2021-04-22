@@ -6,31 +6,49 @@
 namespace hypercubes {
 namespace slow {
 
-class Q1D : public Partitioning1D {
+class Q1DBase : public Partitioning1D {
 public:
   enum BoundaryCondition { PERIODIC, OPEN };
-  Q1D(SizeParity sp, int dimension_, std::string name_, int nparts_, BoundaryCondition bc_);
+  Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_);
+  std::vector<IndexResult> coord_to_idxs(int relative_x) const;
   int max_idx_value() const;
-  std::vector<int> coord_to_idxs(int relative_x) const; // TODO
-  std::vector<int> idx_to_coords(int idx, int offset) const; // TODO
+  int idx_to_coord(int idx, int offset) const;
+  std::string comments() const;
+
+protected:
+  int nparts;
+  int quotient;
+
+private:
+  auto key() const {
+    using BC = Q1DBase::BoundaryCondition;
+    return std::make_tuple(size, parity, dimension, name, nparts, bc());
+  }
+  virtual std::tuple<int, int> idx_limits(int relative_x) const = 0;
+  virtual BoundaryCondition bc() const = 0;
+};
+
+class Q1DPeriodic : public Q1DBase {
+public:
+  Q1DPeriodic(SizeParity sp, int dimension_, std::string name_, int nparts_);
   std::string comments() const;
 
 private:
-  int nparts;
-  BoundaryCondition bc;
-  int quotient;
-  auto key() const {
-    return std::make_tuple(size, parity, dimension, name, nparts, bc);
-  }
+  std::tuple<int, int> idx_limits(int relative_x) const;
+  BoundaryCondition bc() const;
+};
+
+class Q1DOpen : public Q1DBase {
+public:
+  Q1DOpen(SizeParity sp, int dimension_, std::string name_, int nparts_);
+  std::string comments() const;
+
+private:
+  std::tuple<int, int> idx_limits(int relative_x) const;
+  BoundaryCondition bc() const;
 };
 
 } // namespace slow
 } // namespace hypercubes
-
-namespace std {
-using BC = hypercubes::slow::Q1D::BoundaryCondition;
-std::ostream &operator<<(std::ostream &os, const BC &bc);
-bool operator<(const BC &bc1, const BC &bc2);
-} // namespace std
 
 #endif // Q_H_
