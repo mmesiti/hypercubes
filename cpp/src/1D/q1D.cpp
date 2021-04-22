@@ -1,7 +1,6 @@
 #include "1D/q1D.hpp"
 #include <algorithm>
 #include <cassert>
-
 namespace hypercubes {
 namespace slow {
 
@@ -64,6 +63,15 @@ Q1DBase::BoundaryCondition Q1DPeriodic::bc() const {
 Q1DBase::BoundaryCondition Q1DOpen::bc() const {
   return Q1DBase::BoundaryCondition::OPEN;
 }
+
+std::tuple<int,int> Q1DOpen::idx_limits(int relative_x) const{
+  return std::make_tuple(0,0); // WRONG
+}
+
+std::tuple<int,int> Q1DPeriodic::idx_limits(int relative_x) const{
+  return std::make_tuple(0,0); // WRONG
+}
+
 } // namespace slow
 
 } // namespace hypercubes

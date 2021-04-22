@@ -31,7 +31,6 @@ private:
 class Q1DPeriodic : public Q1DBase {
 public:
   Q1DPeriodic(SizeParity sp, int dimension_, std::string name_, int nparts_);
-  std::string comments() const;
 
 private:
   std::tuple<int, int> idx_limits(int relative_x) const;
@@ -41,7 +40,6 @@ private:
 class Q1DOpen : public Q1DBase {
 public:
   Q1DOpen(SizeParity sp, int dimension_, std::string name_, int nparts_);
-  std::string comments() const;
 
 private:
   std::tuple<int, int> idx_limits(int relative_x) const;

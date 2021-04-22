@@ -12,6 +12,10 @@ target_link_libraries(test_eo eo utils geometry)
 add_executable(test_rilist test_rilist.cpp)
 target_link_libraries(test_rilist utils)
 
+add_executable(test_partitioning1D test_partitioning1D.cpp)
+target_link_libraries(test_partitioning1D q1D)
+
 enable_testing()
 add_test(eo test_eo -r detailed)
 add_test(rilist test_rilist -r detailed)
+add_test(partitioning1D test_partitioning1D -r detailed)
