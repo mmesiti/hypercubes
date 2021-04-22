@@ -13,6 +13,17 @@ static int mod(int dividend, int divisor) {
   return res;
 }
 
+static int floor(int dividend, int divisor) {
+  /* The following equations hold:
+   * floor(x,y)* y + mod(x,y) == x  // the "python way"
+   * (x / y) * y + x % y == x          // the c/c++ way
+   * This means
+   * floor(x,y) = x / y + (x%y - mod(x,y))/y
+   */
+  return dividend / divisor +
+         (dividend % divisor - mod(dividend, divisor)) / divisor;
+}
+
 Q1DBase::Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_)
     : Partitioning1D(sp, dimension_, name_), nparts(nparts_) {
   quotient = size / nparts + ((size % nparts) ? 1 : 0);
@@ -31,14 +42,14 @@ std::vector<IndexResult> Q1DBase::coord_to_idxs(int relative_x) const {
   std::vector<IndexResult> res;
 
   auto ghost_limits = [this](int idx) {
-    return idx * quotient + (size - nparts * quotient) * (idx / nparts);
+    return idx * quotient + (size - nparts * quotient) * floor(idx, nparts);
   };
 
   for (int idx = min_idx; idx < max_idx; ++idx) {
     int res_idx = mod(idx, nparts);
     int rest = relative_x - ghost_limits(idx);
     bool cached_flag = (idx != real_idx);
-    res.push_back(IndexResult{idx, rest, cached_flag});
+    res.push_back(IndexResult{res_idx, rest, cached_flag});
   }
 
   return res;
@@ -64,12 +75,18 @@ Q1DBase::BoundaryCondition Q1DOpen::bc() const {
   return Q1DBase::BoundaryCondition::OPEN;
 }
 
-std::tuple<int,int> Q1DOpen::idx_limits(int relative_x) const{
-  return std::make_tuple(0,0); // WRONG
+std::tuple<int, int> Q1DOpen::idx_limits(int relative_x) const {
+  int idx_true = relative_x / quotient;
+  int min_idx = std::max(0, idx_true - 1);
+  int max_idx = std::min(nparts, idx_true + 2);
+  return std::make_tuple(min_idx, max_idx);
 }
 
-std::tuple<int,int> Q1DPeriodic::idx_limits(int relative_x) const{
-  return std::make_tuple(0,0); // WRONG
+std::tuple<int, int> Q1DPeriodic::idx_limits(int relative_x) const {
+  int idx_true = relative_x / quotient;
+  int min_idx = idx_true - 1;
+  int max_idx = idx_true + 2;
+  return std::make_tuple(min_idx, max_idx);
 }
 
 } // namespace slow

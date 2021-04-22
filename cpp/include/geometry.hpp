@@ -25,7 +25,10 @@ struct SizeParity {
 } // namespace hypercubes
 namespace std {
 using SizeParity = hypercubes::slow::SizeParity;
+using IndexResult = hypercubes::slow::IndexResult;
 std::ostream &operator<<(std::ostream &os, SizeParity p);
 bool operator<(SizeParity p1, SizeParity p2);
+bool operator==(SizeParity p1, SizeParity p2);
+bool operator==(IndexResult i1, IndexResult i2);
 } // namespace std
 #endif // GEOMETRY_H_
