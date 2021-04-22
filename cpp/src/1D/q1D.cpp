@@ -15,7 +15,7 @@ static int mod(int dividend, int divisor) {
 
 Q1DBase::Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_)
     : Partitioning1D(sp, dimension_, name_), nparts(nparts_) {
-  quotient = size / nparts + (size % nparts) ? 1 : 0;
+  quotient = size / nparts + ((size % nparts) ? 1 : 0);
   assert(size > nparts);
   assert(quotient * (nparts - 1) < size);
   for (int i = 0; i < nparts; ++i)
