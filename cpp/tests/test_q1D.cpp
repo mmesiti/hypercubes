@@ -1,6 +1,5 @@
-#define BOOST_TEST_MODULE test_q1D
 #include <boost/test/data/test_case.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 // We need to use a concrete class for testing.
 #include "1D/q1D.hpp"

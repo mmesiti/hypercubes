@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.5)
 project(HYPERCUBES)
-set(CMAKE_CXX_STANDARDS 17)
+set(CMAKE_CXX_STANDARDS 14)
 
 include_directories(./include )
 add_library(eo src/eo.cpp)
@@ -13,6 +13,10 @@ target_link_libraries(partitioning1D geometry)
 add_library(q1D src/1D/q1D.cpp)
 target_link_libraries(q1D partitioning1D)
 
+add_library(hbb1D src/1D/hbb1D.cpp)
+target_link_libraries(hbb1D partitioning1D)
 
+add_library(plain1D src/1D/plain1D.cpp)
+target_link_libraries(plain1D partitioning1D)
 
 add_subdirectory(tests)

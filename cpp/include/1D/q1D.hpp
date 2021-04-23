@@ -10,10 +10,10 @@ class Q1DBase : public Partitioning1D {
 public:
   enum BoundaryCondition { PERIODIC, OPEN };
   Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_);
-  std::vector<IndexResult> coord_to_idxs(int relative_x) const;
-  int max_idx_value() const;
   int idx_to_coord(int idx, int offset) const;
+  int max_idx_value() const;
   std::string comments() const;
+  std::vector<IndexResult> coord_to_idxs(int relative_x) const;
 
 protected:
   int nparts;

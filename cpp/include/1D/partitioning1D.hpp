@@ -17,10 +17,10 @@ public:
   std::vector<SizeParity> sub_sizeparity_info_list() const;
   int idx_to_child_kind(int idx) const;
   int idx_to_size(int idx) const;
-  virtual int max_idx_value() const = 0;
-  virtual std::vector<IndexResult> coord_to_idxs(int relative_x) const = 0;
   virtual int idx_to_coord(int idx, int offset) const = 0;
+  virtual int max_idx_value() const = 0;
   virtual std::string comments() const = 0;
+  virtual std::vector<IndexResult> coord_to_idxs(int relative_x) const = 0;
 
 protected:
   int size;

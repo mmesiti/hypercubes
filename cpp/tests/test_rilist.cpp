@@ -1,7 +1,6 @@
-#define BOOST_TEST_MODULE rilist_test
 #include <algorithm>
 #include <boost/test/data/test_case.hpp>
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 #include <set>
 
 #include "utils.hpp"

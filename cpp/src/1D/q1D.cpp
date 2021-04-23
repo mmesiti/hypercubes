@@ -29,6 +29,7 @@ Q1DBase::Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_)
   quotient = size / nparts + ((size % nparts) ? 1 : 0);
   assert(size > nparts);
   assert(quotient * (nparts - 1) < size);
+  // limits.size() == nparts + 1
   for (int i = 0; i < nparts; ++i)
     limits.push_back(quotient * i);
   limits.push_back(size);
