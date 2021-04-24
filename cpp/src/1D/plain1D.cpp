@@ -8,12 +8,13 @@ Plain1D::Plain1D(SizeParity sp, int dimension_, std::string name_)
 };
 int Plain1D::idx_to_coord(int idx, int offset) const {
   if (offset != 0)
-    throw std::runtime_error(name + ": Offset must be zero for Plain1D.");
+    throw std::invalid_argument(name + ": Offset must be zero for Plain1D.");
   if (0 <= idx and idx < size)
     return idx;
   else
-    throw std::runtime_error(name + ": idx=" + std::to_string(idx) +
-                             ", not in range [0," + std::to_string(size) + ")");
+    throw std::invalid_argument(name + ": idx=" + std::to_string(idx) +
+                                ", not in range [0," + std::to_string(size) +
+                                ")");
 };
 int Plain1D::max_idx_value() const { return size; };
 std::string Plain1D::comments() const { return ""; };

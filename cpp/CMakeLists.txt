@@ -19,4 +19,7 @@ target_link_libraries(hbb1D partitioning1D)
 add_library(plain1D src/1D/plain1D.cpp)
 target_link_libraries(plain1D partitioning1D)
 
+add_library(eo_partitioning src/eo_partitioning.cpp)
+target_link_libraries(eo_partitioning geometry eo)
+
 add_subdirectory(tests)

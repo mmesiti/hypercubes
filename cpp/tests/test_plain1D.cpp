@@ -54,10 +54,10 @@ BOOST_DATA_TEST_CASE_F(Plain1DFixture, test_idx_to_coord, bdata::xrange(0, 7),
   BOOST_TEST(r == i);
 }
 BOOST_FIXTURE_TEST_CASE(test_idx_to_coord_throws_woffset, Plain1DFixture) {
-  BOOST_CHECK_THROW(partitioning1D.idx_to_coord(2, 1), std::runtime_error);
+  BOOST_CHECK_THROW(partitioning1D.idx_to_coord(2, 1), std::invalid_argument);
 }
 BOOST_FIXTURE_TEST_CASE(test_idx_to_coord_throws_outofrange, Plain1DFixture) {
-  BOOST_CHECK_THROW(partitioning1D.idx_to_coord(8, 0), std::runtime_error);
+  BOOST_CHECK_THROW(partitioning1D.idx_to_coord(8, 0), std::invalid_argument);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_max_idx_value, Plain1DFixture) {

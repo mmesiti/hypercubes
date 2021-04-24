@@ -1,13 +1,21 @@
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
 #include <ostream>
+#include <vector>
 
 namespace hypercubes {
 namespace slow {
+using std::vector;
 
 struct IndexResult {
   int idx;
   int rest;
+  int cached_flag;
+};
+
+struct IndexResultD {
+  int idx;
+  vector<int> rest;
   int cached_flag;
 };
 
@@ -20,6 +28,11 @@ struct SizeParity {
     return other.size == size and other.parity == parity;
   }
 };
+
+using Coordinates = vector<int>;
+using Sizes = vector<int>;
+using SizeParities = vector<SizeParity>;
+using SubSizeParities = vector<vector<SizeParity>>;
 
 } // namespace slow
 } // namespace hypercubes
