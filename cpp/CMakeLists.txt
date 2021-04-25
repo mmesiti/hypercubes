@@ -2,6 +2,13 @@ cmake_minimum_required (VERSION 3.5)
 project(HYPERCUBES)
 set(CMAKE_CXX_STANDARDS 14)
 
+SET(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
+SET(GCC_COVERAGE_LINK_FLAGS    "-lgcov")
+
+# dirty
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
+SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
+
 include_directories(./include )
 add_library(eo src/eo.cpp)
 
@@ -21,5 +28,18 @@ target_link_libraries(plain1D partitioning1D)
 
 add_library(eo_partitioning src/eo_partitioning.cpp)
 target_link_libraries(eo_partitioning geometry eo)
+
+add_custom_target(coverage
+     COMMAND lcov --capture
+             --directory CMakeFiles
+             --output-file coverage.info
+             --exclude '/usr/include/\*' # Hack to remove system headers
+     COMMAND genhtml coverage.info
+     BYPRODUCTS home
+                index-sort-f.html
+                index-sort-l.html
+                index.html
+                gcov.css
+                coverage.info)
 
 add_subdirectory(tests)

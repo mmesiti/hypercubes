@@ -1,4 +1,17 @@
 #+TITLE: CPP implementation Notes
+* Dependencies for the tests
+(To be moved later to a proper location)
+- ~CMake > 3.5~
+- a recent version of ~g++~
+  (tested with ~g++~ 10.2)
+- ~boost/test~
+  (tested with version 1.75
+  of the whole boost suite);
+- ~lcov~ for coverage report generation
+  (the ~gcov~ backend
+  should be already included
+  in the disrtibution of gcc).
+
 
 * ~std::vector~ vs ~std::array~
 In general:
