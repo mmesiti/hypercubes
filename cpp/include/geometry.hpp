@@ -31,8 +31,14 @@ struct SizeParity {
 
 using Coordinates = vector<int>;
 using Sizes = vector<int>;
+// [nclasses]
 using SizeParities = vector<SizeParity>;
-using SubSizeParities = vector<vector<SizeParity>>;
+// [dimensions]
+using SizeParityD = vector<SizeParity>;
+// note:
+// conceptually, SizeParitiesD != vector<SizeParities>:
+// [nclasses][dimensions]
+using SizeParitiesD = vector<vector<SizeParity>>;
 
 } // namespace slow
 } // namespace hypercubes

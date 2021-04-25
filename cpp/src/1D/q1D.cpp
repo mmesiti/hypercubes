@@ -1,6 +1,7 @@
 #include "1D/q1D.hpp"
 #include <algorithm>
 #include <cassert>
+
 namespace hypercubes {
 namespace slow {
 
@@ -50,7 +51,7 @@ std::vector<IndexResult> Q1DBase::coord_to_idxs(int relative_x) const {
     int res_idx = mod(idx, nparts);
     int rest = relative_x - ghost_limits(idx);
     bool cached_flag = (idx != real_idx);
-    res.push_back(IndexResult{res_idx, rest, cached_flag});
+    res.push_back({res_idx, rest, cached_flag});
   }
 
   return res;

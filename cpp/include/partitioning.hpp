@@ -11,8 +11,8 @@ class IPartitioning {
 public:
   virtual Coordinates idx_to_coords(int idx,
                                     const Coordinates &offset) const = 0;
-  virtual Sizes idx_to_sizes(int idx, const Coordinates &offset) const = 0;
-  virtual SubSizeParities sub_sizeparity_info_list() const = 0;
+  virtual Sizes idx_to_sizes(int idx, const Sizes &sizes) const = 0;
+  virtual SizeParitiesD sub_sizeparity_info_list() const = 0;
   virtual int idx_to_child_kind(int idx) const = 0;
   virtual int max_idx_value() const = 0;
   virtual std::string comments() const = 0;

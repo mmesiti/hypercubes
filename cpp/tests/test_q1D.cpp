@@ -1,7 +1,6 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 
-// We need to use a concrete class for testing.
 #include "1D/q1D.hpp"
 
 using namespace hypercubes::slow;

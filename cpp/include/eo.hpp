@@ -1,6 +1,6 @@
 #ifndef EO_H_
 #define EO_H_
-#include "partitioning.hpp"
+#include "geometry.hpp"
 #include <cassert>
 #include <tuple>
 

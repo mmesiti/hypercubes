@@ -70,9 +70,7 @@ Coordinates EO::idx_to_coords(int idx, const Coordinates &offset) const {
   }
   return res;
 }
-Sizes EO::idx_to_sizes(int idx, const Coordinates &offset) const {
-  return Sizes();
-}
+Sizes EO::idx_to_sizes(int idx, const Sizes &sizes) const { return Sizes(); }
 int EO::idx_to_child_kind(int idx) const {
   if (nsites % 2 == 0)
     return 0;
@@ -80,7 +78,7 @@ int EO::idx_to_child_kind(int idx) const {
     return idx;
 }
 int EO::max_idx_value() const { return 2; }
-SubSizeParities EO::sub_sizeparity_info_list() const {
+SizeParitiesD EO::sub_sizeparity_info_list() const {
   int sites_opposite_parity = nsites / 2;
   int sites_origin_parity = nsites - sites_opposite_parity;
 
@@ -101,7 +99,7 @@ SubSizeParities EO::sub_sizeparity_info_list() const {
   else
     class_sizes = vector<int>{even_sites, odd_sites};
 
-  SubSizeParities res;
+  SizeParitiesD res;
   std::transform(class_sizes.begin(), class_sizes.end(),
                  std::back_inserter(res), [this](int s) {
                    SizeParities new_sp = sp;
