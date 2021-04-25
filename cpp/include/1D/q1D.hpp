@@ -22,7 +22,6 @@ protected:
 
 private:
   auto key() const {
-    using BC = Q1DBase::BoundaryCondition;
     return std::make_tuple(size, parity, dimension, name, nparts, bc());
   }
   virtual std::tuple<int, int> idx_limits(int relative_x) const = 0;
