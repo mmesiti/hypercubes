@@ -32,33 +32,6 @@ protected:
   std::vector<int> limits;
 };
 
-namespace help {
-
-template <int N> struct TuplePrinter {
-  template <class... TS> static std::string tuple_to_str(std::tuple<TS...> t) {
-    std::stringstream ss;
-    const int FieldToPrint = sizeof...(TS) - N;
-    ss << std::get<FieldToPrint>(t) << ", "
-       << TuplePrinter<N - 1>::template tuple_to_str<TS...>(t);
-    return ss.str();
-  }
-};
-
-template <> struct TuplePrinter<1> {
-  template <class... TS> static std::string tuple_to_str(std::tuple<TS...> t) {
-    std::stringstream ss;
-    ss << std::get<sizeof...(TS) - 1>(t);
-    return ss.str();
-  }
-};
-
-} // namespace help
-
-template <class... TS> std::string tuple_to_str(std::tuple<TS...> t) {
-  return std::string("(") + help::TuplePrinter<sizeof...(TS)>::tuple_to_str(t) +
-         std::string(" )");
-}
-
 } // namespace slow
 } // namespace hypercubes
 

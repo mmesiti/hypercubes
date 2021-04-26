@@ -3,6 +3,7 @@
 #include "geometry.hpp"
 #include "partitioning.hpp"
 #include <algorithm>
+#include <tuple>
 
 namespace hypercubes {
 namespace slow {
@@ -29,7 +30,8 @@ private:
   std::vector<int> cbsizes, cumcbsizes;
   int nsites;
   Parity origin_parity;
-  template <class T> void checkdim(const vector<T> &);
+  template <class T> void checkdim(const vector<T> &) const;
+  auto key() const { return std::make_tuple(sp, cbflags, name); }
 };
 } // namespace slow
 } // namespace hypercubes

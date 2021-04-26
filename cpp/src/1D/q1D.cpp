@@ -1,4 +1,5 @@
 #include "1D/q1D.hpp"
+#include "tuple_printer.hpp"
 #include <algorithm>
 #include <cassert>
 

@@ -1,10 +1,13 @@
 #include "1D/plain1D.hpp"
+#include "tuple_printer.hpp"
 
 namespace hypercubes {
 namespace slow {
 Plain1D::Plain1D(SizeParity sp, int dimension_, std::string name_)
     : Partitioning1D(sp, dimension_, name_) {
-  limits = std::vector<int>{0, 1};
+  // limits = std::vector<int>{0, 1};
+  for (int i = 0; i <= sp.size; ++i)
+    limits.push_back(i);
 };
 int Plain1D::idx_to_coord(int idx, int offset) const {
   if (offset != 0)

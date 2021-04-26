@@ -1,4 +1,5 @@
 #include "1D/hbb1D.hpp"
+#include "tuple_printer.hpp"
 #include <cassert>
 
 namespace hypercubes {

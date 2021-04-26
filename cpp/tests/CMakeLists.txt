@@ -30,8 +30,12 @@ target_link_libraries(test_plain1D plain1D boost_test_helper)
 add_executable(test_eo_partitioning test_eo_partitioning.cpp)
 target_link_libraries(test_eo_partitioning boost_test_helper eo_partitioning)
 
-add_executable(test_dimensionalise_q1D test_dimensionalise_q1D.cpp)
-target_link_libraries(test_dimensionalise_q1D q1D boost_test_helper)
+add_executable(test_dimensionalise test_dimensionalise.cpp)
+target_link_libraries(test_dimensionalise q1D hbb1D plain1D boost_test_helper)
+
+add_executable(test_comments test_comments.cpp)
+target_link_libraries(test_comments q1D hbb1D plain1D boost_test_helper)
+
 
 ###########
 # TESTING #
@@ -45,4 +49,5 @@ add_test(q1D test_q1D -r confirm)
 add_test(hbb1D test_hbb1D -r confirm)
 add_test(plain1D test_plain1D -r confirm)
 add_test(eo_partitioning test_eo_partitioning -r confirm)
-add_test(dimensionalise_q1D test_dimensionalise_q1D -r confirm)
+add_test(dimensionalise test_dimensionalise -r confirm)
+add_test(comments test_comments -r confirm)

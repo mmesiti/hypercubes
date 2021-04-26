@@ -45,6 +45,7 @@ using SizeParitiesD = vector<vector<SizeParity>>;
 namespace std {
 using SizeParity = hypercubes::slow::SizeParity;
 using IndexResult = hypercubes::slow::IndexResult;
+std::ostream &operator<<(std::ostream &os, hypercubes::slow::Parity p);
 std::ostream &operator<<(std::ostream &os, SizeParity p);
 bool operator<(SizeParity p1, SizeParity p2);
 bool operator==(SizeParity p1, SizeParity p2);

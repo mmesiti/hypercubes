@@ -1,6 +1,7 @@
 #include "eo_partitioning.hpp"
 #include "eo.hpp"
 #include "partitioning.hpp"
+#include "tuple_printer.hpp"
 #include <set>
 #include <stdexcept>
 
@@ -111,7 +112,7 @@ SizeParitiesD EO::sub_sizeparity_info_list() const {
                  });
   return res;
 }
-std::string EO::comments() const { return ""; }
+std::string EO::comments() const { return tuple_to_str(key()); }
 vector<IndexResultD> EO::coord_to_idxs(const Coordinates &coord) const {
   vector<IndexResultD> res;
   Coordinates cbcoord;

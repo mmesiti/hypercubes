@@ -18,6 +18,10 @@ std::ostream &operator<<(std::ostream &os, hypercubes::slow::Parity p) {
   }
   return os;
 }
+std::ostream &operator<<(std::ostream &os, hypercubes::slow::SizeParity p) {
+  os << "<" << p.size << "," << p.parity << ">";
+  return os;
+}
 bool operator<(SizeParity p1, SizeParity p2) {
   return p1.size < p2.size or (p1.size == p2.size and p1.parity < p2.parity);
 }
