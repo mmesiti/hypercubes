@@ -7,12 +7,14 @@ def get_all_paths(node):
     to every leaf of the tree, as a list.
     """
     n, children = node
-    children_results = tuple(get_all_paths(n) for n in children)
-    if len(children_results) != 0:  # node case
-        # we get a list of lists for each child
-        cs = [c for children_list in children_results for c in children_list]
-        return tuple((n, ) + child for child in cs)
-    else:  # leaf case
+    if len(children) != 0:
+        res = []
+        for c in children:
+            children_results = get_all_paths(c)
+            for children_result in children_results:
+                res.append((n, ) + children_result)
+        return tuple(res)
+    else:
         return ((n, ), )
 
 
