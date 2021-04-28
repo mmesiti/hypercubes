@@ -15,5 +15,8 @@ std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
   return os;
 }
 
+template <>
+std::ostream &operator<<(std::ostream &os, const std::vector<bool> &v);
+
 } // namespace std
 #endif // __PRINT_UTILS_H_

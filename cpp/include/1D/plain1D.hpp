@@ -15,7 +15,7 @@ public:
   std::vector<IndexResult> coord_to_idxs(int relative_x) const;
 
 private:
-  auto key() { return std::make_tuple(size, parity, dimension, name); }
+  auto key() const { return std::make_tuple(size, parity, dimension, name); }
 };
 
 } // namespace slow

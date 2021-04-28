@@ -95,3 +95,20 @@ std::tuple<int, int> Q1DPeriodic::idx_limits(int relative_x) const {
 } // namespace slow
 
 } // namespace hypercubes
+
+namespace std {
+ostream &operator<<(ostream &os,
+                    hypercubes::slow::Q1DBase::BoundaryCondition bc) {
+
+  switch (bc) {
+  case hypercubes::slow::Q1DBase::BoundaryCondition::OPEN:
+    os << "OPEN";
+    break;
+  case hypercubes::slow::Q1DBase::BoundaryCondition::PERIODIC:
+    os << "PERIODIC";
+    break;
+  }
+
+  return os;
+}
+} // namespace std

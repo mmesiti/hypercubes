@@ -20,7 +20,7 @@ int Plain1D::idx_to_coord(int idx, int offset) const {
                                 ")");
 };
 int Plain1D::max_idx_value() const { return size; };
-std::string Plain1D::comments() const { return ""; };
+std::string Plain1D::comments() const { return tuple_to_str(key()); };
 std::vector<IndexResult> Plain1D::coord_to_idxs(int relative_x) const {
   if (0 <= relative_x and relative_x < size)
     return std::vector<IndexResult>{{relative_x, 0, false}};

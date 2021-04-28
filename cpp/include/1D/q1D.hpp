@@ -50,4 +50,9 @@ using QOpen = Dimensionalise<Q1DOpen>;
 } // namespace slow
 } // namespace hypercubes
 
+namespace std {
+ostream &operator<<(ostream &os,
+                    hypercubes::slow::Q1DBase::BoundaryCondition bc);
+}
+
 #endif // Q_H_

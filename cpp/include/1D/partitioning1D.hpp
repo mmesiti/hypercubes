@@ -29,7 +29,7 @@ protected:
   std::string name;
 
   Parity idx_to_start_parity(int idx) const;
-  std::vector<int> limits;
+  vector<int> limits;
 };
 
 } // namespace slow

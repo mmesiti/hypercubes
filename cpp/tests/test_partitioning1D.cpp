@@ -1,4 +1,5 @@
 #include <boost/test/data/test_case.hpp>
+#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 
 // We need to use a concrete class for testing.
@@ -66,6 +67,11 @@ BOOST_DATA_TEST_CASE_F(Q1DFixture, test_idx_to_size, bdata::xrange(4), i) {
     size = 9;
 
   BOOST_TEST(size == partitioning1D.idx_to_size(i));
+}
+
+BOOST_FIXTURE_TEST_CASE(test_idx_to_child_kind_throws, Q1DFixture) {
+  BOOST_CHECK_THROW(partitioning1D.idx_to_child_kind(55),
+                    std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

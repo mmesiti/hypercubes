@@ -1,7 +1,10 @@
 #include "1D/partitioning1D.hpp"
+#include "print_utils.hpp"
 #include <algorithm>
 #include <iterator>
 #include <set>
+#include <sstream>
+#include <stdexcept>
 
 namespace hypercubes {
 namespace slow {
@@ -34,7 +37,15 @@ int Partitioning1D::idx_to_child_kind(int idx) const {
   for (int i = 0; i < sps.size(); ++i)
     if (sps[i] == SizeParity{s, p})
       return i;
-  return -1;
+  {
+    std::stringstream message;
+    message << "Child not found."                  //
+            << " SizeParities: " << sps            //
+            << " SizeParity: " << SizeParity{s, p} //
+            << " idx: " << idx;                    //
+
+    throw std::invalid_argument(message.str());
+  }
 }
 
 } // namespace slow

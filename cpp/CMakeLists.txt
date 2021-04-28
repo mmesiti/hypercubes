@@ -13,6 +13,7 @@ include_directories(./include )
 add_library(eo src/eo.cpp)
 
 add_library(geometry src/geometry.cpp)
+add_library(print_utils src/print_utils.cpp)
 
 add_library(partitioning1D src/1D/partitioning1D.cpp)
 target_link_libraries(partitioning1D geometry)
@@ -27,7 +28,7 @@ add_library(plain1D src/1D/plain1D.cpp)
 target_link_libraries(plain1D partitioning1D)
 
 add_library(eo_partitioning src/eo_partitioning.cpp)
-target_link_libraries(eo_partitioning geometry eo)
+target_link_libraries(eo_partitioning geometry eo print_utils)
 
 add_custom_target(coverage
      COMMAND lcov --capture
