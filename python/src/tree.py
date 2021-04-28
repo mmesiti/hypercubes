@@ -27,7 +27,7 @@ def get_flat_list_of_subtrees(level, node):
         return tuple(c for children_list in children_lists
                      for c in children_list)
     else:  # leaf case
-        return ((n, children), )
+        return (node, )
 
 
 def get_max_depth(node):
