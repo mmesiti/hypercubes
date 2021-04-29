@@ -79,17 +79,15 @@ def collapse_level(tree, level_to_collapse, child_to_replace):
     needs to exist in all subtrees.
     DOES NOT WORK ON LEAVES.
     """
-    def _collapse_level(level, node):
-        (n, children) = node
-        children_results = tuple(
-            _collapse_level(level - 1, c) for c in children)
-        if level == 0:
-            res = children[child_to_replace]
-        else:
-            res = (n, children_results)
-        return res
-
-    return _collapse_level(level_to_collapse, tree)
+    (n, children) = tree
+    children_results = tuple(
+        collapse_level(c, level_to_collapse - 1, child_to_replace)
+        for c in children)
+    if level_to_collapse == 0:
+        res = children[child_to_replace]
+    else:
+        res = (n, children_results)
+    return res
 
 
 def bring_level_on_top(tree, level):
