@@ -41,7 +41,7 @@ add_custom_target(coverage
              --directory CMakeFiles
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
-     COMMAND genhtml coverage.info
+     COMMAND genhtml --demangle-cpp coverage.info
      BYPRODUCTS home
                 index-sort-f.html
                 index-sort-l.html
