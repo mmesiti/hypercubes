@@ -39,6 +39,9 @@ target_link_libraries(test_comments q1D hbb1D plain1D eo_partitioning boost_test
 add_executable(test_tree test_tree.cpp)
 target_link_libraries(test_tree boost_test_helper)
 
+add_executable(test_partitioners test_partitioners.cpp)
+target_link_libraries(test_partitioners partitioners boost_test_helper)
+
 ###########
 # TESTING #
 ###########
@@ -54,3 +57,4 @@ add_test(eo_partitioning test_eo_partitioning -r confirm)
 add_test(dimensionalise test_dimensionalise -r confirm)
 add_test(comments test_comments -r confirm)
 add_test(tree test_tree -r confirm)
+add_test(partitioners test_partitioners -r confirm)

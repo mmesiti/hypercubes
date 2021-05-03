@@ -7,6 +7,7 @@
 #include "dimensionalise.hpp"
 #include "eo_partitioning.hpp"
 #include "partitioning.hpp"
+#include <memory>
 #include <string>
 namespace hypercubes {
 namespace slow {
@@ -14,39 +15,72 @@ namespace partitioners {
 
 class IPartitioningRequest {
 public:
-  virtual IPartitioning operator()(SizeParitiesD sp) = 0;
+  std::shared_ptr<IPartitioning> partition(SizeParityD sp);
+
+private:
+  virtual IPartitioning *get(SizeParityD sp) = 0;
 };
 
-class EO : public IPartitioningRequest {
+using CBFlags = hypercubes::slow::EO::CBFlags;
+class EO_ : public IPartitioningRequest {
 public:
-  EO(std::string name, hypercubes::slow::EO::CBFlags cbflags);
-  hypercubes::slow::EO operator()(SizeParities sp);
+  EO_(std::string name, CBFlags cbflags);
+
+private:
+  hypercubes::slow::EO *get(SizeParityD sp);
+  std::string name;
+  CBFlags cbflags;
 };
 
-class QPeriodic : public IPartitioningRequest {
+class QPeriodic_ : public IPartitioningRequest {
 public:
-  QPeriodic(std::string name, int dimension, int nparts);
-  Dimensionalise<Q1DPeriodic> operator()(SizeParities sp);
+  QPeriodic_(std::string name, int dimension, int nparts);
+
+private:
+  std::string name;
+  int dimension, nparts;
+  Dimensionalise<Q1DPeriodic> *get(SizeParityD sp);
 };
 
-class QOpen : public IPartitioningRequest {
+class QOpen_ : public IPartitioningRequest {
 public:
-  QOpen(std::string name, int dimension, int nparts);
-  Dimensionalise<Q1DOpen> operator()(SizeParities sp);
+  QOpen_(std::string name, int dimension, int nparts);
+
+private:
+  std::string name;
+  int dimension, nparts;
+  Dimensionalise<Q1DOpen> *get(SizeParityD sp);
 };
 
-class Plain : public IPartitioningRequest {
+class Plain_ : public IPartitioningRequest {
 public:
-  Plain(std::string name, int dimension);
-  Dimensionalise<Plain1D> operator()(SizeParities sp);
+  Plain_(std::string name, int dimension);
+
+private:
+  std::string name;
+  int dimension;
+  Dimensionalise<Plain1D> *get(SizeParityD sp);
 };
 
-class HBB : public IPartitioningRequest {
+class HBB_ : public IPartitioningRequest {
 public:
-  HBB(std::string name, int dimension, int halo);
-  Dimensionalise<HBB1D> operator()(SizeParities sp);
+  HBB_(std::string name, int dimension, int halo);
+
+private:
+  std::string name;
+  int dimension, halo;
+  Dimensionalise<HBB1D> *get(SizeParityD sp);
 };
 
+using IPartRP = std::shared_ptr<IPartitioningRequest>;
+
+IPartRP EO(std::string name, CBFlags cbflags);
+IPartRP QPeriodic(std::string name, int dimension, int nparts);
+IPartRP QOpen(std::string name, int dimension, int nparts);
+IPartRP Plain(std::string name, int dimension);
+IPartRP HBB(std::string name, int dimension, int halo);
+
+using PartList = std::vector<IPartRP>;
 } // namespace partitioners
 } // namespace slow
 } // namespace hypercubes

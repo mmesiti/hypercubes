@@ -15,6 +15,12 @@ add_library(eo src/eo.cpp)
 add_library(geometry src/geometry.cpp)
 add_library(print_utils src/print_utils.cpp)
 
+add_library(partitioners src/partitioners.cpp)
+target_link_libraries(partitioners eo_partitioning
+  q1D
+  hbb1D
+  plain1D)
+
 add_library(partitioning1D src/1D/partitioning1D.cpp)
 target_link_libraries(partitioning1D geometry)
 
