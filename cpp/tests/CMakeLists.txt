@@ -31,13 +31,15 @@ add_executable(test_eo_partitioning test_eo_partitioning.cpp)
 target_link_libraries(test_eo_partitioning boost_test_helper eo_partitioning)
 
 add_executable(test_dimensionalise test_dimensionalise.cpp)
-target_link_libraries(test_dimensionalise q1D hbb1D plain1D boost_test_helper)
+target_link_libraries(test_dimensionalise q1D hbb1D plain1D boost_test_helper -lgcov)
+target_compile_options(test_dimensionalise PRIVATE "-fprofile-arcs" "-ftest-coverage")
 
 add_executable(test_comments test_comments.cpp)
 target_link_libraries(test_comments q1D hbb1D plain1D eo_partitioning boost_test_helper)
 
 add_executable(test_tree test_tree.cpp)
-target_link_libraries(test_tree boost_test_helper)
+target_link_libraries(test_tree boost_test_helper -lgcov)
+target_compile_options(test_tree PRIVATE "-fprofile-arcs" "-ftest-coverage")
 
 add_executable(test_partitioners test_partitioners.cpp)
 target_link_libraries(test_partitioners partitioners boost_test_helper)

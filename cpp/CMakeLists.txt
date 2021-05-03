@@ -39,6 +39,7 @@ target_link_libraries(eo_partitioning geometry eo print_utils)
 add_custom_target(coverage
      COMMAND lcov --capture
              --directory CMakeFiles
+             --directory tests/CMakeFiles
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
      COMMAND genhtml --demangle-cpp coverage.info

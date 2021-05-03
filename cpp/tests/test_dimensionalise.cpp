@@ -225,6 +225,10 @@ BOOST_FIXTURE_TEST_CASE(test_max_idx_periodic, QF<Q1DPeriodic>) {
   BOOST_TEST(partitioning.max_idx_value() == partitioning1D.max_idx_value());
 }
 
+BOOST_FIXTURE_TEST_CASE(test_max_idx_open, QF<Q1DOpen>) {
+  BOOST_TEST(partitioning.max_idx_value() == partitioning1D.max_idx_value());
+}
+
 BOOST_FIXTURE_TEST_CASE(test_max_idx_hbb, HBBF) {
   BOOST_TEST(partitioning.max_idx_value() == partitioning1D.max_idx_value());
 }
