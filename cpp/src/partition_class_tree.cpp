@@ -5,23 +5,27 @@
 namespace hypercubes {
 namespace slow {
 
-// Note: not yet cached.
-PartitionClassTree get_partition_class_tree(SizeParityD sp,
-                                            const PartList &partitioners) {
-  PartList other_partitioners;
-  std::copy(partitioners.begin() + 1, partitioners.end(),
-            std::back_inserter(other_partitioners));
+PartitionClassTree PCTBuilder::operator()(SizeParityD sp,
+                                          const PartList &partitioners) {
 
-  std::shared_ptr<IPartitioning> n = partitioners[0]->partition(sp);
-  vector<PartitionClassTree> children;
-  if (other_partitioners.size() != 0) {
-    for (SizeParityD sp_child : n->sub_sizeparity_info_list()) {
-      auto new_child = get_partition_class_tree(sp_child, other_partitioners);
-      children.push_back(new_child);
+  Input args{sp, partitioners};
+  if (pct_cache.find(args) == pct_cache.end()) {
+
+    PartList other_partitioners;
+    std::copy(partitioners.begin() + 1, partitioners.end(),
+              std::back_inserter(other_partitioners));
+
+    std::shared_ptr<IPartitioning> n = partitioners[0]->partition(sp);
+    vector<PartitionClassTree> children;
+    if (other_partitioners.size() != 0) {
+      for (SizeParityD sp_child : n->sub_sizeparity_info_list()) {
+        auto new_child = (*this)(sp_child, other_partitioners);
+        children.push_back(new_child);
+      }
     }
+    pct_cache[args] = mt(n, children);
   }
-
-  return mt(n, children);
+  return pct_cache[args];
 }
 
 std::string partition_class_tree_to_str(PartitionClassTree t,

@@ -22,6 +22,7 @@ struct Part4DF {
   enum { X, Y, Z, T, EXTRA };
   SizeParityD sp;
   PartList partitioners;
+  PCTBuilder treeBuilder;
   PartitionClassTree t;
 
   Part4DF()
@@ -42,8 +43,9 @@ struct Part4DF {
                      HBB("Halo Z", Z, 1),                              //
                      HBB("Halo T", T, 1),                              //
                      partitioners::EO("EO", {true, true, true, true}), //
-                     Plain("Remainder", EXTRA)},
-        t(get_partition_class_tree(sp, partitioners)) {}
+                     Plain("Remainder", EXTRA)},                       //
+        treeBuilder(),                                                 //
+        t(treeBuilder(sp, partitioners)) {}
 };
 
 BOOST_AUTO_TEST_SUITE(test_partition_class_tree)

@@ -42,7 +42,8 @@ target_link_libraries(partition_class_tree partitioners)
 add_custom_target(coverage
      COMMAND lcov --capture
              --directory CMakeFiles
-             --directory tests/CMakeFiles
+             --directory tests/CMakeFiles/test_dimensionalise.dir
+             --directory tests/CMakeFiles/test_tree.dir
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
      COMMAND genhtml --demangle-cpp coverage.info

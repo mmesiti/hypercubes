@@ -21,8 +21,8 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_simple) {
   };
 
   SizeParityD sp{{8, Parity::EVEN}};
-
-  PartitionClassTree t = get_partition_class_tree(sp, ps);
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp, ps);
 
   std::string comments0, comments1;
   {
@@ -47,7 +47,8 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 
   SizeParityD sp{{42, Parity::EVEN}};
 
-  PartitionClassTree t = get_partition_class_tree(sp, ps);
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp, ps);
 
   std::string repr = partition_class_tree_to_str(t, "", 5);
 
@@ -78,15 +79,15 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_simple) {
   SizeParityD sp{{42, Parity::EVEN},  //
                  {42, Parity::EVEN}}; //
-  PartitionClassTree t =
-      get_partition_class_tree(sp, PartList{
-                                       QPeriodic("X-MPI", 0, 4), //
-                                       QPeriodic("Y-MPI", 1, 4), //
-                                       QOpen("X-Vector", 0, 2),  //
-                                       QOpen("Y-Vector", 1, 2),  //
-                                       Plain("X-remainder", 0),  //
-                                       Plain("Y-remainder", 1),  //
-                                   });
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp, PartList{
+                                             QPeriodic("X-MPI", 0, 4), //
+                                             QPeriodic("Y-MPI", 1, 4), //
+                                             QOpen("X-Vector", 0, 2),  //
+                                             QOpen("Y-Vector", 1, 2),  //
+                                             Plain("X-remainder", 0),  //
+                                             Plain("Y-remainder", 1),  //
+                                         });
 
   Coordinates xs{29, 20};
 
@@ -105,11 +106,11 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_simple) {
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 
   SizeParityD sp{{42, Parity::EVEN}};
-  PartitionClassTree t =
-      get_partition_class_tree(sp,                              //
-                               PartList{QPeriodic("MPI", 0, 4), //
-                                        QOpen("Vector", 0, 2),  //
-                                        Plain("Remainder", 0)});
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp,                              //
+                                     PartList{QPeriodic("MPI", 0, 4), //
+                                              QOpen("Vector", 0, 2),  //
+                                              Plain("Remainder", 0)});
 
   Coordinates xs{22};
 
@@ -130,12 +131,12 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 
   SizeParityD sp{{42, Parity::EVEN}};
-  PartitionClassTree t =
-      get_partition_class_tree(sp,                              //
-                               PartList{QPeriodic("MPI", 0, 4), //
-                                        QOpen("Vector", 0, 2),  //
-                                        HBB("Halo", 0, 1),      //
-                                        Plain("Remainder", 0)});
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp,                              //
+                                     PartList{QPeriodic("MPI", 0, 4), //
+                                              QOpen("Vector", 0, 2),  //
+                                              HBB("Halo", 0, 1),      //
+                                              Plain("Remainder", 0)});
 
   Coordinates xs{22};
 
