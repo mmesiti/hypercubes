@@ -69,15 +69,15 @@ BOOST_FIXTURE_TEST_CASE(test_get_indices_tree_wg_4D_full, Part4DF) {
   // IDX in the eo partition is
   //(2 + 3*1 + 3*4*0 + 3*4*4*3) // 2 = 149 // 2 = 74
   // So, the expected index is
-  vector<int> expected_idx{1, 1, 2, 0, 1, 0, 0, 0, 2, 2, 2, 2, 0, 73};
-  //                       |----------------------------------| |  |
-  //                                  transpose of              |  |
-  //                                XYZT idxs/sub-idxs          |  |
-  //                                                            |  |
-  //                                                       parity  |
-  //                                                        in-eo idx
-  //                                                        Coordinates xs{20,
-  //                                                        13, 23, 4};
+  vector<int> expected_idx{1, 1, 2, 0, 1, 0, 0, 0, 2, 2, 2, 2, 0, 74};
+  //                      |----------------------------------| |  |
+  //                                 transpose of              |  |
+  //                               XYZT idxs/sub-idxs          |  |
+  //                                                           |  |
+  //                                                      parity  |
+  //                                                       in-eo idx
+  //                                                       Coordinates xs{20,
+  //                                                       13, 23, 4};
 
   TreeP<int> idxt = get_indices_tree(t, xs);
   vector<int> idxs = get_all_paths(idxt)[0];

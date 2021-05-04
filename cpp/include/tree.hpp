@@ -4,7 +4,6 @@
 #include <functional>
 #include <memory>
 #include <ostream>
-#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
@@ -36,6 +35,8 @@ template <class Node> struct Tree {
   bool operator<(const Tree &other) {
     if (n < other.n)
       return true;
+    if (other.n < n)
+      return false;
     for (int i = 0;                                         //
          i < children.size() and i < other.children.size(); //
          ++i)
