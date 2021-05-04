@@ -96,3 +96,22 @@ so we would use ~std::array~,
 but in the tests we want to make sure
 the algorithms work for any number of dimensions,
 so we refrain from specifying
+
+* Coverage
+Coverage is assessed
+using GCC/G++ gcov library and lcov html/css frontend.
+I try to keep coverage as high as possible.
+In order to track the coverage of compiled code correctly,
+the coverage compiler flags need to be used
+not only when compiling the libraries,
+but also when compiling some the tests,
+as some template instantiations happen only in such tests.
+This requires as well scanning
+the ~tests~ build directory for results,
+which increases report generation times.
+It moreover adds the test code
+to the report,
+which is undesirable.
+It is possible to force the templates to be instantiated
+in some source files instead.
+This might be worth investigating.

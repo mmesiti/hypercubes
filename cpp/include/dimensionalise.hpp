@@ -12,8 +12,8 @@ public:
   template <class... Args>
   Dimensionalise(SizeParities sp_, int dimension_, std::string name_,
                  Args... other_args)
-      : dimension(dimension_), spd(sp_), name(name_),
-        wrapped(spd[dimension], dimension, name, other_args...){};
+      : dimension(dimension_), spd(sp_),
+        wrapped(spd[dimension], dimension, name_, other_args...){};
   Coordinates idx_to_coords(int idx, const Coordinates &offsets) const {
     return merge_in(wrapped.idx_to_coord(idx,                 //
                                          offsets[dimension]), //
@@ -34,6 +34,7 @@ public:
     return wrapped.idx_to_child_kind(idx);
   };
   int max_idx_value() const { return wrapped.max_idx_value(); };
+  std::string get_name() const { return wrapped.get_name(); };
   std::string comments() const { return wrapped.comments(); };
 
   vector<IndexResultD> coord_to_idxs(const Coordinates &coord) const {
@@ -52,7 +53,6 @@ public:
 
 private:
   const SizeParityD spd;
-  const std::string name;
   P1D wrapped;
 
   template <class T, class Container>

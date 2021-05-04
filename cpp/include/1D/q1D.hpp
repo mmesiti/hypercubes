@@ -45,8 +45,6 @@ private:
   std::tuple<int, int> idx_limits(int relative_x) const;
   BoundaryCondition bc() const;
 };
-using QPeriodic = Dimensionalise<Q1DPeriodic>;
-using QOpen = Dimensionalise<Q1DOpen>;
 } // namespace slow
 } // namespace hypercubes
 

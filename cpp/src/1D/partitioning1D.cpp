@@ -47,6 +47,7 @@ int Partitioning1D::idx_to_child_kind(int idx) const {
     throw std::invalid_argument(message.str());
   }
 }
+std::string Partitioning1D::get_name() const { return name; }
 
 } // namespace slow
 } // namespace hypercubes

@@ -15,10 +15,10 @@ namespace partitioners {
 
 class IPartitioningRequest {
 public:
-  std::shared_ptr<IPartitioning> partition(SizeParityD sp);
+  std::shared_ptr<IPartitioning> partition(SizeParityD sp) const;
 
 private:
-  virtual IPartitioning *get(SizeParityD sp) = 0;
+  virtual IPartitioning *get(SizeParityD sp) const = 0;
 };
 
 using CBFlags = hypercubes::slow::EO::CBFlags;
@@ -27,9 +27,9 @@ public:
   EO_(std::string name, CBFlags cbflags);
 
 private:
-  hypercubes::slow::EO *get(SizeParityD sp);
   std::string name;
   CBFlags cbflags;
+  hypercubes::slow::EO *get(SizeParityD sp) const;
 };
 
 class QPeriodic_ : public IPartitioningRequest {
@@ -39,7 +39,7 @@ public:
 private:
   std::string name;
   int dimension, nparts;
-  Dimensionalise<Q1DPeriodic> *get(SizeParityD sp);
+  Dimensionalise<Q1DPeriodic> *get(SizeParityD sp) const;
 };
 
 class QOpen_ : public IPartitioningRequest {
@@ -49,7 +49,7 @@ public:
 private:
   std::string name;
   int dimension, nparts;
-  Dimensionalise<Q1DOpen> *get(SizeParityD sp);
+  Dimensionalise<Q1DOpen> *get(SizeParityD sp) const;
 };
 
 class Plain_ : public IPartitioningRequest {
@@ -59,7 +59,7 @@ public:
 private:
   std::string name;
   int dimension;
-  Dimensionalise<Plain1D> *get(SizeParityD sp);
+  Dimensionalise<Plain1D> *get(SizeParityD sp) const;
 };
 
 class HBB_ : public IPartitioningRequest {
@@ -69,7 +69,7 @@ public:
 private:
   std::string name;
   int dimension, halo;
-  Dimensionalise<HBB1D> *get(SizeParityD sp);
+  Dimensionalise<HBB1D> *get(SizeParityD sp) const;
 };
 
 using IPartRP = std::shared_ptr<IPartitioningRequest>;

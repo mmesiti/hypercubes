@@ -16,24 +16,25 @@ Plain_::Plain_(std::string name_, int dimension_)
 HBB_::HBB_(std::string name_, int dimension_, int halo_)
     : name(name_), dimension(dimension_), halo(halo_) {}
 
-std::shared_ptr<IPartitioning> IPartitioningRequest::partition(SizeParityD sp) {
+std::shared_ptr<IPartitioning>
+IPartitioningRequest::partition(SizeParityD sp) const {
   return std::shared_ptr<IPartitioning>(get(sp));
 }
 
-hypercubes::slow::EO *EO_::get(SizeParities sp) {
+hypercubes::slow::EO *EO_::get(SizeParities sp) const {
   return new hypercubes::slow::EO(sp, cbflags, name);
 }
 
-Dimensionalise<Q1DPeriodic> *QPeriodic_::get(SizeParityD sp) {
+Dimensionalise<Q1DPeriodic> *QPeriodic_::get(SizeParityD sp) const {
   return new Dimensionalise<Q1DPeriodic>(sp, dimension, name, nparts);
 }
-Dimensionalise<Q1DOpen> *QOpen_::get(SizeParityD sp) {
+Dimensionalise<Q1DOpen> *QOpen_::get(SizeParityD sp) const {
   return new Dimensionalise<Q1DOpen>(sp, dimension, name, nparts);
 }
-Dimensionalise<Plain1D> *Plain_::get(SizeParityD sp) {
+Dimensionalise<Plain1D> *Plain_::get(SizeParityD sp) const {
   return new Dimensionalise<Plain1D>(sp, dimension, name);
 }
-Dimensionalise<HBB1D> *HBB_::get(SizeParityD sp) {
+Dimensionalise<HBB1D> *HBB_::get(SizeParityD sp) const {
   return new Dimensionalise<HBB1D>(sp, dimension, name, halo);
 }
 

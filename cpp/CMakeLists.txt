@@ -36,6 +36,9 @@ target_link_libraries(plain1D partitioning1D)
 add_library(eo_partitioning src/eo_partitioning.cpp)
 target_link_libraries(eo_partitioning geometry eo print_utils)
 
+add_library(partition_class_tree src/partition_class_tree.cpp)
+target_link_libraries(partition_class_tree partitioners)
+
 add_custom_target(coverage
      COMMAND lcov --capture
              --directory CMakeFiles

@@ -19,6 +19,7 @@ public:
   int idx_to_size(int idx) const;
   virtual int idx_to_coord(int idx, int offset) const = 0;
   virtual int max_idx_value() const = 0;
+  std::string get_name() const;
   virtual std::string comments() const = 0;
   virtual vector<IndexResult> coord_to_idxs(int relative_x) const = 0;
 

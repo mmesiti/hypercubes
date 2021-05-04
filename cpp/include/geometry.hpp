@@ -10,13 +10,13 @@ using std::vector;
 struct IndexResult {
   int idx;
   int rest;
-  int cached_flag;
+  bool cached_flag;
 };
 
 struct IndexResultD {
   int idx;
   vector<int> rest;
-  int cached_flag;
+  bool cached_flag;
 };
 
 enum Parity { EVEN, ODD, NONE };

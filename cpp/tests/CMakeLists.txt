@@ -44,6 +44,12 @@ target_compile_options(test_tree PRIVATE "-fprofile-arcs" "-ftest-coverage")
 add_executable(test_partitioners test_partitioners.cpp)
 target_link_libraries(test_partitioners partitioners boost_test_helper)
 
+add_executable(test_partition_class_tree test_partition_class_tree.cpp)
+target_link_libraries(test_partition_class_tree partition_class_tree boost_test_helper)
+
+add_executable(test_pct_full test_pct_full.cpp)
+target_link_libraries(test_pct_full partition_class_tree boost_test_helper)
+
 ###########
 # TESTING #
 ###########
@@ -60,3 +66,5 @@ add_test(dimensionalise test_dimensionalise -r confirm)
 add_test(comments test_comments -r confirm)
 add_test(tree test_tree -r confirm)
 add_test(partitioners test_partitioners -r confirm)
+add_test(partition_class_tree test_partition_class_tree -r confirm)
+add_test(pct_full test_pct_full -r confirm)

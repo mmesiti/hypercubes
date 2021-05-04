@@ -15,6 +15,7 @@ public:
   virtual SizeParitiesD sub_sizeparity_info_list() const = 0;
   virtual int idx_to_child_kind(int idx) const = 0;
   virtual int max_idx_value() const = 0;
+  virtual std::string get_name() const = 0;
   virtual std::string comments() const = 0;
   virtual vector<IndexResultD>
   coord_to_idxs(const Coordinates &coord) const = 0;

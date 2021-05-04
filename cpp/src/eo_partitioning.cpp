@@ -112,6 +112,7 @@ SizeParitiesD EO::sub_sizeparity_info_list() const {
                  });
   return res;
 }
+std::string EO::get_name() const { return name; }
 std::string EO::comments() const { return tuple_to_str(key()); }
 vector<IndexResultD> EO::coord_to_idxs(const Coordinates &coord) const {
   vector<IndexResultD> res;
