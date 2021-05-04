@@ -67,7 +67,7 @@ def get_indices_tree(partition_class_tree, coordinates):
     """
     leaf = (None, ())
 
-    def _get_indices_tree(partition_class_tree, coordinates, name):
+    def _get_indices_tree(partition_class_tree, coordinates):
         partition_class, children = partition_class_tree
         possible_indices = partition_class.coords_to_idxs(coordinates)
         real_value = next(v for v in possible_indices if not v.cached_flag)
@@ -79,13 +79,12 @@ def get_indices_tree(partition_class_tree, coordinates):
             child_type = partition_class.idx_to_child_kind(real_value.idx)
             r = _get_indices_tree(
                 children[child_type],  #
-                rest,  #
-                partition_class.name)
+                rest)
 
             children_results = (r, )
         return (real_value.idx, children_results)
 
-    return _get_indices_tree(partition_class_tree, coordinates, "")
+    return _get_indices_tree(partition_class_tree, coordinates)
 
 
 def get_indices_tree_with_ghosts(partition_class_tree, coordinates):
