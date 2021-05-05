@@ -5,12 +5,12 @@
 - a recent version of ~g++~
   (tested with ~g++~ 10.2)
 - ~boost/test~
-  (tested with version 1.75
+  (tested with version 1.75 and 1.76
   of the whole boost suite);
 - ~lcov~ for coverage report generation
   (the ~gcov~ backend
   should be already included
-  in the disrtibution of gcc).
+  in the distribution of gcc).
 
 
 * ~std::vector~ vs ~std::array~
@@ -106,7 +106,7 @@ the dimension of the lattice is known at compile time,
 so we would use ~std::array~,
 but in the tests we want to make sure
 the algorithms work for any number of dimensions,
-so we refrain from specifying
+so we just fall back to ~std::vector~.
 
 * Coverage
 Coverage is assessed

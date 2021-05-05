@@ -122,8 +122,7 @@ BOOST_DATA_TEST_CASE_F(PlainF,                   //
 auto test_idx_to_sizes_helper = [](auto p, auto p1D, int in) {
   auto idx_real = get_idx_real(p1D, in);
 
-  Sizes sizes{2, 0};
-  int s = p.idx_to_sizes(idx_real.idx, sizes)[p.dimension];
+  int s = p.idx_to_sizes(idx_real.idx)[p.dimension];
   int s1D = p1D.idx_to_size(idx_real.idx);
   BOOST_TEST(s == s1D);
 };

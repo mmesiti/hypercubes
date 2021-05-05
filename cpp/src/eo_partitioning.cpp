@@ -72,7 +72,6 @@ Coordinates EO::idx_to_coords(int idx, const Coordinates &offset) const {
   }
   return res;
 }
-Sizes EO::idx_to_sizes(int idx, const Sizes &sizes) const { return Sizes(); }
 int EO::idx_to_child_kind(int idx) const {
   if (nsites % 2 == 0)
     return 0;

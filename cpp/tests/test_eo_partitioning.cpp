@@ -127,8 +127,8 @@ BOOST_DATA_TEST_CASE_F(EOALLODD, test_idx_to_coords_allodd,
 }
 
 BOOST_FIXTURE_TEST_CASE(test_idx_to_sizes, EO5) {
-  auto s = P.idx_to_sizes(52934572, Coordinates());
-  BOOST_TEST(s.size() == 0);
+  auto s = P.idx_to_sizes(52934572);
+  BOOST_TEST(s.size() == P.dimensionality() + 1);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_idx_to_child_kind_even, EO5) {

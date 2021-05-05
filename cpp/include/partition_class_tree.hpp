@@ -42,6 +42,7 @@ get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices);
 Coordinates get_coord_from_idx(const PartitionClassTree &t, //
                                const Indices &idx);
 
+Sizes get_sizes_from_idx(const PartitionClassTree &t, const Indices &idx);
 } // namespace slow
 
 } // namespace hypercubes

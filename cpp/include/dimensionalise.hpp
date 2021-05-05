@@ -1,5 +1,6 @@
 #ifndef __DIMENSIONALISE_H_
 #define __DIMENSIONALISE_H_
+#include "geometry.hpp"
 #include "partitioning.hpp"
 #include <algorithm>
 
@@ -19,10 +20,6 @@ public:
                                          offsets[dimension]), //
                     offsets);                                 //
   }
-  Sizes idx_to_sizes(int idx, const Sizes &sizes) const {
-    return merge_in(wrapped.idx_to_size(idx), //
-                    sizes);                   //
-  };
   SizeParitiesD sub_sizeparity_info_list() const {
     SizeParitiesD res;
     auto res1D = wrapped.sub_sizeparity_info_list();
