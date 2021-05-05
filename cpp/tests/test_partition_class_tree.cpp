@@ -1,10 +1,11 @@
 #include "partition_class_tree.hpp"
 #include "tree.hpp"
+#include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow;
 using namespace hypercubes::slow::partitioners;
-
+namespace bdata = boost::unit_test::data;
 /**
  * Simple 1D test.
  * */
@@ -117,7 +118,7 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
   TreeP<GhostResult> idxt_gr = get_indices_tree_with_ghosts(t, xs);
   TreeP<int> idxt =
       nodemap<GhostResult, int>(idxt_gr, [](GhostResult gr) { return gr.idx; });
-  vector<vector<int>> idxs = get_all_paths(idxt);
+  vector<Indices> idxs = get_all_paths(idxt);
   decltype(idxs) relevant_idxs;
   std::copy_if(idxs.begin(), idxs.end(), std::back_inserter(relevant_idxs),
                [](auto v) { return v.size() == 4; });
@@ -141,11 +142,14 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
   Coordinates xs{22};
 
   TreeP<GhostResult> idxt_gr = get_indices_tree_with_ghosts(t, xs);
-  TreeP<int> idxt =
-      nodemap<GhostResult, int>(idxt_gr, [](GhostResult gr) { return gr.idx; });
-  vector<vector<int>> idxs = get_all_paths(idxt);
+  TreeP<int> idxt = nodemap<GhostResult, int>(idxt_gr,             //
+                                              [](GhostResult gr) { //
+                                                return gr.idx;     //
+                                              });
+  vector<Indices> idxs = get_all_paths(idxt);
   decltype(idxs) relevant_idxs;
-  std::copy_if(idxs.begin(), idxs.end(), std::back_inserter(relevant_idxs),
+  std::copy_if(idxs.begin(), idxs.end(),          //
+               std::back_inserter(relevant_idxs), //
                [](auto v) { return v.size() == 5; });
   decltype(idxs) expected{
       {0, 1, 1, 4, 0}, // ghost
@@ -153,6 +157,23 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
   };
 
   BOOST_TEST(expected == relevant_idxs);
+}
+
+BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
+                     bdata::xrange(0, 41), i) {
+  SizeParityD sp{{42, Parity::EVEN}};
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp,                              //
+                                     PartList{QPeriodic("MPI", 0, 4), //
+                                              QOpen("Vector", 0, 2),  //
+                                              HBB("Halo", 0, 1),      //
+                                              Plain("Remainder", 0)});
+
+  Coordinates xs{i};
+  Indices idx = get_all_paths(get_indices_tree(t, xs))[0];
+  Coordinates new_xs = get_coord_from_idx(t, idx);
+
+  BOOST_TEST(new_xs == xs);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

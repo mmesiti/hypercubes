@@ -26,8 +26,15 @@ struct SizeParity {
   Parity parity;
 };
 
+// Coordinates are for locations in physical space - e.g, 4D
 using Coordinates = vector<int>;
+// Sizes are for extents in physical space
 using Sizes = vector<int>;
+// Indices are for location in the partitioning tree
+// (not that different from coordinates, after all,
+// but in a space with a different dimensionality
+// and some other constraint)
+using Indices = vector<int>;
 // [nclasses]
 using SizeParities = vector<SizeParity>;
 // [dimensions]

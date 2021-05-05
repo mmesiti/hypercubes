@@ -8,7 +8,6 @@
 using namespace hypercubes::slow;
 using namespace hypercubes::slow::partitioners;
 using namespace data;
-namespace bdata = boost::unit_test::data;
 
 // Partitioning expected, for each dimension, until EO level:
 // Site index:
@@ -137,6 +136,19 @@ BOOST_FIXTURE_TEST_CASE(test_ghosts, Part4DF) {
     auto itwg = get_indices_tree_with_ghosts(t, *xs);
     auto idxs = get_relevant_indices_flat(itwg);
     BOOST_TEST(idxs.size() == pow(2, nborder));
+    ++xs;
+  }
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_coords_from_idx_roundtrip, Part4DF) {
+
+  auto datasource = data::rilist(0, 41, 4, 4);
+  auto xs = datasource.begin();
+  for (int icase = 0; icase < 500; ++icase) {
+
+    Indices idx = get_all_paths(get_indices_tree(t, *xs))[0];
+    Coordinates new_coords = get_coord_from_idx(t, idx);
+    BOOST_TEST(new_coords == *xs);
     ++xs;
   }
 }

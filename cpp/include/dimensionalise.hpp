@@ -50,6 +50,7 @@ public:
   };
 
   const int dimension;
+  int dimensionality() const { return spd.size(); };
 
 private:
   const SizeParityD spd;

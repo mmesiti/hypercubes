@@ -19,6 +19,7 @@ public:
   virtual std::string comments() const = 0;
   virtual vector<IndexResultD>
   coord_to_idxs(const Coordinates &coord) const = 0;
+  virtual int dimensionality() const = 0;
 };
 
 } // namespace slow

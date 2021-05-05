@@ -8,36 +8,36 @@
 namespace hypercubes {
 namespace slow {
 
-EO::EO(const SizeParities &sp_, const EO::CBFlags &cbflags_,
+EO::EO(const SizeParityD &sp_, const EO::CBFlags &cbflags_,
        const std::string &name_)
-    : sp(sp_), cbflags(cbflags_), name(name_) {
+    : spd(sp_), cbflags(cbflags_), name(name_) {
   // check that sizes are the same
-  if (sp.size() != cbflags.size())
+  if (spd.size() != cbflags.size())
     throw std::invalid_argument(
         name + ": Lengths of sp and cbflags must be the same. " +
-        "they are instead, respectively, " + std::to_string(sp.size()) +
+        "they are instead, respectively, " + std::to_string(spd.size()) +
         " and " + std::to_string(cbflags.size()));
   // check that Parity::NONE corresponds to cbflag == False
   for (int i = 0; i < cbflags.size(); ++i)
-    if ((cbflags[i] and (sp[i].parity == Parity::NONE)) or
-        (not cbflags[i] and (sp[i].parity != Parity::NONE)))
+    if ((cbflags[i] and (spd[i].parity == Parity::NONE)) or
+        (not cbflags[i] and (spd[i].parity != Parity::NONE)))
       throw std::invalid_argument(
           name + ": Parity and cbflags do not agree." +
           " Index :" + std::to_string(i) +
-          " parity: " + std::to_string(static_cast<int>(sp[i].parity)) +
+          " parity: " + std::to_string(static_cast<int>(spd[i].parity)) +
           " cbflag: " + std::to_string(cbflags[i]));
 
   for (int i = 0; i < cbflags.size(); ++i)
     if (cbflags[i])
-      cbsizes.push_back(sp[i].size);
+      cbsizes.push_back(spd[i].size);
 
   cumcbsizes = eo::get_cumsizes(cbsizes);
   nsites = *cumcbsizes.rbegin();
 
   {
     int oddity = 0;
-    for (int i = 0; i < sp.size(); ++i)
-      if (sp[i].parity == Parity::ODD and
+    for (int i = 0; i < spd.size(); ++i)
+      if (spd[i].parity == Parity::ODD and
           cbflags[i]) // Redundant for robustness
         oddity++;
     origin_parity = static_cast<Parity>(oddity % 2);
@@ -45,19 +45,20 @@ EO::EO(const SizeParities &sp_, const EO::CBFlags &cbflags_,
 }
 
 Coordinates EO::idx_to_coords(int idx, const Coordinates &offset) const {
-  if (sp.size() + 1 != offset.size())
-    throw std::invalid_argument(
-        name + "The length of offset must be " + std::to_string(sp.size() + 1) +
-        ", it is instead " + std::to_string(offset.size()));
+  if (dimensionality() + 1 != offset.size())
+    throw std::invalid_argument(name + "The length of offset must be " +
+                                std::to_string(spd.size() + 1) +
+                                ", it is instead " +
+                                std::to_string(offset.size()));
 
-  Coordinates res(cbflags.size());
+  Coordinates res(dimensionality());
   Coordinates sub_res;
   {
     int op = static_cast<int>(origin_parity);
     Parity parity = static_cast<Parity>((idx + op) % 2);
     int idxh = offset[cbflags.size()];
-    vector<int> sizes(sp.size());
-    std::transform(sp.begin(), sp.end(), sizes.begin(),
+    vector<int> sizes(dimensionality());
+    std::transform(spd.begin(), spd.end(), sizes.begin(),
                    [](auto sp_) { return sp_.size; });
     sub_res = eo::lexeo_idx_to_coord(parity, idxh, cbsizes);
   }
@@ -103,7 +104,7 @@ SizeParitiesD EO::sub_sizeparity_info_list() const {
   SizeParitiesD res;
   std::transform(class_sizes.begin(), class_sizes.end(),
                  std::back_inserter(res), [this](int s) {
-                   SizeParities new_sp = sp;
+                   SizeParityD new_sp = spd;
                    for (int i = 0; i < cbflags.size(); ++i)
                      if (cbflags[i])
                        new_sp[i] = SizeParity{1, Parity::NONE};
@@ -131,6 +132,8 @@ vector<IndexResultD> EO::coord_to_idxs(const Coordinates &coord) const {
 
   return vector<IndexResultD>{{eo_idx, rests, false}};
 }
+
+int EO::dimensionality() const { return spd.size(); }
 
 } // namespace slow
 } // namespace hypercubes

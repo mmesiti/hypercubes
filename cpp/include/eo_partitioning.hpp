@@ -12,8 +12,7 @@ class EO : public IPartitioning {
 public:
   using CBFlags = vector<bool>;
 
-  EO(const SizeParities &sp_, const CBFlags &cbflags_,
-     const std::string &name_);
+  EO(const SizeParityD &sp_, const CBFlags &cbflags_, const std::string &name_);
   Coordinates idx_to_coords(int idx, const Coordinates &offset) const;
   Sizes idx_to_sizes(int idx, const Sizes &sizes) const;
   SizeParitiesD sub_sizeparity_info_list() const;
@@ -22,9 +21,10 @@ public:
   std::string get_name() const;
   std::string comments() const;
   vector<IndexResultD> coord_to_idxs(const Coordinates &coord) const;
+  int dimensionality() const;
 
 private:
-  const SizeParities sp;
+  const SizeParityD spd;
   const CBFlags cbflags;
   const std::string name;
 
@@ -32,7 +32,7 @@ private:
   int nsites;
   Parity origin_parity;
   template <class T> void checkdim(const vector<T> &) const;
-  auto key() const { return std::make_tuple(sp, cbflags, name); }
+  auto key() const { return std::make_tuple(spd, cbflags, name); }
 };
 } // namespace slow
 } // namespace hypercubes

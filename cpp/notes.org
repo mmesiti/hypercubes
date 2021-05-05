@@ -14,24 +14,35 @@
 
 
 * ~std::vector~ vs ~std::array~
-In general:
-- Using ~std::array~ for collections
-  whose length is known at compile time,
-  **and it is comfortable doing so**.
-- Using ~std::vector~ for collections
-  whose length is unkown at compile time.
-To keep things simple,
-I'll start using ~std::vector~ everywhere.
+In general, I decided
+to use ~std::vector~ for collections everywhere.
+I tried to use ~std::array~
+when I believed that it was possible
+to determine the size at compile time,
+but that assumption turned out to be wrong
+most of the times.
 Switching from ~std::vector~ to ~std::array~
-to increase type safety will be done incrementally.
+to increase type safety might be done incrementally.
 When possible, some choices will be made
 to make the code versatile enough
 so that the switch is easier.
 
-* Size vs Coordinate
+* Size vs Coordinate vs Index
 Sizes and coordinates are semantically different
-but are at the moment represented by ~std::array<int,Dimension>~
-anyway.
+but are at the moment represented
+by ~std::vector<int>~ anyway.
+A type alias ~Coordinates~ is used
+to make the code more self-descriptive
+(no type constraints are enforced
+by the compiler, though).
+An Index is like a coordinate
+but not in the physical space.
+At the moment there is no way
+to distinguish between the two.
+There might not be need
+to distinguish between the two at all.
+I may add an ~Indices~ type alias
+as for ~Coordinates~ to make things clearer to the reader.
 
 * Differences with the Python versions
 ** General remarks

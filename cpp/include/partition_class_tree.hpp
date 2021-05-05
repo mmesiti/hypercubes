@@ -17,12 +17,15 @@ class PCTBuilder {
   std::map<Input, PartitionClassTree> pct_cache;
 
 public:
-  PartitionClassTree operator()(SizeParityD sp, const PartList &partitioners);
+  PartitionClassTree operator()(SizeParityD sp, //
+                                const PartList &partitioners);
 };
-std::string partition_class_tree_to_str(PartitionClassTree t,
-                                        std::string prefix, int max_level);
+std::string partition_class_tree_to_str(const PartitionClassTree &t, //
+                                        const std::string &prefix,   //
+                                        int max_level);
 
-TreeP<int> get_indices_tree(PartitionClassTree t, Coordinates xs);
+TreeP<int> get_indices_tree(const PartitionClassTree &t, //
+                            const Coordinates &xs);
 
 struct GhostResult {
   int idx;
@@ -30,11 +33,15 @@ struct GhostResult {
   std::string name;
 };
 
-TreeP<GhostResult> get_indices_tree_with_ghosts(PartitionClassTree t,
-                                                Coordinates xs);
+TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionClassTree &t,
+                                                const Coordinates &xs);
 
-vector<std::tuple<int, vector<int>>>
-get_relevant_indices_flat(TreeP<GhostResult> tree_indices);
+vector<std::tuple<int, Indices>>
+get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices);
+
+Coordinates get_coord_from_idx(const PartitionClassTree &t, //
+                               const Indices &idx);
+
 } // namespace slow
 
 } // namespace hypercubes
