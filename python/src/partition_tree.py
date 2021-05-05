@@ -25,12 +25,12 @@ def get_size_tree(partition_class_tree, partition_exists_pred):
                     r = _get_size_tree(new_pc, new_idx)
                     if size(r) > 0:
                         children_results += (r, )
+
+            total_size = sum(size(cr) for cr in children_results)
+
+            return (total_size, top_idx[-1]), children_results
         else:
             return (partition_class.max_idx_value(), top_idx[-1]), ()
-
-        total_size = sum(size(cr) for cr in children_results)
-
-        return (total_size, top_idx[-1]), children_results
 
     return _get_size_tree(partition_class_tree, (None, ))
 
