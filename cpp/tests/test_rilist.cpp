@@ -25,6 +25,15 @@ BOOST_AUTO_TEST_CASE(test_rilist_edge_cases_first) {
         BOOST_TEST(i != a);
 }
 
+BOOST_AUTO_TEST_CASE(test_rilist_repeat_consistent) {
+
+  data::rilist generator(1, 1000, 1, 1);
+  auto it = generator.begin();
+  // make sure to get to the random part.
+  for (int i = 0; i < 1000; ++i)
+    BOOST_TEST(*it == *it);
+}
+
 namespace bdata = boost::unit_test::data;
 BOOST_DATA_TEST_CASE(test_rilist_limits,
                      data::rilist(1, 10, 1, 6) ^ bdata::xrange(1000), sizes,

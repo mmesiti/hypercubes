@@ -1,9 +1,14 @@
 #include "partition_class_tree.hpp"
 #include "tree.hpp"
+#include "utils.hpp"
+#include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
+#include <cmath>
 
 using namespace hypercubes::slow;
 using namespace hypercubes::slow::partitioners;
+using namespace data;
+namespace bdata = boost::unit_test::data;
 
 // Partitioning expected, for each dimension, until EO level:
 // Site index:
@@ -24,6 +29,29 @@ struct Part4DF {
   PartList partitioners;
   PCTBuilder treeBuilder;
   PartitionClassTree t;
+  std::vector<int> bulk_sites;
+  std::vector<int> border_sites;
+
+  std::vector<int> assemble(const std::string &tens, const std::string &units) {
+
+    auto ichartoi = [](char c) { return int(c - '0'); };
+    assert(tens.size() == units.size());
+    std::vector<int> res;
+    for (int i = 0; i < tens.size(); ++i)
+      res.push_back(ichartoi(tens[i]) * 10 + //
+                    ichartoi(units[i]));
+    return res;
+  }
+  std::vector<int> get_bulk_sites() {
+    std::string tens = "00000001111112222223333334";
+    std::string units = "12347892345890345690145690";
+    return assemble(tens, units);
+  }
+  std::vector<int> get_border_sites() {
+    std::string tens = "0001111222233334";
+    std::string units = "0560167127823781";
+    return assemble(tens, units);
+  }
 
   Part4DF()
       : sp{{42, Parity::EVEN}, //
@@ -45,7 +73,9 @@ struct Part4DF {
                      partitioners::EO("EO", {true, true, true, true}), //
                      Plain("Remainder", EXTRA)},                       //
         treeBuilder(),                                                 //
-        t(treeBuilder(sp, partitioners)) {}
+        t(treeBuilder(sp, partitioners)),                              //
+        bulk_sites(get_bulk_sites()),                                  //
+        border_sites(get_border_sites()) {}
 };
 
 BOOST_AUTO_TEST_SUITE(test_partition_class_tree)
@@ -85,6 +115,30 @@ BOOST_FIXTURE_TEST_CASE(test_get_indices_tree_wg_4D_full, Part4DF) {
   vector<int> idxs = get_all_paths(idxt)[0];
 
   BOOST_TEST(idxs == expected_idx);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_ghosts, Part4DF) {
+
+  auto datasource = data::rilist(0, 41, 4, 4);
+  auto xs = datasource.begin();
+  for (int icase = 0; icase < 500; ++icase) {
+    auto count = [](auto site_list, auto xs) {
+      int c = 0;
+      for (auto x : xs)
+        if (std::find(site_list.begin(), site_list.end(), x) != site_list.end())
+          ++c;
+      return c;
+    };
+
+    int nbulk = count(bulk_sites, *xs);
+    int nborder = count(border_sites, *xs);
+
+    BOOST_TEST(nbulk + nborder == (*xs).size());
+    auto itwg = get_indices_tree_with_ghosts(t, *xs);
+    auto idxs = get_relevant_indices_flat(itwg);
+    BOOST_TEST(idxs.size() == pow(2, nborder));
+    ++xs;
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

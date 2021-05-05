@@ -48,7 +48,7 @@ add_executable(test_partition_class_tree test_partition_class_tree.cpp)
 target_link_libraries(test_partition_class_tree partition_class_tree boost_test_helper)
 
 add_executable(test_pct_full test_pct_full.cpp)
-target_link_libraries(test_pct_full partition_class_tree boost_test_helper)
+target_link_libraries(test_pct_full partition_class_tree boost_test_helper utils)
 
 ###########
 # TESTING #

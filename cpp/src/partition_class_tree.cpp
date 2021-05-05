@@ -109,5 +109,32 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(PartitionClassTree t,
 
   return _get_idtree_wghosts(0, false, t, xs, "ROOT");
 }
+
+vector<std::tuple<int, vector<int>>>
+get_relevant_indices_flat(TreeP<GhostResult> tree_indices) {
+  int max_depth = get_max_depth(tree_indices);
+  auto idxs = get_all_paths(tree_indices);
+  using ResType = vector<std::tuple<int, vector<int>>>;
+  decltype(idxs) relevant_idxs;
+  // selection
+  std::copy_if(idxs.begin(), idxs.end(), std::back_inserter(relevant_idxs),
+               [max_depth](auto v) { return v.size() == max_depth; });
+
+  ResType res;
+
+  std::transform(relevant_idxs.begin(), //
+                 relevant_idxs.end(),   //
+                 std::back_inserter(res), [](vector<GhostResult> idx) {
+                   int cached_count = std::count_if(
+                       idx.begin(), idx.end(),
+                       [](GhostResult id) { return id.cached_flag; });
+                   vector<int> i;
+                   std::transform(idx.begin(), idx.end(), std::back_inserter(i),
+                                  [](GhostResult id) { return id.idx; });
+                   return std::make_tuple(cached_count, i);
+                 });
+
+  return res;
+}
 } // namespace slow
 } // namespace hypercubes

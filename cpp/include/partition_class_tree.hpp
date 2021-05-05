@@ -33,6 +33,8 @@ struct GhostResult {
 TreeP<GhostResult> get_indices_tree_with_ghosts(PartitionClassTree t,
                                                 Coordinates xs);
 
+vector<std::tuple<int, vector<int>>>
+get_relevant_indices_flat(TreeP<GhostResult> tree_indices);
 } // namespace slow
 
 } // namespace hypercubes

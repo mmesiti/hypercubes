@@ -18,12 +18,7 @@ namespace data {
  *  A random list factory that yields edge cases first, then random
  *  To be used as a data generator with boost/test.
  */
-std::vector<int> rilist::iterator::operator*() const {
-  if (currentsize > maxsize)
-    return this->random_vector();
-  else
-    return this->sequence_vector();
-}
+std::vector<int> rilist::iterator::operator*() const { return current_vector; }
 
 void rilist::iterator::operator++() {
   if (currentsize <= maxsize) {
@@ -34,7 +29,16 @@ void rilist::iterator::operator++() {
       in_size_idx = 0;
     }
   }
+  if (currentsize > maxsize)
+    current_vector = this->random_vector();
+  else
+    current_vector = this->sequence_vector();
 }
+rilist::iterator::iterator(int min_, int max_, int minsize_, int maxsize_)
+    : min(min_), max(max_), minsize(minsize_), maxsize(maxsize_),
+      currentsize(minsize_), in_size_idx(0) {
+  current_vector = this->sequence_vector();
+};
 
 std::vector<int> rilist::iterator::random_vector() const {
   std::vector<int> res;

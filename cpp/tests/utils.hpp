@@ -25,9 +25,7 @@ public:
 
   class iterator {
   public:
-    iterator(int min_, int max_, int minsize_, int maxsize_)
-        : min(min_), max(max_), minsize(minsize_), maxsize(maxsize_),
-          currentsize(minsize_), in_size_idx(0){};
+    iterator(int min_, int max_, int minsize_, int maxsize_);
 
     std::vector<int> operator*() const;
     void operator++();
@@ -35,6 +33,7 @@ public:
   private:
     int min, max, minsize, maxsize;
     int currentsize, in_size_idx;
+    std::vector<int> current_vector;
 
     std::vector<int> random_vector() const;
     std::vector<int> sequence_vector() const;
