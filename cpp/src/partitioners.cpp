@@ -5,21 +5,24 @@ namespace slow {
 namespace partitioners {
 
 // Constructors
+IPartitioningRequest::IPartitioningRequest(std::string name_) : name(name_) {}
 EO_::EO_(std::string name_, hypercubes::slow::EO::CBFlags cbflags_)
-    : name(name_), cbflags(cbflags_) {}
+    : IPartitioningRequest(name_), cbflags(cbflags_) {}
 QPeriodic_::QPeriodic_(std::string name_, int dimension_, int nparts_)
-    : name(name_), dimension(dimension_), nparts(nparts_) {}
+    : IPartitioningRequest(name_), dimension(dimension_), nparts(nparts_) {}
 QOpen_::QOpen_(std::string name_, int dimension_, int nparts_)
-    : name(name_), dimension(dimension_), nparts(nparts_) {}
+    : IPartitioningRequest(name_), dimension(dimension_), nparts(nparts_) {}
 Plain_::Plain_(std::string name_, int dimension_)
-    : name(name_), dimension(dimension_) {}
+    : IPartitioningRequest(name_), dimension(dimension_) {}
 HBB_::HBB_(std::string name_, int dimension_, int halo_)
-    : name(name_), dimension(dimension_), halo(halo_) {}
+    : IPartitioningRequest(name_), dimension(dimension_), halo(halo_) {}
 
 std::shared_ptr<IPartitioning>
 IPartitioningRequest::partition(SizeParityD sp) const {
   return std::shared_ptr<IPartitioning>(get(sp));
 }
+
+std::string IPartitioningRequest::get_name() const { return name; }
 
 hypercubes::slow::EO *EO_::get(SizeParities sp) const {
   return new hypercubes::slow::EO(sp, cbflags, name);

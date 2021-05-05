@@ -41,6 +41,10 @@ target_link_libraries(eo_partitioning geometry eo print_utils partitioning)
 add_library(partition_class_tree src/partition_class_tree.cpp)
 target_link_libraries(partition_class_tree partitioners)
 
+add_library(partition_predicates src/partition_predicates.cpp)
+target_link_libraries(partition_predicates partitioners)
+
+
 add_custom_target(coverage
      COMMAND lcov --capture
              --directory CMakeFiles

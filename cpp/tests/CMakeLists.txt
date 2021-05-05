@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARDS 14)
 
 include_directories(../include .)
 add_library(utils utils.cpp)
+add_library(fixtures fixtures.cpp)
+target_link_libraries(fixtures partitioners partition_class_tree)
 # To speed up compilation times,
 # we compile boost/test only once.
 add_library(boost_test_helper boost_test_helper.cpp)
@@ -48,7 +50,15 @@ add_executable(test_partition_class_tree test_partition_class_tree.cpp)
 target_link_libraries(test_partition_class_tree partition_class_tree boost_test_helper)
 
 add_executable(test_pct_full test_pct_full.cpp)
-target_link_libraries(test_pct_full partition_class_tree boost_test_helper utils)
+target_link_libraries(test_pct_full partition_class_tree boost_test_helper utils fixtures)
+
+add_executable(test_partition_predicates test_partition_predicates.cpp)
+target_link_libraries(test_partition_predicates fixtures #
+                                                utils #
+                                                boost_test_helper # 
+                                                partition_predicates)
+
+
 
 ###########
 # TESTING #
@@ -68,3 +78,4 @@ add_test(tree test_tree -r confirm)
 add_test(partitioners test_partitioners -r confirm)
 add_test(partition_class_tree test_partition_class_tree -r confirm)
 add_test(pct_full test_pct_full -r confirm)
+add_test(partition_predicates test_partition_predicates -r confirm)

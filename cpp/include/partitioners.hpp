@@ -17,7 +17,11 @@ class IPartitioningRequest {
 public:
   std::shared_ptr<IPartitioning> partition(SizeParityD sp) const;
 
-private:
+  IPartitioningRequest(std::string name_);
+  std::string get_name() const;
+
+protected:
+  const std::string name;
   virtual IPartitioning *get(SizeParityD sp) const = 0;
 };
 
@@ -27,7 +31,6 @@ public:
   EO_(std::string name, CBFlags cbflags);
 
 private:
-  std::string name;
   CBFlags cbflags;
   hypercubes::slow::EO *get(SizeParityD sp) const;
 };
@@ -37,7 +40,6 @@ public:
   QPeriodic_(std::string name, int dimension, int nparts);
 
 private:
-  std::string name;
   int dimension, nparts;
   Dimensionalise<Q1DPeriodic> *get(SizeParityD sp) const;
 };
@@ -47,7 +49,6 @@ public:
   QOpen_(std::string name, int dimension, int nparts);
 
 private:
-  std::string name;
   int dimension, nparts;
   Dimensionalise<Q1DOpen> *get(SizeParityD sp) const;
 };
@@ -57,7 +58,6 @@ public:
   Plain_(std::string name, int dimension);
 
 private:
-  std::string name;
   int dimension;
   Dimensionalise<Plain1D> *get(SizeParityD sp) const;
 };
@@ -67,7 +67,6 @@ public:
   HBB_(std::string name, int dimension, int halo);
 
 private:
-  std::string name;
   int dimension, halo;
   Dimensionalise<HBB1D> *get(SizeParityD sp) const;
 };

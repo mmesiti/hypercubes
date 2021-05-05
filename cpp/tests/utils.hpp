@@ -12,6 +12,7 @@ namespace data {
 /**
  *  A random list factory that yields edge cases first, then random
  *  To be used as a data generator with boost/test.
+ *  Min and max are both inclusive.
  */
 class rilist {
 private:
