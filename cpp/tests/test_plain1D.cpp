@@ -64,4 +64,24 @@ BOOST_FIXTURE_TEST_CASE(test_max_idx_value, Plain1DFixture) {
   BOOST_TEST(partitioning1D.max_idx_value() == 7);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_info_list, Plain1DFixture) {
+  BOOST_TEST(partitioning1D.sub_sizeparity_info_list().size() == 2);
+}
+
+BOOST_AUTO_TEST_CASE(test_sub_sizeparity_info_list_paritynone) {
+
+  Plain1D partitioning1D(SizeParity{7, Parity::NONE}, /* sp */
+                         0,                           /*dimension*/
+                         "test1D");                   /*name*/
+
+  BOOST_TEST(partitioning1D.sub_sizeparity_info_list().size() == 1);
+}
+BOOST_AUTO_TEST_CASE(test_sub_sizeparity_info_list_zerosize) {
+
+  Plain1D partitioning1D(SizeParity{0, Parity::EVEN}, /* sp */
+                         0,                           /*dimension*/
+                         "test1D");                   /*name*/
+
+  BOOST_TEST(partitioning1D.sub_sizeparity_info_list().size() == 0);
+}
 BOOST_AUTO_TEST_SUITE_END()

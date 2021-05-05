@@ -139,15 +139,19 @@ get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices) {
   return res;
 }
 
+static Indices _shift1(const Indices &idxs) {
+  Indices new_idxs;
+  std::copy(idxs.begin() + 1, idxs.end(), std::back_inserter(new_idxs));
+  return new_idxs;
+}
+
 Coordinates get_coord_from_idx(const PartitionClassTree &t, //
                                const Indices &idxs) {
   int idx = idxs[0];
   Coordinates offsets;
   if (idxs.size() > 1) {
     int child_kind = t->n->idx_to_child_kind(idx);
-    Indices new_idxs;
-    std::copy(idxs.begin() + 1, idxs.end(), std::back_inserter(new_idxs));
-    offsets = get_coord_from_idx(t->children[child_kind], new_idxs);
+    offsets = get_coord_from_idx(t->children[child_kind], _shift1(idxs));
   } else {
     offsets = Coordinates(t->n->dimensionality());
     std::fill(offsets.begin(), offsets.end(), 0);
@@ -159,9 +163,7 @@ Sizes get_sizes_from_idx(const PartitionClassTree &t, const Indices &idxs) {
   int idx = idxs[0];
   if (idxs.size() > 1) {
     int child_kind = t->n->idx_to_child_kind(idx);
-    Indices new_idxs;
-    std::copy(idxs.begin() + 1, idxs.end(), std::back_inserter(new_idxs));
-    return get_sizes_from_idx(t->children[child_kind], new_idxs);
+    return get_sizes_from_idx(t->children[child_kind], _shift1(idxs));
   } else
     return t->n->idx_to_sizes(idx);
 }
@@ -169,6 +171,16 @@ Sizes get_sizes_from_idx(const PartitionClassTree &t, const Indices &idxs) {
 TreeP<int> get_max_idx_tree(const PartitionClassTree &t) {
   return nodemap<std::shared_ptr<IPartitioning>, int>(
       t, [](const auto &n) { return n->max_idx_value(); });
+}
+
+bool validate_idx(const PartitionClassTree &t, const Indices &idxs) {
+  int idx = idxs[0];
+  bool valid = 0 <= idx and idx < t->n->max_idx_value();
+  if (idxs.size() > 1) {
+    int child_kind = t->n->idx_to_child_kind(idx);
+    return valid and validate_idx(t->children[child_kind], _shift1(idxs));
+  } else
+    return valid;
 }
 } // namespace slow
 } // namespace hypercubes

@@ -178,19 +178,19 @@ BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
 }
 
 BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
-  vector<std::tuple<Indices, Sizes>> in_out{{{0}, {11}},      //
-                                            {{1}, {11}},      //
-                                            {{2}, {11}},      //
-                                            {{3}, {9}},       //
-                                            {{0, 0}, {6}},    //
-                                            {{0, 1}, {5}},    //
-                                            {{0, 0, 0}, {1}}, //
-                                            {{0, 0, 1}, {1}}, //
-                                            {{0, 0, 2}, {4}}, //
-                                            {{0, 0, 3}, {1}}, //
-                                            {{0, 0, 4}, {1}}, //
-                                            {{3, 0, 2}, {3}}, //
-                                            {{3, 1, 2}, {2}}};
+  vector<std::pair<Indices, Sizes>> in_out{{{0}, {11}},      //
+                                           {{1}, {11}},      //
+                                           {{2}, {11}},      //
+                                           {{3}, {9}},       //
+                                           {{0, 0}, {6}},    //
+                                           {{0, 1}, {5}},    //
+                                           {{0, 0, 0}, {1}}, //
+                                           {{0, 0, 1}, {1}}, //
+                                           {{0, 0, 2}, {4}}, //
+                                           {{0, 0, 3}, {1}}, //
+                                           {{0, 0, 4}, {1}}, //
+                                           {{3, 0, 2}, {3}}, //
+                                           {{3, 1, 2}, {2}}};
   SizeParityD sp{{42, Parity::EVEN}};
   PCTBuilder treeBuilder;
   PartitionClassTree t = treeBuilder(sp,                              //
@@ -200,8 +200,8 @@ BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
                                               Plain("Remainder", 0)});
 
   for (auto &idx_size : in_out) {
-    Indices idx = std::get<0>(idx_size);
-    Sizes exp_size = std::get<1>(idx_size);
+    Indices idx = idx_size.first;
+    Sizes exp_size = idx_size.second;
     Sizes size = get_sizes_from_idx(t, idx);
     BOOST_TEST(size == exp_size);
   }
@@ -239,4 +239,97 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
   BOOST_TEST(*expmaxtree == *maxtree);
 }
 
+BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
+  SizeParityD sp{{11, Parity::EVEN}};
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp,                                      //
+                                     PartList{QOpen("Vector", 0, 2),          //
+                                              HBB("Halo", 0, 1),              //
+                                              partitioners::EO("EO", {true}), //
+                                              Plain("Remainder", 1),          //
+                                              Plain("Remainder", 0)});
+  // subtrees ordered by (size,parity)
+  TreeP<int> expmaxtree = mt(2, {mt(5, {mt(2, {mt(1, {mt(1, {})}),     //
+                                               mt(0, {})}),            //
+                                        mt(2, {mt(0, {}),              //
+                                               mt(1, {mt(1, {})})}),   //
+                                        mt(2, {mt(1, {mt(1, {})}),     //
+                                               mt(2, {mt(1, {})})})}), //
+                                 mt(5, {mt(2, {mt(1, {mt(1, {})}),     //
+                                               mt(0, {})}),            //
+                                        mt(2, {mt(0, {}),              //
+                                               mt(1, {mt(1, {})})}),   //
+                                        mt(2, {mt(2, {mt(1, {})})})})});
+
+  TreeP<int> maxtree = get_max_idx_tree(t);
+
+  BOOST_TEST(*expmaxtree == *maxtree);
+}
+BOOST_AUTO_TEST_CASE(test_validate_idx) {
+  SizeParityD sp{{42, Parity::EVEN}};
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp,                              //
+                                     PartList{QPeriodic("MPI", 0, 4), //
+                                              QOpen("Vector", 0, 2),  //
+                                              HBB("Halo", 0, 1),      //
+                                              Plain("Remainder", 0)});
+
+  std::vector<std::pair<Indices, bool>> in_out{
+      {{0, 0, 0, 0}, {true}},  //
+      {{4}, {false}},          //
+      {{3, 2}, {false}},       //
+      {{3, 1}, {true}},        //
+      {{3, 1, 2, 1}, {true}},  //
+      {{3, 1, 2, 2}, {false}}, //
+      {{3, 0, 0, 0}, {true}},  //
+      {{3, 0, 0, 1}, {false}}, //
+      {{3, 0, 2, 2}, {true}},  //
+      {{3, 0, 2, 3}, {false}}, //
+      {{1, 0, 2, 3}, {true}},  //
+      {{1, 0, 2, 4}, {false}}  //
+  };
+  for (const auto &idx_valid : in_out) {
+    Indices idx = idx_valid.first;
+    bool expvalid = idx_valid.second;
+
+    bool valid = validate_idx(t, idx);
+    BOOST_TEST(valid == expvalid);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_validate_idx_weo) {
+  SizeParityD sp{{42, Parity::EVEN}};
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp, //
+                                     PartList{
+                                         QPeriodic("MPI", 0, 4),         //
+                                         QOpen("Vector", 0, 2),          //
+                                         HBB("Halo", 0, 1),              //
+                                         partitioners::EO("EO", {true}), //
+                                         Plain("Remainder-extra", 1),
+                                         Plain("Remainder", 0),
+                                     });
+
+  std::vector<std::pair<Indices, bool>> in_out{
+      {{0, 0, 0, 0}, {true}},     //
+      {{4}, {false}},             //
+      {{3, 2}, {false}},          //
+      {{3, 1}, {true}},           //
+      {{3, 1, 2, 0}, {true}},     //
+      {{3, 1, 2, 1}, {true}},     //
+      {{3, 1, 2, 1, 0}, {true}},  //
+      {{3, 1, 2, 1, 1}, {false}}, //
+      {{3, 0, 2, 1, 0}, {true}},  //
+      {{3, 0, 2, 1, 1}, {false}}, //
+      {{3, 0, 1, 1, 0}, {true}},  //
+      {{3, 0, 1, 0, 0}, {false}}  //
+  };
+  for (const auto &idx_valid : in_out) {
+    Indices idx = idx_valid.first;
+    bool expvalid = idx_valid.second;
+
+    bool valid = validate_idx(t, idx);
+    BOOST_TEST(valid == expvalid);
+  }
+}
 BOOST_AUTO_TEST_SUITE_END()
