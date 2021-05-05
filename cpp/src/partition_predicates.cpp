@@ -15,9 +15,8 @@ bool only_NmD_halos(PartList partitioners, Indices idxs, int D) {
   return true;
 }
 
-std::function<bool(PartList, Indices)> get_NmD_halo_predicate(int D) {
-  return [D](PartList partitioners, //
-             Indices idxs) -> bool {
+PartitionPredicate get_NmD_halo_predicate(PartList partitioners, int D) {
+  return [D, partitioners](Indices idxs) -> bool {
     return only_NmD_halos(partitioners, idxs, D);
   };
 }
@@ -37,10 +36,9 @@ bool only_specific_mpi_rank(PartList partitioners, Indices idxs,
   return true;
 }
 
-std::function<bool(PartList, Indices)>
-get_mpi_rank_predicate(vector<int> MPI_ranks) {
-  return [MPI_ranks](PartList partitioners, //
-                     Indices idxs) -> bool {
+PartitionPredicate get_mpi_rank_predicate(PartList partitioners,
+                                          vector<int> MPI_ranks) {
+  return [MPI_ranks, partitioners](Indices idxs) -> bool {
     return only_specific_mpi_rank(partitioners, idxs, MPI_ranks);
   };
 }

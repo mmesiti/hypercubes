@@ -59,6 +59,11 @@ target_link_libraries(test_partition_predicates fixtures #
                                                 partition_predicates)
 
 
+add_executable(test_partition_tree test_partition_tree.cpp)
+target_link_libraries(test_partition_tree partition_tree 
+                                          boost_test_helper
+                                          partition_class_tree
+                                          fixtures)
 
 ###########
 # TESTING #
@@ -79,3 +84,4 @@ add_test(partitioners test_partitioners -r confirm)
 add_test(partition_class_tree test_partition_class_tree -r confirm)
 add_test(pct_full test_pct_full -r confirm)
 add_test(partition_predicates test_partition_predicates -r confirm)
+add_test(partition_tree test_partition_tree -r confirm)

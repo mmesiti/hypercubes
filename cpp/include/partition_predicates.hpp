@@ -18,14 +18,17 @@
 
 namespace hypercubes {
 namespace slow {
+
+using PartitionPredicate = std::function<bool(Indices)>;
+
 bool only_NmD_halos(PartList partitioners, Indices idxs, int D);
-std::function<bool(PartList, Indices)> get_NmD_halo_predicate(int D);
+PartitionPredicate get_NmD_halo_predicate(PartList partitioners, int D);
 
 bool only_specific_mpi_rank(PartList partitioners, Indices idxs,
                             vector<int> MPI_ranks);
 
-std::function<bool(PartList, Indices)>
-get_mpi_rank_predicate(vector<int> MPI_ranks);
+PartitionPredicate get_mpi_rank_predicate(PartList partitioners,
+                                          vector<int> MPI_ranks);
 
 } // namespace slow
 } // namespace hypercubes

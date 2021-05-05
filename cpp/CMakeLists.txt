@@ -44,6 +44,8 @@ target_link_libraries(partition_class_tree partitioners)
 add_library(partition_predicates src/partition_predicates.cpp)
 target_link_libraries(partition_predicates partitioners)
 
+add_library(partition_tree src/partition_tree.cpp)
+target_link_libraries(partition_tree partition_predicates partitioners)
 
 add_custom_target(coverage
      COMMAND lcov --capture
