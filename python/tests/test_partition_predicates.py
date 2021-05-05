@@ -15,29 +15,6 @@ def p4D42():
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(idhbb=st.lists(st.integers(min_value=0, max_value=4),
                       min_size=4,
-                      max_size=4))
-def test_only_bulk_and_borders(idhbb, p4D42):
-    res = not any(x in {0, 4} for x in idhbb)
-    idx = [
-        2,
-        3,
-        1,
-        0,  #
-        1,
-        2,
-        1,
-        1,  #
-        *idhbb,  #
-        0,
-        0
-    ]  #
-
-    assert pps.get_NmD_halo_predicate(0)(p4D42, idx) == res
-
-
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-@given(idhbb=st.lists(st.integers(min_value=0, max_value=4),
-                      min_size=4,
                       max_size=4),
        D=st.integers(min_value=1, max_value=4))
 def test_only_bulk_and_borders(idhbb, D, p4D42):
