@@ -174,16 +174,13 @@ def validate_idx(partition_class_tree, idx):
     Make sure that idx is in the right range.
     '''
     leaf = (None, ())
+    if partition_class_tree == leaf:
+        return True
+    partition, children = partition_class_tree
+    valid = idx[0] < partition.max_idx_value() and idx[0] >= 0
+    return valid and validate_idx(
+        children[partition.idx_to_child_kind(idx[0])], idx[1:])
 
-    def _validate(p, idx):
-        if p == leaf:
-            return True
-        partition, children = p
-        valid = idx[0] < partition.max_idx_value() and idx[0] >= 0
-        return valid and _validate(
-            children[partition.idx_to_child_kind(idx[0])], idx[1:])
-
-    return _validate(partition_class_tree, idx)
 
 
 def get_partition_limits(partition_class_tree, idx, root_sizes):
