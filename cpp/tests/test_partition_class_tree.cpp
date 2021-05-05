@@ -1,5 +1,6 @@
 #include "partition_class_tree.hpp"
 #include "tree.hpp"
+#include "utils.hpp"
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 
@@ -174,6 +175,68 @@ BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
   Coordinates new_xs = get_coord_from_idx(t, idx);
 
   BOOST_TEST(new_xs == xs);
+}
+
+BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
+  vector<std::tuple<Indices, Sizes>> in_out{{{0}, {11}},      //
+                                            {{1}, {11}},      //
+                                            {{2}, {11}},      //
+                                            {{3}, {9}},       //
+                                            {{0, 0}, {6}},    //
+                                            {{0, 1}, {5}},    //
+                                            {{0, 0, 0}, {1}}, //
+                                            {{0, 0, 1}, {1}}, //
+                                            {{0, 0, 2}, {4}}, //
+                                            {{0, 0, 3}, {1}}, //
+                                            {{0, 0, 4}, {1}}, //
+                                            {{3, 0, 2}, {3}}, //
+                                            {{3, 1, 2}, {2}}};
+  SizeParityD sp{{42, Parity::EVEN}};
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp,                              //
+                                     PartList{QPeriodic("MPI", 0, 4), //
+                                              QOpen("Vector", 0, 2),  //
+                                              HBB("Halo", 0, 1),      //
+                                              Plain("Remainder", 0)});
+
+  for (auto &idx_size : in_out) {
+    Indices idx = std::get<0>(idx_size);
+    Sizes exp_size = std::get<1>(idx_size);
+    Sizes size = get_sizes_from_idx(t, idx);
+    BOOST_TEST(size == exp_size);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
+  SizeParityD sp{{42, Parity::EVEN}};
+  PCTBuilder treeBuilder;
+  PartitionClassTree t = treeBuilder(sp,                              //
+                                     PartList{QPeriodic("MPI", 0, 4), //
+                                              QOpen("Vector", 0, 2),  //
+                                              HBB("Halo", 0, 1),      //
+                                              Plain("Remainder", 0)});
+  TreeP<int> expmaxtree = mt(4, {mt(2, {mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(2, {})}),   //
+                                        mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(3, {})})}), //
+                                 mt(2, {mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(3, {})}),   //
+                                        mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(4, {})})}), //
+                                 mt(2, {mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(3, {})}),   //
+                                        mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(4, {})})})});
+
+  TreeP<int> maxtree = get_max_idx_tree(t);
+
+  BOOST_TEST(*expmaxtree == *maxtree);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

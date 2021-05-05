@@ -43,6 +43,7 @@ Coordinates get_coord_from_idx(const PartitionClassTree &t, //
                                const Indices &idx);
 
 Sizes get_sizes_from_idx(const PartitionClassTree &t, const Indices &idx);
+TreeP<int> get_max_idx_tree(const PartitionClassTree &t);
 } // namespace slow
 
 } // namespace hypercubes

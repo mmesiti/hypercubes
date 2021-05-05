@@ -99,6 +99,14 @@ we need to make sure that those values can be printed
 for logging purposes, as described [[https://www.boost.org/doc/libs/1_76_0/libs/test/doc/html/boost_test/test_output/test_tools_support_for_logging/testing_tool_output_disable.html][here]].
 To this purpose, an overload of ~std::operator<<~
 is provided.
+** Testing with input->output
+A good way to implement these tests
+seems to be to use ~boost::unit_test::data~,
+and the idioms associated to that.
+I get some hard-to-decipher compilation errors though,
+so I'll just have a loop on cases
+with a ~BOOST_TEST~ at each iteration.
+
 
 * Notes on ~eo.hpp~
 Outside of test cases,

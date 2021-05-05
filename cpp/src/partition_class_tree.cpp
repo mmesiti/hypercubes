@@ -155,5 +155,20 @@ Coordinates get_coord_from_idx(const PartitionClassTree &t, //
   return t->n->idx_to_coords(idx, offsets);
 }
 
+Sizes get_sizes_from_idx(const PartitionClassTree &t, const Indices &idxs) {
+  int idx = idxs[0];
+  if (idxs.size() > 1) {
+    int child_kind = t->n->idx_to_child_kind(idx);
+    Indices new_idxs;
+    std::copy(idxs.begin() + 1, idxs.end(), std::back_inserter(new_idxs));
+    return get_sizes_from_idx(t->children[child_kind], new_idxs);
+  } else
+    return t->n->idx_to_sizes(idx);
+}
+
+TreeP<int> get_max_idx_tree(const PartitionClassTree &t) {
+  return nodemap<std::shared_ptr<IPartitioning>, int>(
+      t, [](const auto &n) { return n->max_idx_value(); });
+}
 } // namespace slow
 } // namespace hypercubes

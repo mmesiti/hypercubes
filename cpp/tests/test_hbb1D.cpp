@@ -65,4 +65,8 @@ BOOST_FIXTURE_TEST_CASE(test_max_idx_value, HBB1DFixture) {
   BOOST_TEST(partitioning1D.max_idx_value() == 5);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_info_list, HBB1DFixture) {
+  BOOST_TEST(partitioning1D.sub_sizeparity_info_list().size() <= 3);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

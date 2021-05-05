@@ -176,11 +176,11 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(TreeP<Node> t, TreeP<Nodes>... ts) {
 }
 
 template <class Node, class NewNode>
-TreeP<NewNode> nodemap(TreeP<Node> t, std::function<NewNode(Node)> f) {
+TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
   vector<TreeP<NewNode>> children;
   std::transform(t->children.begin(), t->children.end(),
                  std::back_inserter(children),
-                 [&f](TreeP<Node> c) { return nodemap(c, f); });
+                 [&f](const TreeP<Node> &c) { return nodemap(c, f); });
   return mt(f(t->n), children);
 }
 

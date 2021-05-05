@@ -12,9 +12,14 @@ int Partitioning1D::start(int idx) const { return limits[idx]; }
 int Partitioning1D::end(int idx) const { return limits[idx + 1]; }
 
 Parity Partitioning1D::idx_to_start_parity(int idx) const {
-  return (parity == Parity::NONE)
-             ? Parity::NONE
-             : static_cast<Parity>((parity + start(idx)) % 2);
+  if (parity == Parity::NONE)
+    return Parity::NONE;
+  else {
+    int offset = parity + start(idx);
+    // to have a positive quantity
+    int new_parity = (offset * offset) % 2;
+    return static_cast<Parity>(new_parity);
+  }
 }
 int Partitioning1D::idx_to_size(int idx) const { return end(idx) - start(idx); }
 
