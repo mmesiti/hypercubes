@@ -182,5 +182,18 @@ bool validate_idx(const PartitionClassTree &t, const Indices &idxs) {
   } else
     return valid;
 }
+
+vector<std::pair<int, int>> get_partition_limits(const PartitionClassTree &t, //
+                                                 const Indices &idx) {
+
+  Coordinates starts = get_coord_from_idx(t, idx);
+  Sizes sizes = get_sizes_from_idx(t, idx);
+  vector<std::pair<int, int>> res;
+  std::transform(
+      starts.begin(), starts.end(), sizes.begin(), //
+      std::back_inserter(res),                     //
+      [](int start, int size) { return std::make_pair(start, start + size); });
+  return res;
+}
 } // namespace slow
 } // namespace hypercubes

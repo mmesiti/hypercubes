@@ -47,6 +47,9 @@ Sizes get_sizes_from_idx(const PartitionClassTree &t, const Indices &idx);
 TreeP<int> get_max_idx_tree(const PartitionClassTree &t);
 
 bool validate_idx(const PartitionClassTree &t, const Indices &idx);
+
+vector<std::pair<int, int>> get_partition_limits(const PartitionClassTree &t, //
+                                                 const Indices &idx);
 } // namespace slow
 
 } // namespace hypercubes

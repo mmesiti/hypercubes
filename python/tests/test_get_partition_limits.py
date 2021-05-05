@@ -97,7 +97,7 @@ def test_partition_limits_1D_simple(idx, starts_ends):
     ((1, 1, 0, 1, 0), ((20, 21), (32, 42))),
     ((1, 1, 0, 1, 0, 2), ((20, 21), (33, 41))),
 ])
-def test_get_sizes_from_idx_2D(idx, starts_ends):
+def test_get_partition_limits_from_idx_2D(idx, starts_ends):
     sizes = (42, 42)
     geom_infos = tuple((s, 0) for s in sizes)
 

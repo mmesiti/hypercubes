@@ -81,7 +81,6 @@ BOOST_AUTO_TEST_CASE(test_sub_sizeparity_info_list_zerosize) {
   Plain1D partitioning1D(SizeParity{0, Parity::EVEN}, /* sp */
                          0,                           /*dimension*/
                          "test1D");                   /*name*/
-
   BOOST_TEST(partitioning1D.sub_sizeparity_info_list().size() == 0);
 }
 BOOST_AUTO_TEST_SUITE_END()

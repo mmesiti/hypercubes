@@ -332,4 +332,64 @@ BOOST_AUTO_TEST_CASE(test_validate_idx_weo) {
     BOOST_TEST(valid == expvalid);
   }
 }
+
+BOOST_AUTO_TEST_CASE(test_partition_limits_1D) {
+  vector<std::pair<Indices, std::pair<int, int>>> in_out{{{0}, {0, 16}},     //
+                                                         {{1}, {16, 32}},    //
+                                                         {{0, 0}, {0, 8}},   //
+                                                         {{0, 1}, {8, 16}},  //
+                                                         {{1, 0}, {16, 24}}, //
+                                                         {{1, 1}, {24, 32}}};
+
+  PartList partitioners{QPeriodic("MPI1", 0, 2), //
+                        QOpen("VECTOR1", 0, 2),  //
+                        Plain("Plain", 0)};
+
+  SizeParityD sp{{32, Parity::EVEN}};
+
+  PCTBuilder tree_builder;
+  PartitionClassTree t = tree_builder(sp, partitioners);
+
+  for (auto idxs_limits : in_out) {
+    Indices idxs = idxs_limits.first;
+    auto explimits = idxs_limits.second;
+
+    bool success = explimits == get_partition_limits(t, idxs)[0];
+    BOOST_TEST(success);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_partition_limits_2D) {
+  using PairVector = std::vector<std::pair<int, int>>;
+  vector<std::pair<Indices, PairVector>> in_out{
+      {{0}, {{0, 21}, {0, 42}}},               //
+      {{0, 0}, {{0, 21}, {0, 21}}},            //
+      {{0, 0, 0, 0}, {{0, 11}, {0, 11}}},      //
+      {{1, 0, 1, 1}, {{32, 42}, {11, 21}}},    //
+      {{1, 1, 0, 1}, {{21, 32}, {32, 42}}},    //
+      {{1, 1, 0, 1, 0}, {{20, 21}, {32, 42}}}, //
+      {{1, 1, 0, 1, 0, 2}, {{20, 21}, {33, 41}}}};
+
+  enum { X, Y };
+  PartList partitioners{QPeriodic("MPI X", X, 2), //
+                        QPeriodic("MPI Y", Y, 2), //
+                        QOpen("VECTOR X", X, 2),  //
+                        QOpen("VECTOR Y", Y, 2),  //
+                        HBB("HBB X", X, 1),       //
+                        HBB("HBB Y", Y, 1),       //
+                        Plain("Leaf X", X),       //
+                        Plain("Leaf Y", Y)};
+  SizeParityD sp{{42, Parity::EVEN}, {42, Parity::EVEN}};
+
+  PCTBuilder tree_builder;
+  PartitionClassTree t = tree_builder(sp, partitioners);
+
+  for (auto idxs_limits : in_out) {
+    Indices idxs = idxs_limits.first;
+    auto explimits = idxs_limits.second;
+
+    bool success = explimits == get_partition_limits(t, idxs);
+    BOOST_TEST(success);
+  }
+}
 BOOST_AUTO_TEST_SUITE_END()
