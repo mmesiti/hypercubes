@@ -18,7 +18,7 @@ and specify what to do in these three cases).
 from bool_maybe import BoolM
 
 
-def only_NmD1D2_halos(partitioners_list, idx, D2, D1):
+def only_NmD_halos(partitioners_list, idx, D):
     '''
     Returns true for partitions which have a dimension between
     N - D1 and N - D2 (both included )
@@ -37,28 +37,28 @@ def only_NmD1D2_halos(partitioners_list, idx, D2, D1):
         if is_hbblevel(p):
             still_unknown -= 1
             halo_count += int(i in {0, 4})
-            if halo_count + still_unknown < D1 or D2 < halo_count:
+            if D < halo_count:
                 return BoolM.F
-            elif D1 + still_unknown <= halo_count <= D2 - still_unknown:
+            elif still_unknown <= halo_count <= D - still_unknown:
                 return BoolM.T
 
     return BoolM.M
 
 
-def only_NmD_halos(partitioners_list, idx, D2):
-    return only_NmD1D2_halos(partitioners_list, idx, D2, 0)
-
-
 def get_NmD_halo_predicate(D):
-    return lambda p, i: only_NmD1D2_halos(p, i, D, 0)
+    return lambda p, i: only_NmD_halos(p, i, D)
 
 
 def get_NmD1D2_halo_predicate(D1, D2):
-    return lambda p, i: only_NmD1D2_halos(p, i, D1, D2)
+    return lambda p, i: (
+        only_NmD_halos(p, i, D2) & ~only_NmD(p,i,D1))
 
-
-
-
+def no_bulk_borders(partitioners_list, idx):
+    '''
+    Selects only halos
+    '''
+    return (only_NmD_halos(partitioners_list,idx,1) & #
+            ~ only_NmD_halos(partitioners_list,idx,0))
 
 def only_specific_mpi_rank(partitioners_list, idx, MPI_ranks):
     def is_mpilevel(p):

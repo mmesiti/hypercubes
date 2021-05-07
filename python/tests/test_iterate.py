@@ -91,6 +91,7 @@ def test_iterate(idx, idxp):
     size_tree = pt.get_size_tree(partitioning, lambda _: True)
     assert pt.iterate(size_tree, idx) == idxp
 
+
 #TODO:
 # add case "with holes", e.g., with predicate != lambda _ : True
 
@@ -98,24 +99,45 @@ def test_iterate(idx, idxp):
 def haloonly1D():
     partitioning = fixtures.partitioning1D()
     border_sites = fixtures.get_border_sites()
-    for bs in border_sites:
-        r = pct.get_indices_tree_with_ghosts(partitioning,(bs,))
 
+    # Ordering:
+    # X1|X3|45|67|89
+    # 1436587.. +3-1
+    def reorder(arr):
+        i = 1
+        step = 0
+        out = []
+        while i < len(arr):
+            out.append(arr[i])
+            i += 3 if step % 2 == 0 else -1
+            step += 1
+        return out
 
+    def get_halo_idx(bs):
+        itwg = pct.get_indices_tree_with_ghosts(
+            partitioning,  #
+            (bs, ))
+        return pct.get_relevant_indices_flat(itwg)
+
+    # Skipping the first site
+    return [
+        (bs, tuple(i for i, _1, _2 in idx))  #
+        for bs in reorder(border_sites)  #
+        for halo_dim, idx in get_halo_idx(bs)  #
+        if halo_dim
+    ]
 
 
 @pytest.mark.parametrize(
-    "idx,idxp",
-    [
-        # Site -1 , Site 5 (jumping over border and bulk)
-        ((0,0,0,1,0),(0,0,4,0,0)),
-    ])
-def test_iterate_size_tree_with_holes(idx,idxp):
+    "iidx,ipidxp",
+    zip(
+        haloonly1D()[:-1],  #
+        haloonly1D()[1:]))
+def test_iterate_size_tree_with_holes(iidx, ipidxp):
+    i, idx = iidx
+    ip, idxp = ipidxp
     partitioners = fixtures.partitioners_list_1D_42()
     partitioning = fixtures.partitioning1D()
-    size_tree = pt.get_size_tree(partitioning,
-                                 lambda idx : pp.only_NmD1D2_halos(partitioners,
-                                                                   idx,1,1) )
-    print("size tree:")
-    print(tree.tree_str(size_tree))
+    size_tree = pt.get_size_tree(
+        partitioning, lambda idx: pp.no_bulk_borders(partitioners, idx))
     assert pt.iterate(size_tree, idx) == idxp

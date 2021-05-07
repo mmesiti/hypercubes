@@ -9,7 +9,6 @@ def get_size_tree(partition_class_tree, partition_exists_pred):
     leaf = (None, ())
 
     def size(n):
-        print(n)
         (s, idx), cs = n
         return s
 
@@ -45,7 +44,6 @@ def get_start_tree(size_tree):
         (size, idx), children = size_tree
         starts = tuple(start + sum(s for (s, _1), _2 in children[:i])
                        for i in range(len(children)))
-        print("STARTS", starts, "START", start)
         new_children = tuple(
             _start_tree(c, s) for c, s in zip(children, starts))
         return (start, idx), new_children
@@ -81,9 +79,7 @@ def iterate(size_tree, idxs):
     nidx = idxs[0]
     idx_children = tuple( get_idx(c) for c in children)
 
-    print("idxs:",idxs)
     if children == ():  # Leaf case
-        print(s,nidx)
         new_nidx = nidx + 1
         if new_nidx == s: # last element in the level
             return None

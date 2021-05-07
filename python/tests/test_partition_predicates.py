@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import fixtures
 import partition_predicates as pps
+import partition_tree as pt
 
 import pytest
 from hypothesis import given, settings, HealthCheck, assume
@@ -88,3 +89,11 @@ def test_MPI_selection_right(MPI_rank_idx, p4D42):
     predicate = pps.get_mpi_rank_predicate(MPI_rank_idx)
 
     assert predicate(p4D42, idx_right)
+
+def test_nobulk():
+    partitioners = fixtures.partitioners_list_1D_42()
+    partitioning = fixtures.partitioning1D()
+    size_tree = pt.get_size_tree(
+        partitioning, lambda idx: pps.no_bulk_borders(partitioners, idx))
+
+    assert size_tree[0][0] == 16
