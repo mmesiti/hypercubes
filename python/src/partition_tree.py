@@ -79,27 +79,28 @@ def iterate(size_tree, idxs):
 
     (s, idx), children = size_tree
     nidx = idxs[0]
+    idx_children = tuple( get_idx(c) for c in children)
 
-
+    print("idxs:",idxs)
     if children == ():  # Leaf case
-        new_nidx = nidx + 1 # FIXME: wrong (if there are holes?)
-        if new_nidx == s:
+        print(s,nidx)
+        new_nidx = nidx + 1
+        if new_nidx == s: # last element in the level
             return None
         else:
             return (new_nidx, )
     else:  # Node case
+        assert nidx in idx_children
         # looking for child with the right idx
-        i, c = next(
-            (i, c) for i, c in enumerate(children) if get_idx(c) == nidx)
-
-        sub_idxs = iterate(c, idxs[1:])
+        i = idx_children.index(nidx)
+        sub_idxs = iterate(children[i], idxs[1:])
         if sub_idxs is None:  # We need to move to the next child
-            if i == len(children) - 1:  # We give up
+            if nidx == idx_children[-1]: # last element in the level
                 return None
             else:
                 # Restart sub_idx
                 sub_idxs = get_start_idx(children[i + 1])
-                new_nidx = get_idx(children[i+1])
+                new_nidx = idx_children[idx_children.index(nidx)+1]
                 return (new_nidx, ) + sub_idxs
         else:
             return (nidx, ) + sub_idxs

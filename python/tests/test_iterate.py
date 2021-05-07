@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import partition_class_tree as pct
 import partition_tree as pt
+import partition_predicates as pp
+import tree
 import fixtures
 import pytest
 
@@ -91,3 +93,29 @@ def test_iterate(idx, idxp):
 
 #TODO:
 # add case "with holes", e.g., with predicate != lambda _ : True
+
+
+def haloonly1D():
+    partitioning = fixtures.partitioning1D()
+    border_sites = fixtures.get_border_sites()
+    for bs in border_sites:
+        r = pct.get_indices_tree_with_ghosts(partitioning,(bs,))
+
+
+
+
+@pytest.mark.parametrize(
+    "idx,idxp",
+    [
+        # Site -1 , Site 5 (jumping over border and bulk)
+        ((0,0,0,1,0),(0,0,4,0,0)),
+    ])
+def test_iterate_size_tree_with_holes(idx,idxp):
+    partitioners = fixtures.partitioners_list_1D_42()
+    partitioning = fixtures.partitioning1D()
+    size_tree = pt.get_size_tree(partitioning,
+                                 lambda idx : pp.only_NmD1D2_halos(partitioners,
+                                                                   idx,1,1) )
+    print("size tree:")
+    print(tree.tree_str(size_tree))
+    assert pt.iterate(size_tree, idx) == idxp
