@@ -89,14 +89,14 @@ def iterate(size_tree, idxs):
         assert nidx in idx_children
         # looking for child with the right idx
         i = idx_children.index(nidx)
-        sub_idxs = iterate(children[i], idxs[1:])
-        if sub_idxs is None:  # We need to move to the next child
+        new_sub_idxs = iterate(children[i], idxs[1:])
+        if new_sub_idxs is None:  # We need to move to the next child
             if nidx == idx_children[-1]: # last element in the level
                 return None
             else:
                 # Restart sub_idx
-                sub_idxs = get_start_idx(children[i + 1])
-                new_nidx = idx_children[idx_children.index(nidx)+1]
-                return (new_nidx, ) + sub_idxs
+                new_sub_idxs = get_start_idx(children[i + 1])
+                new_nidx = idx_children[i+1]
+                return (new_nidx, ) + new_sub_idxs
         else:
-            return (nidx, ) + sub_idxs
+            return (nidx, ) + new_sub_idxs
