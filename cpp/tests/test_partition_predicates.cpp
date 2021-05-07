@@ -1,4 +1,4 @@
-
+#include "bool_maybe.hpp"
 #include "fixtures.hpp"
 #include "partition_class_tree.hpp"
 #include "partition_predicates.hpp"
@@ -35,7 +35,8 @@ BOOST_FIXTURE_TEST_CASE(test_only_bulk_and_borders, Part4DF) {
     idx.push_back(0);
     idx.push_back(0);
 
-    BOOST_CHECK(get_NmD_halo_predicate(partitioners, 0)(idx) == expected);
+    BOOST_CHECK(to_bool(get_NmD_halo_predicate(partitioners, 0)(idx)) ==
+                expected);
   }
 }
 BOOST_FIXTURE_TEST_CASE(test_mpi_selection_wrong, Part4DF) {
@@ -69,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_wrong, Part4DF) {
               idx.begin());
 
     auto predicate = get_mpi_rank_predicate(partitioners, MPI_rank_selected);
-    BOOST_CHECK(not predicate(idx));
+    BOOST_CHECK(not to_bool(predicate(idx)));
   }
 }
 BOOST_FIXTURE_TEST_CASE(test_mpi_selection_right, Part4DF) {
@@ -99,7 +100,8 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_right, Part4DF) {
               idx.begin());
 
     auto predicate = get_mpi_rank_predicate(partitioners, MPI_rank_idx);
-    BOOST_CHECK(predicate(idx));
+    BOOST_CHECK(to_bool(predicate(idx)));
   }
 }
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -5,6 +5,17 @@ namespace slow {
 TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
                                          PartitionPredicate predicate) {
 
+  auto binarified_predicate = [&predicate](Indices idx) {
+    return to_bool(predicate(idx));
+  };
+  return get_size_tree(t, binarified_predicate);
+}
+
+TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
+                                         std::function<bool(Indices)> predicate)
+
+{
+
   using ResType = TreeP<std::pair<int, int>>;
 
   using F = std::function<ResType(const PartitionClassTree &, //

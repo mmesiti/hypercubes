@@ -9,6 +9,9 @@ namespace hypercubes {
 namespace slow {
 TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
                                          PartitionPredicate p);
+
+TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
+                                         std::function<bool(Indices)> p);
 TreeP<std::pair<int, int>>
 get_offset_tree(const TreeP<std::pair<int, int>> &size_tree);
 

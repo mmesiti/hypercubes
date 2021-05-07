@@ -17,7 +17,9 @@ namespace slow {
 // brdr-blk:|1|2222|3|1|222|3|1|2222|3|1|222|3|1|2222|3|1|222|3|1|222|3|1|22|3|
 // In-p idx:|0|0123|0|0|012|0|0|0123|0|0|012|0|0|0123|0|0|012|0|0|012|0|0|01|0|
 // In-p sz:  1 4    1 1 3   1 1 4    1 1 3   1 1 4    1 1 3   1 1 3   1 1 2  1
-
+std::vector<int> get_bulk_sites42();
+std::vector<int> get_border_sites42();
+std::vector<int> _assemble(const std::string &tens, const std::string &units);
 struct Part4DF {
 
   enum { X, Y, Z, T, EXTRA };
@@ -28,10 +30,6 @@ struct Part4DF {
   std::vector<int> bulk_sites;
   std::vector<int> border_sites;
 
-  std::vector<int> assemble(const std::string &tens, const std::string &units);
-  std::vector<int> get_bulk_sites();
-  std::vector<int> get_border_sites();
-
   Part4DF();
 };
 struct Part1D42 {
@@ -41,6 +39,8 @@ struct Part1D42 {
   PartList partitioners;
   PCTBuilder treeBuilder;
   PartitionClassTree t;
+  std::vector<int> bulk_sites;
+  std::vector<int> border_sites;
 
   Part1D42();
 };

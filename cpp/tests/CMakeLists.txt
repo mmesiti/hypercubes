@@ -71,8 +71,15 @@ target_link_libraries(test_partition_tree partition_tree
 add_executable(test_size_tree_iterator test_size_tree_iterator.cpp)
 target_link_libraries(test_size_tree_iterator size_tree_iterator
                                               boost_test_helper
-                                              utils)
-                                    
+                                              utils
+                                              fixtures)
+target_compile_options(test_size_tree_iterator PRIVATE "-fprofile-arcs" "-ftest-coverage")
+
+
+add_executable(test_bool_maybe test_bool_maybe.cpp)
+target_link_libraries(test_bool_maybe bool_maybe
+                                      boost_test_helper)                                        
+                                        
 ###########
 # TESTING #
 ###########
@@ -94,3 +101,4 @@ add_test(pct_full test_pct_full -r confirm)
 add_test(partition_predicates test_partition_predicates -r confirm)
 add_test(partition_tree test_partition_tree -r confirm)
 add_test(size_tree_iterator test_size_tree_iterator -r confirm)
+add_test(bool_maybe test_bool_maybe -r confirm)

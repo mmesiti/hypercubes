@@ -1,8 +1,20 @@
 #include "size_tree_iterator.hpp"
+#include <cassert>
 
 namespace hypercubes {
 
 namespace slow {
+
+Indices tail(Indices idx) {
+  Indices res;
+  std::copy(idx.begin() + 1, idx.end(), std::back_inserter(res));
+  return res;
+}
+Indices append(int x, Indices idx) {
+  Indices res{x};
+  std::copy(idx.begin(), idx.end(), std::back_inserter(res));
+  return res;
+}
 
 using SizeTree = TreeP<std::pair<int, int>>;
 Indices next(const SizeTree &size_tree, const Indices &idxs) {
@@ -24,43 +36,41 @@ Indices next(const SizeTree &size_tree, const Indices &idxs) {
 
   int s = size_tree->n.first;
   int idx = size_tree->n.second;
-  auto children = size_tree->children;
   int nidx = idxs[0];
+  auto children = size_tree->children;
+  vector<int> idx_children;
+  std::transform(children.begin(),                 //
+                 children.end(),                   //
+                 std::back_inserter(idx_children), //
+                 [](auto c) { return c->n.second; });
 
   if (children.size() == 0) {
-    int new_idx = nidx + 1;
-    if (new_idx == s)
+    // leaf case.
+    // Children are sites in the partition
+    // they are all present - no holes
+    int new_nidx = nidx + 1;
+    if (new_nidx == s) // last site in the partition
       return Indices{};
     else
-      return Indices{new_idx};
-
+      return Indices{new_nidx};
   } else {
-    int i;
-    SizeTree c;
-    for (i = 0; i < children.size(); ++i) {
-      if (children[i]->n.second == nidx) {
-        c = children[i];
-        break;
+    int i = std::find(idx_children.begin(), //
+                      idx_children.end(),   //
+                      nidx) -
+            idx_children.begin();
+    assert(i != idx_children.size());
+    Indices sub_idxs = tail(idxs);
+    Indices new_sub_idxs = next(children[i], sub_idxs);
+    if (new_sub_idxs.size() == 0) {
+      if (nidx == *idx_children.rbegin())
+        return Indices{};
+      else {
+        new_sub_idxs = get_start_idxs(children[i + 1]);
+        return append(idx_children[i + 1], new_sub_idxs);
       }
-      Indices sub_idxs;
-      std::copy(idxs.begin() + 1, idxs.end(), std::back_inserter(sub_idxs));
-      Indices new_sub_idxs = next(c, sub_idxs);
-      int new_nidx;
-      if (new_sub_idxs.size() == 0) {
-        if (i == children.size() - 1)
-          return Indices{};
-        else {
-          new_sub_idxs = get_start_idxs(children[i + 1]);
-          new_nidx = children[i + 1]->n.second;
-        }
-      } else { //
-        Indices res{nidx};
-        std::copy(new_sub_idxs.begin(), //
-                  new_sub_idxs.end(),   //
-                  std::back_inserter(res));
-        return res;
-      }
-    }
+    } else
+      return append(nidx, new_sub_idxs);
   }
+}
 } // namespace slow
 } // namespace hypercubes

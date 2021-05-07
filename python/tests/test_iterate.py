@@ -92,10 +92,6 @@ def test_iterate(idx, idxp):
     assert pt.iterate(size_tree, idx) == idxp
 
 
-#TODO:
-# add case "with holes", e.g., with predicate != lambda _ : True
-
-
 def haloonly1D():
     partitioning = fixtures.partitioning1D()
     border_sites = fixtures.get_border_sites()

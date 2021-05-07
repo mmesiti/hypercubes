@@ -42,13 +42,15 @@ add_library(partition_class_tree src/partition_class_tree.cpp)
 target_link_libraries(partition_class_tree partitioners)
 
 add_library(partition_predicates src/partition_predicates.cpp)
-target_link_libraries(partition_predicates partitioners)
+target_link_libraries(partition_predicates partitioners bool_maybe)
 
 add_library(partition_tree src/partition_tree.cpp)
 target_link_libraries(partition_tree partition_predicates partitioners)
 
 add_library(size_tree_iterator src/size_tree_iterator.cpp)
-target_link_libraries(size_tree_iterator geometry)
+target_link_libraries(size_tree_iterator geometry partition_tree)
+
+add_library(bool_maybe src/bool_maybe.cpp)
 
 add_custom_target(coverage
      COMMAND lcov --capture

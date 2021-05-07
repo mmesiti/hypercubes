@@ -13,22 +13,25 @@
  * on the name of the levels/partitioners.
  * */
 
+#include "bool_maybe.hpp"
 #include "partition_class_tree.hpp"
 #include <functional>
 
 namespace hypercubes {
 namespace slow {
 
-using PartitionPredicate = std::function<bool(Indices)>;
+using PartitionPredicate = std::function<BoolM(Indices)>;
 
-bool only_NmD_halos(PartList partitioners, Indices idxs, int D);
+BoolM only_NmD_halos(PartList partitioners, Indices idxs, int D);
 PartitionPredicate get_NmD_halo_predicate(PartList partitioners, int D);
 
-bool only_specific_mpi_rank(PartList partitioners, Indices idxs,
-                            vector<int> MPI_ranks);
+BoolM only_specific_mpi_rank(PartList partitioners, Indices idxs,
+                             vector<int> MPI_ranks);
 
 PartitionPredicate get_mpi_rank_predicate(PartList partitioners,
                                           vector<int> MPI_ranks);
+
+BoolM no_bulk_borders(PartList partitioners, Indices idx);
 
 } // namespace slow
 } // namespace hypercubes
