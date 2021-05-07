@@ -47,6 +47,9 @@ target_link_libraries(partition_predicates partitioners)
 add_library(partition_tree src/partition_tree.cpp)
 target_link_libraries(partition_tree partition_predicates partitioners)
 
+add_library(size_tree_iterator src/size_tree_iterator.cpp)
+target_link_libraries(size_tree_iterator geometry)
+
 add_custom_target(coverage
      COMMAND lcov --capture
              --directory CMakeFiles

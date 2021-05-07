@@ -47,7 +47,8 @@ int Partitioning1D::idx_to_child_kind(int idx) const {
     message << "Child not found."                  //
             << " SizeParities: " << sps            //
             << " SizeParity: " << SizeParity{s, p} //
-            << " idx: " << idx;                    //
+            << " idx: " << idx                     //
+            << " max_idx: " << max_idx_value();
 
     throw std::invalid_argument(message.str());
   }

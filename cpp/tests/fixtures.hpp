@@ -34,6 +34,16 @@ struct Part4DF {
 
   Part4DF();
 };
+struct Part1D42 {
+
+  enum { X, EXTRA };
+  SizeParityD sp;
+  PartList partitioners;
+  PCTBuilder treeBuilder;
+  PartitionClassTree t;
+
+  Part1D42();
+};
 
 } // namespace slow
 } // namespace hypercubes

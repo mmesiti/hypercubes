@@ -9,6 +9,7 @@
 using namespace hypercubes::slow;
 using namespace hypercubes::slow::partitioners;
 using namespace data;
+namespace bdata = boost::unit_test::data;
 
 BOOST_AUTO_TEST_SUITE(test_partition_class_tree)
 
@@ -84,6 +85,30 @@ BOOST_FIXTURE_TEST_CASE(test_get_coords_from_idx_roundtrip, Part4DF) {
     BOOST_TEST(new_coords == *xs);
     ++xs;
   }
+}
+BOOST_DATA_TEST_CASE_F(Part1D42, test_validate_idx_yes, //
+                       bdata::make(vector<vector<int>>{{3, 1, 0, 1, 0},
+                                                       {0, 0, 4, 0, 0},
+                                                       {2, 1, 1, 0, 0},
+                                                       {1, 0, 2, 1, 0},
+                                                       {0, 1, 2, 1, 1}}),
+                       idx) {
+
+  BOOST_TEST(validate_idx(t, idx));
+}
+BOOST_DATA_TEST_CASE_F(Part1D42, test_validate_idx_no,                   //
+                       bdata::make(vector<vector<int>>{{3, 1, 0, 1, 1},  //
+                                                       {0, 0, 4, 0, -1}, //
+                                                       {0, 0, 5, 0, 0},  //
+                                                       {4, 1, 0, 1, 0},  //
+                                                       {5, -1, 0, 1, 0}, //
+                                                       {5, 1, 0, 1, 0},  //
+                                                       {3, 0, 3, 0, 0},  //
+                                                       {2, 1, 2, 0, 1},  //
+                                                       {1, 0, 1, 0, 0}}),
+                       idx) {
+
+  BOOST_TEST(not validate_idx(t, idx));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -9,10 +9,8 @@ namespace hypercubes {
 namespace slow {
 TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
                                          PartitionPredicate p);
-TreeP<int> get_start_tree(const TreeP<std::pair<int, int>> &size_tree);
-vector<int> get_start_offsets(const TreeP<std::pair<int, int>> &size_tree);
-
-Indices next(const TreeP<std::pair<int, int>> &size_tree, const Indices &idxs);
+TreeP<std::pair<int, int>>
+get_offset_tree(const TreeP<std::pair<int, int>> &size_tree);
 
 } // namespace slow
 } // namespace hypercubes

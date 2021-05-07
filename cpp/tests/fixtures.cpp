@@ -49,3 +49,12 @@ Part4DF::Part4DF()
       t(treeBuilder(sp, partitioners)),                              //
       bulk_sites(get_bulk_sites()),                                  //
       border_sites(get_border_sites()) {}
+
+Part1D42::Part1D42()
+    : sp{{42, Parity::EVEN}}, partitioners{QPeriodic("MPI X", X, 4),       //
+                                           QOpen("Vector X", X, 2),        //
+                                           HBB("Halo X", X, 1),            //
+                                           partitioners::EO("EO", {true}), //
+                                           Plain("Remainder", EXTRA)},     //
+      treeBuilder(),                                                       //
+      t(treeBuilder(sp, partitioners)) {}

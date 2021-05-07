@@ -46,10 +46,24 @@ TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
 
   return _get_size_tree(t, {0});
 }
-TreeP<int> get_start_tree(const TreeP<std::pair<int, int>> &size_tree) {}
-vector<int> get_start_offsets(const TreeP<std::pair<int, int>> &size_tree) {}
+TreeP<std::pair<int, int>>
+get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {
+  using SizeTree = TreeP<std::pair<int, int>>;
+  using ResType = TreeP<std::pair<int, int>>;
 
-Indices next(const TreeP<std::pair<int, int>> &size_tree, const Indices &idxs) {
+  using F = std::function<ResType(const SizeTree &, //
+                                  int)>;
+  F _get_start_tree = [&_get_start_tree](const SizeTree &st, //
+                                         int start) -> ResType {
+    vector<ResType> children_results;
+    int _idx_so_far = start;
+    for (const auto &child : st->children) {
+      children_results.push_back(_get_start_tree(child, _idx_so_far));
+      _idx_so_far += child->n.first;
+    }
+    return mt(std::make_pair(start, st->n.second), children_results);
+  };
+  return _get_start_tree(size_tree, 0);
 }
 
 } // namespace slow

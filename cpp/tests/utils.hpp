@@ -6,7 +6,13 @@
 
 namespace std {
 std::ostream &operator<<(std::ostream &os, std::vector<int> const &v);
+
+template <class A, class B>
+std::ostream &operator<<(std::ostream &os, std::pair<A, B> p) {
+  os << "(" << p.first << ", " << p.second << ")";
+  return os;
 }
+} // namespace std
 
 namespace data {
 /**

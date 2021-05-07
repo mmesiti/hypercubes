@@ -88,3 +88,6 @@ def test_iterate(idx, idxp):
     partitioning = fixtures.partitioning1D()
     size_tree = pt.get_size_tree(partitioning, lambda _: True)
     assert pt.iterate(size_tree, idx) == idxp
+
+#TODO:
+# add case "with holes", e.g., with predicate != lambda _ : True

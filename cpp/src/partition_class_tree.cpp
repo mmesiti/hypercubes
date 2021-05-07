@@ -175,17 +175,18 @@ TreeP<int> get_max_idx_tree(const PartitionClassTree &t) {
 
 bool validate_idx(const PartitionClassTree &t, const Indices &idxs) {
   int idx = idxs[0];
-  bool valid = 0 <= idx and idx < t->n->max_idx_value();
-  if (idxs.size() > 1) {
-    int child_kind = t->n->idx_to_child_kind(idx);
-    return valid and validate_idx(t->children[child_kind], _shift1(idxs));
-  } else
-    return valid;
+  const auto &node = t->n;
+  const auto &children = t->children;
+  return (0 <= idx and idx < node->max_idx_value()) //
+         and (idxs.size() <= 1                      //
+              or [&]() {
+                   int child_kind = node->idx_to_child_kind(idx);
+                   return validate_idx(children[child_kind], _shift1(idxs));
+                 }());
 }
 
 vector<std::pair<int, int>> get_partition_limits(const PartitionClassTree &t, //
                                                  const Indices &idx) {
-
   Coordinates starts = get_coord_from_idx(t, idx);
   Sizes sizes = get_sizes_from_idx(t, idx);
   vector<std::pair<int, int>> res;

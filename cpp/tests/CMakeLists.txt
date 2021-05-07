@@ -47,7 +47,9 @@ add_executable(test_partitioners test_partitioners.cpp)
 target_link_libraries(test_partitioners partitioners boost_test_helper)
 
 add_executable(test_partition_class_tree test_partition_class_tree.cpp)
-target_link_libraries(test_partition_class_tree partition_class_tree boost_test_helper)
+target_link_libraries(test_partition_class_tree partition_class_tree
+                                                boost_test_helper
+                                                utils)
 
 add_executable(test_pct_full test_pct_full.cpp)
 target_link_libraries(test_pct_full partition_class_tree boost_test_helper utils fixtures)
@@ -63,8 +65,14 @@ add_executable(test_partition_tree test_partition_tree.cpp)
 target_link_libraries(test_partition_tree partition_tree 
                                           boost_test_helper
                                           partition_class_tree
-                                          fixtures)
+                                          fixtures
+                                          utils)
 
+add_executable(test_size_tree_iterator test_size_tree_iterator.cpp)
+target_link_libraries(test_size_tree_iterator size_tree_iterator
+                                              boost_test_helper
+                                              utils)
+                                    
 ###########
 # TESTING #
 ###########
@@ -85,3 +93,4 @@ add_test(partition_class_tree test_partition_class_tree -r confirm)
 add_test(pct_full test_pct_full -r confirm)
 add_test(partition_predicates test_partition_predicates -r confirm)
 add_test(partition_tree test_partition_tree -r confirm)
+add_test(size_tree_iterator test_size_tree_iterator -r confirm)

@@ -265,7 +265,23 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
 
   BOOST_TEST(*expmaxtree == *maxtree);
 }
-BOOST_AUTO_TEST_CASE(test_validate_idx) {
+
+BOOST_DATA_TEST_CASE(test_validate_idx, //
+                     bdata::make(std::vector<std::pair<Indices, bool>>{
+                         {{0, 0, 0, 0}, {true}},  //
+                         {{4}, {false}},          //
+                         {{3, 2}, {false}},       //
+                         {{3, 1}, {true}},        //
+                         {{3, 1, 2, 1}, {true}},  //
+                         {{3, 1, 2, 2}, {false}}, //
+                         {{3, 0, 0, 0}, {true}},  //
+                         {{3, 0, 0, 1}, {false}}, //
+                         {{3, 0, 2, 2}, {true}},  //
+                         {{3, 0, 2, 3}, {false}}, //
+                         {{1, 0, 2, 3}, {true}},  //
+                         {{1, 0, 2, 4}, {false}}  //
+                     }),
+                     idx_valid) {
   SizeParityD sp{{42, Parity::EVEN}};
   PCTBuilder treeBuilder;
   PartitionClassTree t = treeBuilder(sp,                              //
@@ -274,27 +290,11 @@ BOOST_AUTO_TEST_CASE(test_validate_idx) {
                                               HBB("Halo", 0, 1),      //
                                               Plain("Remainder", 0)});
 
-  std::vector<std::pair<Indices, bool>> in_out{
-      {{0, 0, 0, 0}, {true}},  //
-      {{4}, {false}},          //
-      {{3, 2}, {false}},       //
-      {{3, 1}, {true}},        //
-      {{3, 1, 2, 1}, {true}},  //
-      {{3, 1, 2, 2}, {false}}, //
-      {{3, 0, 0, 0}, {true}},  //
-      {{3, 0, 0, 1}, {false}}, //
-      {{3, 0, 2, 2}, {true}},  //
-      {{3, 0, 2, 3}, {false}}, //
-      {{1, 0, 2, 3}, {true}},  //
-      {{1, 0, 2, 4}, {false}}  //
-  };
-  for (const auto &idx_valid : in_out) {
-    Indices idx = idx_valid.first;
-    bool expvalid = idx_valid.second;
+  Indices idx = idx_valid.first;
+  bool expvalid = idx_valid.second;
 
-    bool valid = validate_idx(t, idx);
-    BOOST_TEST(valid == expvalid);
-  }
+  bool valid = validate_idx(t, idx);
+  BOOST_TEST(valid == expvalid);
 }
 
 BOOST_AUTO_TEST_CASE(test_validate_idx_weo) {
