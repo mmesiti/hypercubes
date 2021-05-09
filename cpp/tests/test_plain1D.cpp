@@ -21,7 +21,7 @@ struct Plain1DFixture {
 
 /* Testing all non-virtual public methods in Partitioning1D
  * */
-BOOST_AUTO_TEST_SUITE(test_HBB1D)
+BOOST_AUTO_TEST_SUITE(test_plain1D)
 
 BOOST_FIXTURE_TEST_CASE(test_starts, Plain1DFixture) {
   std::vector<int> expected_starts{0};
