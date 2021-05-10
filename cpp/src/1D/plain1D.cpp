@@ -5,12 +5,8 @@ namespace hypercubes {
 namespace slow {
 Plain1D::Plain1D(SizeParity sp, int dimension_, std::string name_)
     : Partitioning1D(sp, dimension_, name_) {
-  limits.push_back(0);
-  if (sp.size != 0) {
-    limits.push_back(sp.size);
-  }
-  // for (int i = 0; i <= sp.size; ++i)
-  //  limits.push_back(i);
+  for (int i = 0; i <= sp.size; ++i)
+    limits.push_back(i);
 };
 int Plain1D::idx_to_coord(int idx, int offset) const {
   if (offset != 0)
