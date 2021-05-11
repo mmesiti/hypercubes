@@ -2,7 +2,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "eo.hpp"
-#include "utils.hpp"
+#include "test_utils.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>

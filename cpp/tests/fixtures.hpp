@@ -1,6 +1,6 @@
 #ifndef FIXTURES_H_
 #define FIXTURES_H_
-#include "partition_class_tree.hpp"
+#include "partition_tree.hpp"
 #include "partitioners.hpp"
 
 namespace hypercubes {

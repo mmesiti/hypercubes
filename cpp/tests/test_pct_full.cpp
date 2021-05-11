@@ -1,7 +1,7 @@
 #include "fixtures.hpp"
-#include "partition_class_tree.hpp"
+#include "partition_tree.hpp"
+#include "test_utils.hpp"
 #include "tree.hpp"
-#include "utils.hpp"
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 #include <cmath>

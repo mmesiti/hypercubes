@@ -1,5 +1,6 @@
 #ifndef TREE_H_
 #define TREE_H_
+#include "utils.hpp"
 #include <algorithm>
 #include <functional>
 #include <map>
@@ -140,11 +141,10 @@ template <class Node> int get_max_depth(TreeP<Node> tree) {
 
 template <class Node> TreeP<Node> truncate_tree(TreeP<Node> tree, int level) {
   if (level > 0) {
-    vector<TreeP<Node>> children;
-    std::transform(tree->children.begin(), tree->children.end(),
-                   std::back_inserter(children), [level](TreeP<Node> c) {
-                     return truncate_tree(c, level - 1);
-                   });
+    auto children = vtransform(tree->children,                       //
+                               [level](TreeP<Node> c) {              //
+                                 return truncate_tree(c, level - 1); //
+                               });
     return mt(tree->n, children);
 
   } else {
@@ -178,11 +178,11 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(TreeP<Node> t, TreeP<Nodes>... ts) {
 
 template <class Node, class NewNode>
 TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
-  vector<TreeP<NewNode>> children;
+  // NOTE: here resmap could be passed between calls.
   std::map<TreeP<Node>, TreeP<NewNode>> resmap;
 
-  std::transform(t->children.begin(), t->children.end(),
-                 std::back_inserter(children),
+  vector<TreeP<NewNode>> children =
+      vtransform(t->children, //
                  [&f, &resmap](const TreeP<Node> &c) {
                    if (resmap.find(c) == resmap.end())
                      resmap[c] = nodemap(c, f);
@@ -198,13 +198,11 @@ TreeP<Node> collapse_level(TreeP<Node> tree, int level_to_collapse,
   if (level_to_collapse == 0)
     return tree->children[child_to_replace];
   else {
-    vector<TreeP<Node>> children;
-    std::transform(tree->children.begin(), tree->children.end(),
-                   std::back_inserter(children),
-                   [level_to_collapse, child_to_replace](TreeP<Node> c) {
-                     return collapse_level(c, level_to_collapse - 1,
-                                           child_to_replace);
-                   });
+    vector<TreeP<Node>> children = vtransform(
+        tree->children, //
+        [level_to_collapse, child_to_replace](TreeP<Node> c) {
+          return collapse_level(c, level_to_collapse - 1, child_to_replace);
+        });
     return mt(tree->n, children);
   }
 }
@@ -251,25 +249,23 @@ TreeP<Node> swap_levels(TreeP<Node> tree, vector<int> new_level_ordering) {
   int next_level = new_level_ordering[0];
   TreeP<Node> new_tree = bring_level_on_top(tree, next_level);
 
-  vector<int> sub_level_ordering = [&new_level_ordering]() {
+  vector<int> sub_new_level_ordering = [](vector<int> level_ordering) {
     vector<int> res;
-    int lvl_removed = new_level_ordering[0];
-    for (int i = 1; i < new_level_ordering.size(); ++i) {
-      int l = new_level_ordering[i];
+    int lvl_removed = level_ordering[0];
+    for (int i = 1; i < level_ordering.size(); ++i) {
+      int l = level_ordering[i];
       if (l > lvl_removed)
         res.push_back(l - 1);
       else
         res.push_back(l);
     }
     return res;
-  }();
+  }(new_level_ordering);
 
-  vector<TreeP<Node>> new_children;
-  std::transform(new_tree->children.begin(),       //
-                 new_tree->children.end(),         //
-                 std::back_inserter(new_children), //
-                 [&sub_level_ordering](TreeP<Node> c) {
-                   return swap_levels(c, sub_level_ordering);
+  vector<TreeP<Node>> new_children =
+      vtransform(new_tree->children, //
+                 [&sub_new_level_ordering](TreeP<Node> c) {
+                   return swap_levels(c, sub_new_level_ordering);
                  });
   return mt(new_tree->n, new_children);
 }

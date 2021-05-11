@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include <set>
 
-#include "utils.hpp"
+#include "test_utils.hpp"
 
 BOOST_AUTO_TEST_SUITE(rilist)
 

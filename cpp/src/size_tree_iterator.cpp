@@ -15,24 +15,23 @@ Indices append(int x, Indices idx) {
   std::copy(idx.begin(), idx.end(), std::back_inserter(res));
   return res;
 }
-
 using SizeTree = TreeP<std::pair<int, int>>;
+inline Indices _get_start_idxs(SizeTree subtree) {
+  auto children = subtree->children;
+  if (children.size() == 0)
+    return Indices{0};
+  else {
+    Indices res{children[0]->n.second};
+    for (auto c : _get_start_idxs(children[0]))
+      res.push_back(c);
+    return res;
+  }
+}
+
 Indices next(const SizeTree &size_tree, const Indices &idxs) {
 
   // function to retrieve idx
   // subtree->n.second;
-  std::function<Indices(SizeTree)> get_start_idxs =
-      [&get_start_idxs](SizeTree subtree) -> Indices {
-    auto children = subtree->children;
-    if (children.size() == 0)
-      return Indices{0};
-    else {
-      Indices res{children[0]->n.second};
-      for (auto c : get_start_idxs(children[0]))
-        res.push_back(c);
-      return res;
-    }
-  };
 
   int s = size_tree->n.first;
   int idx = size_tree->n.second;
@@ -65,7 +64,7 @@ Indices next(const SizeTree &size_tree, const Indices &idxs) {
       if (nidx == *idx_children.rbegin())
         return Indices{};
       else {
-        new_sub_idxs = get_start_idxs(children[i + 1]);
+        new_sub_idxs = _get_start_idxs(children[i + 1]);
         return append(idx_children[i + 1], new_sub_idxs);
       }
     } else
