@@ -8,23 +8,22 @@
 
 namespace hypercubes {
 namespace slow {
-
-using PartitionClassTree = TreeP<std::shared_ptr<IPartitioning>>;
 using partitioners::PartList;
+using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
 
-class PCTBuilder {
+class PTBuilder {
   using Input = std::tuple<SizeParityD, PartList>;
-  std::map<Input, PartitionClassTree> pct_cache;
+  std::map<Input, PartitionTree> pct_cache;
 
 public:
-  PartitionClassTree operator()(SizeParityD sp, //
-                                const PartList &partitioners);
+  PartitionTree operator()(SizeParityD sp, //
+                           const PartList &partitioners);
 };
-std::string partition_class_tree_to_str(const PartitionClassTree &t, //
-                                        const std::string &prefix,   //
+std::string partition_class_tree_to_str(const PartitionTree &t,    //
+                                        const std::string &prefix, //
                                         int max_level);
 
-TreeP<int> get_indices_tree(const PartitionClassTree &t, //
+TreeP<int> get_indices_tree(const PartitionTree &t, //
                             const Coordinates &xs);
 
 struct GhostResult {
@@ -33,22 +32,22 @@ struct GhostResult {
   std::string name;
 };
 
-TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionClassTree &t,
+TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
                                                 const Coordinates &xs);
 
 vector<std::tuple<int, Indices>>
 get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices);
 
-Coordinates get_coord_from_idx(const PartitionClassTree &t, //
+Coordinates get_coord_from_idx(const PartitionTree &t, //
                                const Indices &idx);
 
-Sizes get_sizes_from_idx(const PartitionClassTree &t, const Indices &idx);
+Sizes get_sizes_from_idx(const PartitionTree &t, const Indices &idx);
 
-TreeP<int> get_max_idx_tree(const PartitionClassTree &t);
+TreeP<int> get_max_idx_tree(const PartitionTree &t);
 
-bool validate_idx(const PartitionClassTree &t, const Indices &idx);
+bool validate_idx(const PartitionTree &t, const Indices &idx);
 
-vector<std::pair<int, int>> get_partition_limits(const PartitionClassTree &t, //
+vector<std::pair<int, int>> get_partition_limits(const PartitionTree &t, //
                                                  const Indices &idx);
 } // namespace slow
 

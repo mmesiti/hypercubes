@@ -12,10 +12,10 @@ using namespace hypercubes::slow;
 using namespace hypercubes::slow::partitioners;
 
 struct Simple1D {
-  PCTBuilder tree_builder;
+  PTBuilder tree_builder;
   PartList partitioners;
   SizeParityD spd;
-  PartitionClassTree t;
+  PartitionTree t;
 
   TreeP<std::pair<int, int>> sizetree;
 
@@ -31,10 +31,10 @@ struct Simple1D {
 };
 
 struct LessSimple1D {
-  PCTBuilder tree_builder;
+  PTBuilder tree_builder;
   PartList partitioners;
   SizeParityD spd;
-  PartitionClassTree t;
+  PartitionTree t;
 
   TreeP<std::pair<int, int>> sizetree;
 
@@ -71,7 +71,7 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple, LessSimple1D) {
   BOOST_TEST(*sizetree == *exptree);
 }
 BOOST_AUTO_TEST_CASE(test_all_allocated) {
-  PCTBuilder tree_builder;
+  PTBuilder tree_builder;
   PartList partitioners{QPeriodic("MPIX", 0, 4),        //
                         QOpen("VectorX", 0, 2),         //
                         HBB("HalosX", 0, 1),            //
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(test_all_allocated) {
                         Plain("PlainExtra", 1),         //
                         Plain("PlainX", 0)};
   SizeParityD spd{{42, Parity::EVEN}};
-  PartitionClassTree t = tree_builder(spd, partitioners);
+  PartitionTree t = tree_builder(spd, partitioners);
 
   TreeP<std::pair<int, int>> sizetree =
       get_size_tree(t, [](auto x) { return true; });
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(test_all_allocated) {
   BOOST_TEST(sizetree->n.first == exp_size);
 }
 BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
-  PCTBuilder tree_builder;
+  PTBuilder tree_builder;
   PartList partitioners{QPeriodic("MPIX", 0, 4),        //
                         QOpen("VectorX", 0, 2),         //
                         HBB("HalosX", 0, 1),            //
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
                         Plain("PlainExtra", 1),         //
                         Plain("PlainX", 0)};
   SizeParityD spd{{42, Parity::EVEN}};
-  PartitionClassTree t = tree_builder(spd, partitioners);
+  PartitionTree t = tree_builder(spd, partitioners);
 
   TreeP<std::pair<int, int>> sizetree =
       get_size_tree(t, get_NmD_halo_predicate(partitioners, 0));
@@ -166,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE(test_offset_tree_lesssimple, LessSimple1D) {
 BOOST_AUTO_TEST_CASE(test_no_zerosize) {
 
   enum { X, EXTRA };
-  PCTBuilder tree_builder;
+  PTBuilder tree_builder;
   auto t = tree_builder({{42, Parity::EVEN}},            //
                         {QPeriodic("MPI X", X, 4),       //
                          QOpen("VECTOR X", X, 2),        //

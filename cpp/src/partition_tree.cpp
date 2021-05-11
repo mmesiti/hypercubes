@@ -1,8 +1,9 @@
 #include "partition_tree.hpp"
+#include <memory>
 namespace hypercubes {
 namespace slow {
 
-TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
+TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
                                          PartitionPredicate predicate) {
 
   auto binarified_predicate = [&predicate](Indices idx) {
@@ -11,21 +12,21 @@ TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
   return get_size_tree(t, binarified_predicate);
 }
 
-TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
+TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
                                          std::function<bool(Indices)> predicate)
 
 {
 
   using ResType = TreeP<std::pair<int, int>>;
 
-  using F = std::function<ResType(const PartitionClassTree &, //
+  using F = std::function<ResType(const PartitionTree &, //
                                   const Indices &)>;
 
   auto getsize = [](ResType t) { return t->n.first; };
 
   F _get_size_tree = [&predicate,      //
                       &_get_size_tree, //
-                      &getsize](const PartitionClassTree &pct,
+                      &getsize](const PartitionTree &pct,
                                 const Indices &top_idxs) -> ResType {
     auto partition_class = pct->n;
     auto children = pct->children;
@@ -33,7 +34,7 @@ TreeP<std::pair<int, int>> get_size_tree(const PartitionClassTree &t,
     int nodesize = 0;
     if (children.size() != 0) {
       for (int idx = 0; idx < partition_class->max_idx_value(); ++idx) {
-        auto new_pc = children[partition_class->idx_to_child_kind(idx)];
+        auto new_pc = children[idx];
         Indices new_idxs = top_idxs;
         Indices predicate_idxs;
         new_idxs.push_back(idx);

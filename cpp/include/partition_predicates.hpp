@@ -14,12 +14,14 @@
  * */
 
 #include "bool_maybe.hpp"
-#include "partition_class_tree.hpp"
+#include "geometry.hpp"
+#include "partitioners.hpp"
 #include <functional>
 
 namespace hypercubes {
 namespace slow {
 
+using partitioners::PartList;
 using PartitionPredicate = std::function<BoolM(Indices)>;
 
 BoolM only_NmD_halos(PartList partitioners, Indices idxs, int D);

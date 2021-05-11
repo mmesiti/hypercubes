@@ -2,6 +2,7 @@
 #define TREE_H_
 #include <algorithm>
 #include <functional>
+#include <map>
 #include <memory>
 #include <ostream>
 #include <sstream>
@@ -178,9 +179,15 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(TreeP<Node> t, TreeP<Nodes>... ts) {
 template <class Node, class NewNode>
 TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
   vector<TreeP<NewNode>> children;
+  std::map<TreeP<Node>, TreeP<NewNode>> resmap;
+
   std::transform(t->children.begin(), t->children.end(),
                  std::back_inserter(children),
-                 [&f](const TreeP<Node> &c) { return nodemap(c, f); });
+                 [&f, &resmap](const TreeP<Node> &c) {
+                   if (resmap.find(c) == resmap.end())
+                     resmap[c] = nodemap(c, f);
+                   return resmap[c];
+                 });
   return mt(f(t->n), children);
 }
 

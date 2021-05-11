@@ -10,7 +10,7 @@ namespace bdata = boost::unit_test::data;
 /**
  * Simple 1D test.
  * */
-BOOST_AUTO_TEST_SUITE(test_partition_class_tree)
+BOOST_AUTO_TEST_SUITE(test_partition_tree)
 
 BOOST_AUTO_TEST_CASE(test_1D_2lvl_simple) {
 
@@ -23,8 +23,8 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_simple) {
   };
 
   SizeParityD sp{{8, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp, ps);
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp, ps);
 
   std::string comments0, comments1;
   {
@@ -49,8 +49,8 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 
   SizeParityD sp{{42, Parity::EVEN}};
 
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp, ps);
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp, ps);
 
   std::string repr = partition_class_tree_to_str(t, "", 5);
 
@@ -81,15 +81,15 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_simple) {
   SizeParityD sp{{42, Parity::EVEN},  //
                  {42, Parity::EVEN}}; //
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp, PartList{
-                                             QPeriodic("X-MPI", 0, 4), //
-                                             QPeriodic("Y-MPI", 1, 4), //
-                                             QOpen("X-Vector", 0, 2),  //
-                                             QOpen("Y-Vector", 1, 2),  //
-                                             Plain("X-remainder", 0),  //
-                                             Plain("Y-remainder", 1),  //
-                                         });
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp, PartList{
+                                        QPeriodic("X-MPI", 0, 4), //
+                                        QPeriodic("Y-MPI", 1, 4), //
+                                        QOpen("X-Vector", 0, 2),  //
+                                        QOpen("Y-Vector", 1, 2),  //
+                                        Plain("X-remainder", 0),  //
+                                        Plain("Y-remainder", 1),  //
+                                    });
 
   Coordinates xs{29, 20};
 
@@ -108,11 +108,11 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_simple) {
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 
   SizeParityD sp{{42, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp,                              //
-                                     PartList{QPeriodic("MPI", 0, 4), //
-                                              QOpen("Vector", 0, 2),  //
-                                              Plain("Remainder", 0)});
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp,                              //
+                                PartList{QPeriodic("MPI", 0, 4), //
+                                         QOpen("Vector", 0, 2),  //
+                                         Plain("Remainder", 0)});
 
   Coordinates xs{22};
 
@@ -133,12 +133,12 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 
   SizeParityD sp{{42, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp,                              //
-                                     PartList{QPeriodic("MPI", 0, 4), //
-                                              QOpen("Vector", 0, 2),  //
-                                              HBB("Halo", 0, 1),      //
-                                              Plain("Remainder", 0)});
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp,                              //
+                                PartList{QPeriodic("MPI", 0, 4), //
+                                         QOpen("Vector", 0, 2),  //
+                                         HBB("Halo", 0, 1),      //
+                                         Plain("Remainder", 0)});
 
   Coordinates xs{22};
 
@@ -163,12 +163,12 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
                      bdata::xrange(0, 41), i) {
   SizeParityD sp{{42, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp,                              //
-                                     PartList{QPeriodic("MPI", 0, 4), //
-                                              QOpen("Vector", 0, 2),  //
-                                              HBB("Halo", 0, 1),      //
-                                              Plain("Remainder", 0)});
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp,                              //
+                                PartList{QPeriodic("MPI", 0, 4), //
+                                         QOpen("Vector", 0, 2),  //
+                                         HBB("Halo", 0, 1),      //
+                                         Plain("Remainder", 0)});
 
   Coordinates xs{i};
   Indices idx = get_all_paths(get_indices_tree(t, xs))[0];
@@ -192,12 +192,12 @@ BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
                                            {{3, 0, 2}, {3}}, //
                                            {{3, 1, 2}, {2}}};
   SizeParityD sp{{42, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp,                              //
-                                     PartList{QPeriodic("MPI", 0, 4), //
-                                              QOpen("Vector", 0, 2),  //
-                                              HBB("Halo", 0, 1),      //
-                                              Plain("Remainder", 0)});
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp,                              //
+                                PartList{QPeriodic("MPI", 0, 4), //
+                                         QOpen("Vector", 0, 2),  //
+                                         HBB("Halo", 0, 1),      //
+                                         Plain("Remainder", 0)});
 
   for (auto &idx_size : in_out) {
     Indices idx = idx_size.first;
@@ -209,30 +209,52 @@ BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
 
 BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
   SizeParityD sp{{42, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp,                              //
-                                     PartList{QPeriodic("MPI", 0, 4), //
-                                              QOpen("Vector", 0, 2),  //
-                                              HBB("Halo", 0, 1),      //
-                                              Plain("Remainder", 0)});
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp,                              //
+                                PartList{QPeriodic("MPI", 0, 4), //
+                                         QOpen("Vector", 0, 2),  //
+                                         HBB("Halo", 0, 1),      //
+                                         Plain("Remainder", 0)});
   TreeP<int> expmaxtree = mt(4, {mt(2, {mt(5, {mt(1, {}),     //
                                                mt(1, {}),     //
-                                               mt(2, {})}),   //
+                                               mt(4, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})}),   //
                                         mt(5, {mt(1, {}),     //
                                                mt(1, {}),     //
-                                               mt(3, {})})}), //
+                                               mt(3, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})})}), //
                                  mt(2, {mt(5, {mt(1, {}),     //
                                                mt(1, {}),     //
-                                               mt(3, {})}),   //
+                                               mt(4, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})}),   //
                                         mt(5, {mt(1, {}),     //
                                                mt(1, {}),     //
-                                               mt(4, {})})}), //
+                                               mt(3, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})})}), //
                                  mt(2, {mt(5, {mt(1, {}),     //
                                                mt(1, {}),     //
-                                               mt(3, {})}),   //
+                                               mt(4, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})}),   //
                                         mt(5, {mt(1, {}),     //
                                                mt(1, {}),     //
-                                               mt(4, {})})})});
+                                               mt(3, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})})}), //
+                                 mt(2, {mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(3, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})}),   //
+                                        mt(5, {mt(1, {}),     //
+                                               mt(1, {}),     //
+                                               mt(2, {}),     //
+                                               mt(1, {}),     //
+                                               mt(1, {})})})});
 
   TreeP<int> maxtree = get_max_idx_tree(t);
 
@@ -241,25 +263,38 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
 
 BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
   SizeParityD sp{{11, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp,                                      //
-                                     PartList{QOpen("Vector", 0, 2),          //
-                                              HBB("Halo", 0, 1),              //
-                                              partitioners::EO("EO", {true}), //
-                                              Plain("Remainder", 1),          //
-                                              Plain("Remainder", 0)});
-  // subtrees ordered by (size,parity)
-  TreeP<int> expmaxtree = mt(2, {mt(5, {mt(2, {mt(1, {mt(1, {})}),     //
-                                               mt(0, {})}),            //
-                                        mt(2, {mt(0, {}),              //
-                                               mt(1, {mt(1, {})})}),   //
-                                        mt(2, {mt(1, {mt(1, {})}),     //
-                                               mt(2, {mt(1, {})})})}), //
-                                 mt(5, {mt(2, {mt(1, {mt(1, {})}),     //
-                                               mt(0, {})}),            //
-                                        mt(2, {mt(0, {}),              //
-                                               mt(1, {mt(1, {})})}),   //
-                                        mt(2, {mt(2, {mt(1, {})})})})});
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp,                                      //
+                                PartList{QOpen("Vector", 0, 2),          //
+                                         HBB("Halo", 0, 1),              //
+                                         partitioners::EO("EO", {true}), //
+                                         Plain("Remainder", 1),          //
+                                         Plain("Remainder", 0)});
+
+  TreeP<int> a;
+  TreeP<int> expmaxtree = mt(2, {mt(5, {mt(2, {mt(0, {}),            //
+                                               mt(1, {mt(1, {})})}), //
+                                        mt(2, {mt(1, {mt(1, {})}),   //
+                                               mt(0, {})}),          //
+                                        mt(2, {mt(2, {mt(1, {}),     //
+                                                      mt(1, {})}),   //
+                                               mt(2, {mt(1, {}),     //
+                                                      mt(1, {})})}), //
+                                        mt(2, {mt(0, {}),            //
+                                               mt(1, {mt(1, {})})}),
+                                        mt(2, {mt(1, {mt(1, {})}), //
+                                               mt(0, {})})}),
+                                 mt(5, {mt(2, {mt(0, {}),            //
+                                               mt(1, {mt(1, {})})}), //
+                                        mt(2, {mt(1, {mt(1, {})}),   //
+                                               mt(0, {})}),
+                                        mt(2, {mt(1, {mt(1, {})}),   //
+                                               mt(2, {mt(1, {}),     //
+                                                      mt(1, {})})}), //
+                                        mt(2, {mt(1, {mt(1, {})}),   //
+                                               mt(0, {})}),          //
+                                        mt(2, {mt(0, {}),            //
+                                               mt(1, {mt(1, {})})})})});
 
   TreeP<int> maxtree = get_max_idx_tree(t);
 
@@ -283,12 +318,12 @@ BOOST_DATA_TEST_CASE(test_validate_idx, //
                      }),
                      idx_valid) {
   SizeParityD sp{{42, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp,                              //
-                                     PartList{QPeriodic("MPI", 0, 4), //
-                                              QOpen("Vector", 0, 2),  //
-                                              HBB("Halo", 0, 1),      //
-                                              Plain("Remainder", 0)});
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp,                              //
+                                PartList{QPeriodic("MPI", 0, 4), //
+                                         QOpen("Vector", 0, 2),  //
+                                         HBB("Halo", 0, 1),      //
+                                         Plain("Remainder", 0)});
 
   Indices idx = idx_valid.first;
   bool expvalid = idx_valid.second;
@@ -299,16 +334,16 @@ BOOST_DATA_TEST_CASE(test_validate_idx, //
 
 BOOST_AUTO_TEST_CASE(test_validate_idx_weo) {
   SizeParityD sp{{42, Parity::EVEN}};
-  PCTBuilder treeBuilder;
-  PartitionClassTree t = treeBuilder(sp, //
-                                     PartList{
-                                         QPeriodic("MPI", 0, 4),         //
-                                         QOpen("Vector", 0, 2),          //
-                                         HBB("Halo", 0, 1),              //
-                                         partitioners::EO("EO", {true}), //
-                                         Plain("Remainder-extra", 1),
-                                         Plain("Remainder", 0),
-                                     });
+  PTBuilder treeBuilder;
+  PartitionTree t = treeBuilder(sp, //
+                                PartList{
+                                    QPeriodic("MPI", 0, 4),         //
+                                    QOpen("Vector", 0, 2),          //
+                                    HBB("Halo", 0, 1),              //
+                                    partitioners::EO("EO", {true}), //
+                                    Plain("Remainder-extra", 1),
+                                    Plain("Remainder", 0),
+                                });
 
   std::vector<std::pair<Indices, bool>> in_out{
       {{0, 0, 0, 0}, {true}},     //
@@ -347,8 +382,8 @@ BOOST_AUTO_TEST_CASE(test_partition_limits_1D) {
 
   SizeParityD sp{{32, Parity::EVEN}};
 
-  PCTBuilder tree_builder;
-  PartitionClassTree t = tree_builder(sp, partitioners);
+  PTBuilder tree_builder;
+  PartitionTree t = tree_builder(sp, partitioners);
 
   for (auto idxs_limits : in_out) {
     Indices idxs = idxs_limits.first;
@@ -381,8 +416,8 @@ BOOST_AUTO_TEST_CASE(test_partition_limits_2D) {
                         Plain("Leaf Y", Y)};
   SizeParityD sp{{42, Parity::EVEN}, {42, Parity::EVEN}};
 
-  PCTBuilder tree_builder;
-  PartitionClassTree t = tree_builder(sp, partitioners);
+  PTBuilder tree_builder;
+  PartitionTree t = tree_builder(sp, partitioners);
 
   for (auto idxs_limits : in_out) {
     Indices idxs = idxs_limits.first;
