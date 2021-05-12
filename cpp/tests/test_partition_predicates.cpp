@@ -6,9 +6,11 @@
 #include <algorithm>
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_suite.hpp>
 using namespace hypercubes::slow;
 using namespace hypercubes::slow::partitioners;
 using namespace data;
+namespace bdata = boost::unit_test::data;
 
 BOOST_AUTO_TEST_SUITE(test_predicates)
 
@@ -39,6 +41,12 @@ BOOST_FIXTURE_TEST_CASE(test_only_bulk_and_borders, Part4DF) {
                 expected);
   }
 }
+
+BOOST_FIXTURE_TEST_CASE(test_onlyNmD_halos_T, Part1D42) {
+  BOOST_TEST(only_NmD_halos(partitioners, Indices{0, 0, 1, 0, 0}, 0) ==
+             BoolM::T);
+}
+
 BOOST_FIXTURE_TEST_CASE(test_mpi_selection_wrong, Part4DF) {
   auto data = rilist(0, 3, 4, 4);
   auto data_it = data.begin();
@@ -70,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_wrong, Part4DF) {
               idx.begin());
 
     auto predicate = get_mpi_rank_predicate(partitioners, MPI_rank_selected);
-    BOOST_CHECK(not to_bool(predicate(idx)));
+    BOOST_CHECK(predicate(idx) == BoolM::F);
   }
 }
 BOOST_FIXTURE_TEST_CASE(test_mpi_selection_right, Part4DF) {
@@ -100,8 +108,15 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_right, Part4DF) {
               idx.begin());
 
     auto predicate = get_mpi_rank_predicate(partitioners, MPI_rank_idx);
-    BOOST_CHECK(to_bool(predicate(idx)));
+    BOOST_TEST(predicate(idx) == BoolM::T);
   }
+}
+
+BOOST_DATA_TEST_CASE_F(Part1D42, test_no_border_bulk_no, bdata::xrange(42), i) {
+
+  auto idx_tree = get_indices_tree(t, Coordinates{i});
+  Indices idx = get_all_paths(idx_tree)[0];
+  BOOST_TEST(no_bulk_borders(partitioners, idx) == BoolM::F);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

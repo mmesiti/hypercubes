@@ -122,7 +122,7 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
         children_results.push_back(mt(gc, {}));
       }
     }
-    GhostResult g{idx, false, name};
+    GhostResult g{idx, cached_flag, name};
     return mt(g, children_results);
   };
 
@@ -139,19 +139,18 @@ get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices) {
   std::copy_if(idxs.begin(), idxs.end(), std::back_inserter(relevant_idxs),
                [max_depth](auto v) { return v.size() == max_depth; });
 
-  ResType res;
+  ResType res = vtransform(relevant_idxs, //
+                           [](const vector<GhostResult> &idx) {
+                             int cached_count = std::count_if(
+                                 idx.begin(), idx.end(),
+                                 [](GhostResult id) { return id.cached_flag; });
+                             Indices i = tail(vtransform(idx,                 //
+                                                         [](GhostResult id) { //
+                                                           return id.idx;     //
+                                                         }));
 
-  std::transform(relevant_idxs.begin(), //
-                 relevant_idxs.end(),   //
-                 std::back_inserter(res), [](const vector<GhostResult> &idx) {
-                   int cached_count = std::count_if(
-                       idx.begin(), idx.end(),
-                       [](GhostResult id) { return id.cached_flag; });
-                   Indices i;
-                   std::transform(idx.begin(), idx.end(), std::back_inserter(i),
-                                  [](GhostResult id) { return id.idx; });
-                   return std::make_tuple(cached_count, i);
-                 });
+                             return std::make_tuple(cached_count, i);
+                           });
 
   return res;
 }

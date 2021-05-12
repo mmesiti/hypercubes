@@ -71,6 +71,7 @@ add_custom_target(coverage
              --directory CMakeFiles
              --directory tests/CMakeFiles/test_dimensionalise.dir
              --directory tests/CMakeFiles/test_tree.dir
+             --directory tests/CMakeFiles/test_size_tree_iterator.dir
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
      COMMAND genhtml --demangle-cpp coverage.info

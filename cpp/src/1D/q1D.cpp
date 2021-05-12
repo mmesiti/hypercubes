@@ -42,7 +42,7 @@ std::vector<IndexResult> Q1DBase::coord_to_idxs(int relative_x) const {
   std::tie(min_idx, max_idx) = idx_limits(relative_x);
   int real_idx = relative_x / quotient;
 
-  std::vector<IndexResult> res;
+  vector<IndexResult> res;
 
   auto ghost_limits = [this](int idx) {
     return idx * quotient + (size - nparts * quotient) * floor(idx, nparts);

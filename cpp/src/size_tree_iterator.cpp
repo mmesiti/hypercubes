@@ -16,7 +16,8 @@ Indices append(int x, Indices idx) {
   return res;
 }
 using SizeTree = TreeP<std::pair<int, int>>;
-inline Indices _get_start_idxs(SizeTree subtree) {
+
+static Indices _get_start_idxs(SizeTree subtree) {
   auto children = subtree->children;
   if (children.size() == 0)
     return Indices{0};

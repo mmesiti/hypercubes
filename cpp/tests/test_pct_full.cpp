@@ -70,6 +70,12 @@ BOOST_FIXTURE_TEST_CASE(test_ghosts, Part4DF) {
     auto itwg = get_indices_tree_with_ghosts(t, *xs);
     auto idxs = get_relevant_indices_flat(itwg);
     BOOST_TEST(idxs.size() == pow(2, nborder));
+    int nghosts = std::count_if(idxs.begin(),                  //
+                                idxs.end(),                    //
+                                [](auto idx) {                 //
+                                  return std::get<0>(idx) > 0; //
+                                });
+    BOOST_TEST(nghosts == idxs.size() - 1);
     ++xs;
   }
 }

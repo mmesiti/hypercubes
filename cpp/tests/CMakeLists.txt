@@ -96,7 +96,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(test_tree PRIVATE "-fprofile-arcs"
                                            "-ftest-coverage")
   target_compile_options(test_size_tree_iterator PRIVATE "-fprofile-arcs"
-    "-ftest-coverage")
+                                                         "-ftest-coverage")
 
 endif()
 ###########

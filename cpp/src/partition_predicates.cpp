@@ -2,15 +2,27 @@
 namespace hypercubes {
 namespace slow {
 BoolM only_NmD_halos(PartList partitioners, Indices idxs, int D) {
+  auto is_hbb = [](auto p) {
+    return p->get_name().find("Halo") != std::string::npos;
+  };
+
+  int hbb_dimension = std::count_if(partitioners.begin(), //
+                                    partitioners.end(),   //
+                                    is_hbb);
   int halo_count = 0;
+  int still_unknown = hbb_dimension;
   for (int i = 0; i < idxs.size(); ++i) {
-    bool is_hbb_level =
-        partitioners[i]->get_name().find("Halo") != std::string::npos;
-    bool is_halo = idxs[i] == 0 or idxs[i] == 4;
-    if (is_hbb_level and is_halo)
-      ++halo_count;
-    if (halo_count > D)
-      return BoolM::F;
+    if (is_hbb(partitioners[i])) {
+      still_unknown--;
+      bool is_halo = idxs[i] == 0 or idxs[i] == 4;
+      if (is_halo)
+        ++halo_count;
+      if (D < halo_count)
+        return BoolM::F;
+      else if (still_unknown <= halo_count and //
+               halo_count <= D - still_unknown)
+        return BoolM::T;
+    }
   }
   return BoolM::M;
 }
@@ -24,12 +36,20 @@ PartitionPredicate get_NmD_halo_predicate(PartList partitioners, int D) {
 BoolM only_specific_mpi_rank(PartList partitioners, Indices idxs,
                              vector<int> MPI_ranks) {
 
+  auto is_mpilevel = [](auto p) {
+    return p->get_name().find("MPI") != std::string::npos;
+  };
+  int mpi_dimension = std::count_if(partitioners.begin(), //
+                                    partitioners.end(),   //
+                                    is_mpilevel);
   int MPI_partitioners_count = 0;
   for (int i = 0; i < idxs.size(); ++i) {
-    if (partitioners[i]->get_name().find("MPI") != std::string::npos) {
+    if (is_mpilevel(partitioners[i])) {
       if (idxs[i] != MPI_ranks[MPI_partitioners_count])
         return BoolM::F;
       ++MPI_partitioners_count;
+      if (MPI_partitioners_count == mpi_dimension)
+        return BoolM::T;
     }
   }
 
@@ -44,8 +64,9 @@ PartitionPredicate get_mpi_rank_predicate(PartList partitioners,
 }
 
 BoolM no_bulk_borders(PartList partitioners, Indices idx) {
-  return only_NmD_halos(partitioners, idx, 1) and
-         not only_NmD_halos(partitioners, idx, 0);
+  BoolM in_halo1D = only_NmD_halos(partitioners, idx, 1);
+  BoolM in_bb = only_NmD_halos(partitioners, idx, 0);
+  return in_halo1D and not in_bb;
 }
 } // namespace slow
 } // namespace hypercubes

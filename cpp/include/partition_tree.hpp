@@ -32,9 +32,15 @@ struct GhostResult {
   std::string name;
 };
 
+/* Returns a tree of indices representing the coordinates.
+ * The root of the tree is represented as an additional 0
+ * that does not correspond to any existing level. */
 TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
                                                 const Coordinates &xs);
 
+/* Takes the output of get_indices_tree_with_ghosts
+ *and returns a list of pairs "cached flag count - indices".
+ * The "0" prefix from get_indices_tree_with_ghosts is removed. */
 vector<std::tuple<int, Indices>>
 get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices);
 

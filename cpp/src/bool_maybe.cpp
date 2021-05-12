@@ -11,7 +11,6 @@ int to_int(BoolM x) {
   case BoolM::T:
     return 2;
   }
-  return -1;
 }
 BoolM operator&&(BoolM x, BoolM y) {
   const BoolM and_truth_table[3][3]{{BoolM::F, BoolM::F, BoolM::F}, //

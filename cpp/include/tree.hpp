@@ -66,6 +66,8 @@ template <class Node> TreeP<Node> mt(Node n, vector<TreeP<Node>> v) {
   return std::make_shared<Tree<Node>>(std::move(Tree<Node>{n, v}));
 }
 
+/* A newline before each subtree,
+ * and a newline after each child. */
 template <class Node> std::string tree_str(const Tree<Node> &tree) {
   std::function<std::string(const std::string &, //
                             const Tree<Node> &)>

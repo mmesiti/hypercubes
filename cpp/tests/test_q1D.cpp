@@ -16,6 +16,17 @@ template <class Q1Dtype> struct Q1DFixture {
                        4 /*nparts*/){};
 };
 
+// DEBUG
+template <class Q1Dtype> struct Q1DFixture11 {
+
+  Q1Dtype partitioning1D;
+  Q1DFixture11()
+      : partitioning1D(SizeParity{11, Parity::EVEN}, /* sp */
+                       0,                            /*dimension*/
+                       "test1D",                     /*name*/
+                       2 /*nparts*/){};
+};
+
 /* Testing all non-virtual public methods in Partitioning1D
  * */
 BOOST_AUTO_TEST_SUITE(test_Q1D)
@@ -38,6 +49,14 @@ BOOST_FIXTURE_TEST_CASE(test_coord_to_idxs_open, Q1DFixture<Q1DOpen>) {
 
   auto idxs = partitioning1D.coord_to_idxs(5);
   decltype(idxs) expected_idxs{{0, 5, false}, {1, 5 - 11, true}};
+  BOOST_TEST(expected_idxs == idxs);
+}
+
+// DEBUG
+BOOST_FIXTURE_TEST_CASE(test_coord_to_idxs_open5of11, Q1DFixture11<Q1DOpen>) {
+
+  auto idxs = partitioning1D.coord_to_idxs(5);
+  decltype(idxs) expected_idxs{{0, 5, false}, {1, 5 - 6, true}};
   BOOST_TEST(expected_idxs == idxs);
 }
 

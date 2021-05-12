@@ -3,6 +3,7 @@
 #include "partition_tree_allocations.hpp"
 #include "size_tree_iterator.hpp"
 #include "test_utils.hpp"
+#include "utils.hpp"
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow;
@@ -20,9 +21,21 @@ struct SimpleSizeTree {
 
 BOOST_AUTO_TEST_SUITE(test_size_tree_iterator)
 
-BOOST_FIXTURE_TEST_CASE(test_iterate_simple, SimpleSizeTree) {
+BOOST_FIXTURE_TEST_CASE(test_iterate_simple1, SimpleSizeTree) {
 
   Indices idx{0, 0, 0}, idxp{0, 0, 1};
+
+  BOOST_TEST(next(tree, idx) == idxp);
+}
+BOOST_FIXTURE_TEST_CASE(test_iterate_simple2, SimpleSizeTree) {
+
+  Indices idx{0, 0, 7}, idxp{0, 1, 0};
+
+  BOOST_TEST(next(tree, idx) == idxp);
+}
+BOOST_FIXTURE_TEST_CASE(test_iterate_simple3, SimpleSizeTree) {
+
+  Indices idx{0, 1, 7}, idxp{1, 0, 0};
 
   BOOST_TEST(next(tree, idx) == idxp);
 }
@@ -36,7 +49,7 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
       vector<int> out;
       while (i < _border_sites.size()) {
         out.push_back(_border_sites[i]);
-        i += (step % 2 == 0) ? -1 : 3;
+        i += (step % 2 == 0) ? 3 : -1;
         ++step;
       }
       return out;
@@ -59,18 +72,19 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
     return res;
   }();
 
-  int i = 0;
-  while (i + 1 < haloonly1D.size()) {
+  int isite = 0;
+  auto size_tree = get_size_tree(t, [&](Indices idx) -> BoolM {
+    return no_bulk_borders(partitioners, idx);
+  });
+  while (isite + 1 < haloonly1D.size()) {
     int i, ip;
     Indices idx, idxp;
-    std::tie(i, idx) = haloonly1D[i];
-    std::tie(ip, idxp) = haloonly1D[i + 1];
+    std::tie(i, idx) = haloonly1D[isite];
+    std::tie(ip, idxp) = haloonly1D[isite + 1];
 
-    auto size_tree = get_size_tree(t, [&](Indices idx) -> BoolM {
-      return no_bulk_borders(partitioners, idx);
-    });
-    BOOST_TEST(size_tree->n.first == 15);
+    BOOST_TEST(size_tree->n.first == 16);
     BOOST_TEST(next(size_tree, idx) == idxp);
+    ++isite;
   };
 }
 
