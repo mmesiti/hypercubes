@@ -2,6 +2,7 @@
 #include "eo.hpp"
 #include "partitioning.hpp"
 #include "tuple_printer.hpp"
+#include "utils.hpp"
 #include <set>
 #include <stdexcept>
 
@@ -57,9 +58,10 @@ Coordinates EO::idx_to_coords(int idx, const Coordinates &offset) const {
     int op = static_cast<int>(origin_parity);
     Parity parity = static_cast<Parity>((idx + op) % 2);
     int idxh = offset[cbflags.size()];
-    vector<int> sizes(dimensionality());
-    std::transform(spd.begin(), spd.end(), sizes.begin(),
-                   [](auto sp_) { return sp_.size; });
+    vector<int> sizes = vtransform(spd,           //
+                                   [](auto sp_) { //
+                                     return sp_.size;
+                                   });
     sub_res = eo::lexeo_idx_to_coord(parity, idxh, cbsizes);
   }
   {
@@ -100,17 +102,15 @@ SizeParitiesD EO::sub_sizeparity_info_list() const {
   else
     class_sizes = vector<int>{even_sites, odd_sites};
 
-  SizeParitiesD res;
-  std::transform(class_sizes.begin(), class_sizes.end(),
-                 std::back_inserter(res), [this](int s) {
-                   SizeParityD new_sp = spd;
-                   for (int i = 0; i < cbflags.size(); ++i)
-                     if (cbflags[i])
-                       new_sp[i] = SizeParity{1, Parity::NONE};
-                   new_sp.push_back(SizeParity{s, Parity::NONE});
-                   return new_sp;
-                 });
-  return res;
+  return vtransform(class_sizes, //
+                    [this](int s) {
+                      SizeParityD new_sp = spd;
+                      for (int i = 0; i < cbflags.size(); ++i)
+                        if (cbflags[i])
+                          new_sp[i] = SizeParity{1, Parity::NONE};
+                      new_sp.push_back(SizeParity{s, Parity::NONE});
+                      return new_sp;
+                    });
 }
 std::string EO::get_name() const { return name; }
 std::string EO::comments() const { return tuple_to_str(key()); }

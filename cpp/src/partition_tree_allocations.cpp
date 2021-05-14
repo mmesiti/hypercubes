@@ -13,22 +13,17 @@ TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
   return get_size_tree(t, binarified_predicate);
 }
 
-TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
-                                         std::function<bool(Indices)> predicate)
-
-{
+TreeP<std::pair<int, int>>
+get_size_tree(const PartitionTree &t, std::function<bool(Indices)> predicate) {
 
   using ResType = TreeP<std::pair<int, int>>;
 
-  using F = std::function<ResType(const PartitionTree &, //
-                                  const Indices &)>;
-
   auto getsize = [](ResType t) { return t->n.first; };
 
-  F _get_size_tree = [&predicate,      //
-                      &_get_size_tree, //
-                      &getsize](const PartitionTree &pct,
-                                const Indices &top_idxs) -> ResType {
+  auto _get_size_tree = [&predicate, //
+                         &getsize](const PartitionTree &pct,
+                                   const Indices &top_idxs,
+                                   auto &f) -> ResType {
     auto partition_class = pct->n;
     auto children = pct->children;
     vector<ResType> children_results;
@@ -40,7 +35,7 @@ TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
         Indices predicate_idxs = tail(new_idxs);
         new_idxs.push_back(idx);
         if (predicate(predicate_idxs)) {
-          ResType r = _get_size_tree(new_pc, new_idxs);
+          ResType r = f(new_pc, new_idxs, f);
           if (getsize(r) != 0)
             children_results.push_back(r);
         }
@@ -55,8 +50,9 @@ TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
     return mt(subn, children_results);
   };
 
-  return _get_size_tree(t, {0});
+  return _get_size_tree(t, {0}, _get_size_tree);
 }
+
 TreeP<std::pair<int, int>>
 get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {
   using SizeTree = TreeP<std::pair<int, int>>;

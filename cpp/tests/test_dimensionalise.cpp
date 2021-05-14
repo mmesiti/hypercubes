@@ -5,6 +5,7 @@
 #include "1D/plain1D.hpp"
 #include "1D/q1D.hpp"
 #include "dimensionalise.hpp"
+#include "utils.hpp"
 
 using namespace hypercubes::slow;
 namespace bdata = boost::unit_test::data;
@@ -159,10 +160,10 @@ template <class P1D>
 auto test_sub_sizeparity_info_list_helper(Dimensionalise<P1D> p, P1D p1D) {
   SizeParitiesD spss = p.sub_sizeparity_info_list();
   SizeParities sp1D = p1D.sub_sizeparity_info_list();
-  SizeParities sp;
-
-  std::transform(spss.begin(), spss.end(), std::back_inserter(sp),
-                 [&](vector<SizeParity> sps) { return sps[p.dimension]; });
+  SizeParities sp = vtransform(spss,                         //
+                               [&](vector<SizeParity> sps) { //
+                                 return sps[p.dimension];
+                               });
   BOOST_TEST(sp == sp1D);
 };
 
@@ -245,9 +246,9 @@ auto test_coord_to_idx_helper = [](auto partitioning, auto partitioning1D,
   Coordinates ij{i, j};
   vector<IndexResultD> r = partitioning.coord_to_idxs(ij);
   vector<IndexResult> r1D_ = partitioning1D.coord_to_idxs(j);
-  decltype(r1D_) r1D;
-  std::transform(r.begin(), r.end(), std::back_inserter(r1D),
-                 [&partitioning](IndexResultD ir) {
+  decltype(r1D_) r1D =
+      vtransform(r,                                 //
+                 [&partitioning](IndexResultD ir) { //
                    return IndexResult{ir.idx, ir.rest[partitioning.dimension],
                                       ir.cached_flag};
                  });

@@ -62,7 +62,8 @@ template <class Node> struct less {
   }
 };
 
-template <class Node> TreeP<Node> mt(Node n, vector<TreeP<Node>> v) {
+template <class Node>
+TreeP<Node> mt(const Node n, const vector<TreeP<Node>> v) {
   return std::make_shared<Tree<Node>>(std::move(Tree<Node>{n, v}));
 }
 
@@ -87,7 +88,8 @@ template <class Node> std::string tree_str(const Tree<Node> &tree) {
  * Get the full paths from the root
  *to every leaf of the tree, as a list
  **/
-template <class Node> vector<vector<Node>> get_all_paths(TreeP<Node> tree) {
+template <class Node>
+vector<vector<Node>> get_all_paths(const TreeP<Node> &tree) {
   using ResType = vector<vector<Node>>;
   ResType res;
   if (tree->children.size() != 0)
@@ -110,7 +112,8 @@ template <class Node> vector<vector<Node>> get_all_paths(TreeP<Node> tree) {
  * */
 
 template <class Node>
-vector<TreeP<Node>> get_flat_list_of_subtrees(TreeP<Node> tree, int level) {
+vector<TreeP<Node>> get_flat_list_of_subtrees(const TreeP<Node> &tree,
+                                              int level) {
 
   using ResType = vector<TreeP<Node>>;
   ResType res;
@@ -127,7 +130,7 @@ vector<TreeP<Node>> get_flat_list_of_subtrees(TreeP<Node> tree, int level) {
   return res;
 }
 
-template <class Node> int get_max_depth(TreeP<Node> tree) {
+template <class Node> int get_max_depth(const TreeP<Node> &tree) {
   if (tree->children.size() == 0)
     return 1;
   else {
@@ -141,7 +144,9 @@ template <class Node> int get_max_depth(TreeP<Node> tree) {
   }
 }
 
-template <class Node> TreeP<Node> truncate_tree(TreeP<Node> tree, int level) {
+// TODO: Consider memoization.
+template <class Node>
+TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level) {
   if (level > 0) {
     auto children = vtransform(tree->children,                       //
                                [level](TreeP<Node> c) {              //
@@ -154,7 +159,7 @@ template <class Node> TreeP<Node> truncate_tree(TreeP<Node> tree, int level) {
   }
 }
 
-template <class Node> vector<Node> get_leaves_list(TreeP<Node> tree) {
+template <class Node> vector<Node> get_leaves_list(const TreeP<Node> &tree) {
   vector<Node> res;
   if (tree->children.size() == 0)
     res.push_back(tree->n);
@@ -169,7 +174,8 @@ template <class Node> vector<Node> get_leaves_list(TreeP<Node> tree) {
 }
 
 template <class Node, class... Nodes>
-TreeP<std::tuple<Node, Nodes...>> ziptree(TreeP<Node> t, TreeP<Nodes>... ts) {
+TreeP<std::tuple<Node, Nodes...>> ziptree(const TreeP<Node> &t,
+                                          const TreeP<Nodes> &...ts) {
   using ResType = TreeP<std::tuple<Node, Nodes...>>;
   auto n = std::make_tuple(t->n, ts->n...);
   vector<ResType> children;
@@ -178,6 +184,7 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(TreeP<Node> t, TreeP<Nodes>... ts) {
   return mt(n, children);
 }
 
+// TODO: consider memoization.
 template <class Node, class NewNode>
 TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
   // NOTE: here resmap could be passed between calls.
@@ -193,8 +200,9 @@ TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
   return mt(f(t->n), children);
 }
 
+// TODO: consider memoization.
 template <class Node>
-TreeP<Node> collapse_level(TreeP<Node> tree, int level_to_collapse,
+TreeP<Node> collapse_level(const TreeP<Node> &tree, int level_to_collapse,
                            int child_to_replace) {
 
   if (level_to_collapse == 0)
@@ -202,7 +210,7 @@ TreeP<Node> collapse_level(TreeP<Node> tree, int level_to_collapse,
   else {
     vector<TreeP<Node>> children = vtransform(
         tree->children, //
-        [level_to_collapse, child_to_replace](TreeP<Node> c) {
+        [level_to_collapse, child_to_replace](const TreeP<Node> &c) {
           return collapse_level(c, level_to_collapse - 1, child_to_replace);
         });
     return mt(tree->n, children);
@@ -210,7 +218,7 @@ TreeP<Node> collapse_level(TreeP<Node> tree, int level_to_collapse,
 }
 
 template <class Node>
-TreeP<Node> bring_level_on_top(TreeP<Node> tree, int level) {
+TreeP<Node> bring_level_on_top(const TreeP<Node> &tree, int level) {
 
   using TreeP = TreeP<Node>;
   int nchildren = [&tree, level]() {
@@ -243,7 +251,8 @@ TreeP<Node> bring_level_on_top(TreeP<Node> tree, int level) {
 }
 
 template <class Node>
-TreeP<Node> swap_levels(TreeP<Node> tree, vector<int> new_level_ordering) {
+TreeP<Node> swap_levels(const TreeP<Node> &tree,
+                        const vector<int> &new_level_ordering) {
 
   if (new_level_ordering.size() == 0)
     return tree;
@@ -251,7 +260,7 @@ TreeP<Node> swap_levels(TreeP<Node> tree, vector<int> new_level_ordering) {
   int next_level = new_level_ordering[0];
   TreeP<Node> new_tree = bring_level_on_top(tree, next_level);
 
-  vector<int> sub_new_level_ordering = [](vector<int> level_ordering) {
+  vector<int> sub_new_level_ordering = [](const vector<int> &level_ordering) {
     vector<int> res;
     int lvl_removed = level_ordering[0];
     for (int i = 1; i < level_ordering.size(); ++i) {
@@ -266,13 +275,12 @@ TreeP<Node> swap_levels(TreeP<Node> tree, vector<int> new_level_ordering) {
 
   vector<TreeP<Node>> new_children =
       vtransform(new_tree->children, //
-                 [&sub_new_level_ordering](TreeP<Node> c) {
+                 [&sub_new_level_ordering](const TreeP<Node> &c) {
                    return swap_levels(c, sub_new_level_ordering);
                  });
   return mt(new_tree->n, new_children);
 }
-
-template <class Node> vector<Node> first_nodes_list(TreeP<Node> tree) {
+template <class Node> vector<Node> first_nodes_list(const TreeP<Node> &tree) {
 
   vector<Node> res;
   auto _first_nodes_list = [](const TreeP<Node> subtree, vector<Node> &r,
@@ -286,10 +294,11 @@ template <class Node> vector<Node> first_nodes_list(TreeP<Node> tree) {
   return res;
 }
 
-template <class Node> vector<Node> depth_first_flatten(TreeP<Node> tree) {
+template <class Node>
+vector<Node> depth_first_flatten(const TreeP<Node> &tree) {
 
   vector<Node> res;
-  auto _depth_first_flatten = [](const TreeP<Node> subtree, vector<Node> &r,
+  auto _depth_first_flatten = [](const TreeP<Node> &subtree, vector<Node> &r,
                                  auto &f) -> void {
     r.push_back(subtree->n);
     for (const auto &c : subtree->children)

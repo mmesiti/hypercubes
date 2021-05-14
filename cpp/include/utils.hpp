@@ -11,8 +11,20 @@ template <class Container> Container tail(const Container &idxs) {
   return new_idxs;
 }
 
+template <class I> std::vector<I> append(std::vector<I> idxs, I idx) {
+  idxs.push_back(idx);
+  return idxs;
+}
+
+template <class I> std::vector<I> append(I idx, std::vector<I> idxs) {
+  std::vector<I> res{idx};
+  std::copy(idxs.begin(), idxs.end(), std::back_inserter(res));
+  return res;
+}
+
 template <class In, class F> auto vtransform(std::vector<In> in, F func) {
   std::vector<decltype(func(in[0]))> out;
+  out.reserve(in.size());
   std::transform(in.begin(), in.end(), std::back_inserter(out), func);
   return out;
 }

@@ -19,9 +19,9 @@ public:
   PartitionTree operator()(SizeParityD sp, //
                            const PartList &partitioners);
 };
-std::string partition_class_tree_to_str(const PartitionTree &t,    //
-                                        const std::string &prefix, //
-                                        int max_level);
+std::string tree_class_repr(const PartitionTree &t,    //
+                            const std::string &prefix, //
+                            int max_level);
 
 TreeP<int> get_indices_tree(const PartitionTree &t, //
                             const Coordinates &xs);

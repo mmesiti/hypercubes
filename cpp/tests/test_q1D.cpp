@@ -123,9 +123,9 @@ BOOST_DATA_TEST_CASE_F(Q1DFixture<Q1DPeriodic>, test_idx_to_coord_real_periodic,
 }
 auto test_idx_to_coord_any_helper = [](auto partitioning1D, int i) {
   auto idxs = partitioning1D.coord_to_idxs(i);
-  std::vector<int> new_is;
-  std::transform(idxs.begin(), idxs.end(), std::back_inserter(new_is),
-                 [&](auto i) {
+  auto corrected_idxs_in_range =
+      vtransform(idxs,         //
+                 [&](auto i) { //
                    int r = partitioning1D.idx_to_coord(i.idx, i.rest);
                    while (r < 0)
                      r += 42;
@@ -133,7 +133,7 @@ auto test_idx_to_coord_any_helper = [](auto partitioning1D, int i) {
                      r -= 42;
                    return r;
                  });
-  return new_is;
+  return corrected_idxs_in_range;
 };
 
 BOOST_DATA_TEST_CASE_F(Q1DFixture<Q1DOpen>, test_idx_to_coord_any_open,

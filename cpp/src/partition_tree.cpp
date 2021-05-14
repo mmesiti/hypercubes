@@ -30,41 +30,41 @@ PartitionTree PTBuilder::operator()(SizeParityD sp, //
   return pct_cache[args];
 }
 
-/**
- * Find first child that represent each class
- * in the children vector.
- * */
-vector<int> get_first_class_indices(const PartitionTree &t) {
-  int nclasses = t->n->sub_sizeparity_info_list().size();
-  vector<int> first_class_indices(nclasses);
-  std::fill(first_class_indices.begin(), //
-            first_class_indices.end(),   //
-            -1);
-  for (int idx = 0; idx < t->n->max_idx_value(); ++idx) {
-    int class_idx = t->n->idx_to_child_kind(idx);
-    if (first_class_indices[class_idx] == -1)
-      first_class_indices[class_idx] = idx;
-  }
-  return first_class_indices;
-}
-
-std::string partition_class_tree_to_str(const PartitionTree &t,
-                                        const std::string &prefix,
-                                        int max_level) {
+std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
+                            int max_level) {
 
   std::string new_prefix = prefix + "   ";
   vector<std::string> children_results;
+
+  /**
+   * Find first child that represent each class
+   * in the children vector.
+   * */
+  auto get_first_class_indices = [](const PartitionTree &t) {
+    int nclasses = t->n->sub_sizeparity_info_list().size();
+    vector<int> first_class_indices(nclasses);
+    std::fill(first_class_indices.begin(), //
+              first_class_indices.end(),   //
+              -1);
+    for (int idx = 0; idx < t->n->max_idx_value(); ++idx) {
+      int class_idx = t->n->idx_to_child_kind(idx);
+      if (first_class_indices[class_idx] == -1)
+        first_class_indices[class_idx] = idx;
+    }
+    return first_class_indices;
+  };
+
   vector<int> first_class_indices = get_first_class_indices(t);
   if (t->children.size() != 0) {
     for (int i = 0; i < first_class_indices.size() - 1; ++i)
       children_results.push_back(
-          partition_class_tree_to_str(t->children[first_class_indices[i]], //
-                                      new_prefix + "|",                    //
-                                      max_level - 1));
-    children_results.push_back(partition_class_tree_to_str(
-        t->children[*first_class_indices.rbegin()], //
-        new_prefix + " ",                           //
-        max_level - 1));
+          tree_class_repr(t->children[first_class_indices[i]], //
+                          new_prefix + "|",                    //
+                          max_level - 1));
+    children_results.push_back(
+        tree_class_repr(t->children[*first_class_indices.rbegin()], //
+                        new_prefix + " ",                           //
+                        max_level - 1));
   }
   if (max_level == 0)
     return "";
@@ -95,28 +95,23 @@ TreeP<int> get_indices_tree(const PartitionTree &t, const Coordinates &xs) {
 TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
                                                 const Coordinates &xs) {
 
-  using F = std::function<TreeP<GhostResult>(int,           //
-                                             bool,          //
-                                             PartitionTree, //
-                                             Coordinates,   //
-                                             std::string)>;
-
-  F _get_idtree_wghosts = [&_get_idtree_wghosts](int idx,                //
-                                                 bool cached_flag,       //
-                                                 const PartitionTree &t, //
-                                                 const Coordinates &xs,  //
-                                                 const std::string &name) {
+  auto _get_idtree_wghosts = [](int idx,                 //
+                                bool cached_flag,        //
+                                const PartitionTree &t,  //
+                                const Coordinates &xs,   //
+                                const std::string &name, //
+                                auto &f) -> TreeP<GhostResult> {
     auto partition_class = t->n;
     vector<IndexResultD> idrs = partition_class->coord_to_idxs(xs);
     vector<TreeP<GhostResult>> children_results;
     for (IndexResultD idr : idrs) {
       if (t->children.size() != 0) {
-        children_results.push_back(
-            _get_idtree_wghosts(idr.idx,              //
-                                idr.cached_flag,      //
-                                t->children[idr.idx], //
-                                idr.rest,             //
-                                partition_class->get_name()));
+        children_results.push_back(f(idr.idx,                     //
+                                     idr.cached_flag,             //
+                                     t->children[idr.idx],        //
+                                     idr.rest,                    //
+                                     partition_class->get_name(), //
+                                     f));
       } else {
         GhostResult gc{idr.idx, idr.cached_flag, partition_class->get_name()};
         children_results.push_back(mt(gc, {}));
@@ -126,7 +121,7 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
     return mt(g, children_results);
   };
 
-  return _get_idtree_wghosts(0, false, t, xs, "ROOT");
+  return _get_idtree_wghosts(0, false, t, xs, "ROOT", _get_idtree_wghosts);
 }
 
 vector<std::tuple<int, Indices>>

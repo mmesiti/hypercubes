@@ -1,48 +1,31 @@
 #include "size_tree_iterator.hpp"
+#include "utils.hpp"
 #include <cassert>
 
 namespace hypercubes {
 
 namespace slow {
 
-Indices tail(Indices idx) {
-  Indices res;
-  std::copy(idx.begin() + 1, idx.end(), std::back_inserter(res));
-  return res;
-}
-Indices append(int x, Indices idx) {
-  Indices res{x};
-  std::copy(idx.begin(), idx.end(), std::back_inserter(res));
-  return res;
-}
 using SizeTree = TreeP<std::pair<int, int>>;
-
-static Indices _get_start_idxs(SizeTree subtree) {
-  auto children = subtree->children;
-  if (children.size() == 0)
-    return Indices{0};
-  else {
-    Indices res{children[0]->n.second};
-    for (auto c : _get_start_idxs(children[0]))
-      res.push_back(c);
-    return res;
-  }
-}
 
 Indices next(const SizeTree &size_tree, const Indices &idxs) {
 
   // function to retrieve idx
   // subtree->n.second;
+  auto _get_start_idxs = [](SizeTree subtree) {
+    return append(vtransform(tail(first_nodes_list(subtree)),
+                             [](auto c) { return c.second; }),
+                  0);
+  };
 
   int s = size_tree->n.first;
   int idx = size_tree->n.second;
   int nidx = idxs[0];
   auto children = size_tree->children;
-  vector<int> idx_children;
-  std::transform(children.begin(),                 //
-                 children.end(),                   //
-                 std::back_inserter(idx_children), //
-                 [](auto c) { return c->n.second; });
+  vector<int> idx_children = vtransform(children,    //
+                                        [](auto c) { //
+                                          return c->n.second;
+                                        });
 
   if (children.size() == 0) {
     // leaf case.
@@ -66,6 +49,10 @@ Indices next(const SizeTree &size_tree, const Indices &idxs) {
         return Indices{};
       else {
         new_sub_idxs = _get_start_idxs(children[i + 1]);
+        // new_sub_idxs =
+        //    append(vtransform(tail(first_nodes_list(children[i + 1])),
+        //                      [](auto c) { return c.second; }),
+        //           0);
         return append(idx_children[i + 1], new_sub_idxs);
       }
     } else

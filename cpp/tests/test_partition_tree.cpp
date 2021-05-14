@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
   PTBuilder treeBuilder;
   PartitionTree t = treeBuilder(sp, ps);
 
-  std::string repr = partition_class_tree_to_str(t, "", 5);
+  std::string repr = tree_class_repr(t, "", 5);
 
   std::string comments0;
   vector<std::string> comments1;

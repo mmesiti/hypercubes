@@ -2,6 +2,7 @@
 #define __DIMENSIONALISE_H_
 #include "geometry.hpp"
 #include "partitioning.hpp"
+#include "utils.hpp"
 #include <algorithm>
 
 namespace hypercubes {
@@ -21,11 +22,9 @@ public:
                     offsets);                                 //
   }
   SizeParitiesD sub_sizeparity_info_list() const {
-    SizeParitiesD res;
     auto res1D = wrapped.sub_sizeparity_info_list();
-    std::transform(res1D.begin(), res1D.end(), std::back_inserter(res),
-                   [this](SizeParity sp) { return merge_in(sp, spd); });
-    return res;
+    return vtransform(res1D,
+                      [this](SizeParity sp) { return merge_in(sp, spd); });
   };
   int idx_to_child_kind(int idx) const {
     return wrapped.idx_to_child_kind(idx);
@@ -35,15 +34,14 @@ public:
   std::string comments() const { return wrapped.comments(); };
 
   vector<IndexResultD> coord_to_idxs(const Coordinates &coord) const {
-    vector<IndexResultD> res;
     vector<IndexResult> res1D = wrapped.coord_to_idxs(coord[dimension]);
 
-    std::transform(res1D.begin(), res1D.end(), std::back_inserter(res),
-                   [this, &coord](IndexResult r1D) {
-                     return IndexResultD{r1D.idx, merge_in(r1D.rest, coord),
-                                         r1D.cached_flag};
-                   });
-    return res;
+    return vtransform(res1D, //
+                      [this, &coord](IndexResult r1D) {
+                        return IndexResultD{r1D.idx,                   //
+                                            merge_in(r1D.rest, coord), //
+                                            r1D.cached_flag};
+                      });
   };
 
   const int dimension;

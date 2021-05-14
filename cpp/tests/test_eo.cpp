@@ -3,6 +3,7 @@
 
 #include "eo.hpp"
 #include "test_utils.hpp"
+#include "utils.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
@@ -59,11 +60,10 @@ BOOST_DATA_TEST_CASE(test_eo_idx_conversion_pair2,
                      count) {
   // coords -> eo/idxh -> coords
   const auto cumsizes = eo::get_cumsizes(sizes);
-  std::vector<int> coords;
-  std::transform(sizes.begin(),              //
-                 sizes.end(),                //
-                 std::back_inserter(coords), //
-                 [](int s) { return std::rand() % s; });
+  std::vector<int> coords = vtransform(sizes,      //
+                                       [](int s) { //
+                                         return std::rand() % s;
+                                       });
 
   Parity eoflag;
   int idxh;
