@@ -7,11 +7,17 @@
 
 namespace hypercubes {
 namespace slow {
-TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
-                                         PartitionPredicate p);
+/// A <n_alloc_children, idx in full tree> conditionally-allocated tree
+TreeP<std::pair<int, int>>
+get_nchildren_alloc_tree(const PartitionTree &t,
+                         std::function<bool(Indices)> p);
+TreeP<std::pair<int, int>>
+get_nchildren_alloc_tree(const PartitionTree &t, PartitionPredicate predicate);
 
-TreeP<std::pair<int, int>> get_size_tree(const PartitionTree &t,
-                                         std::function<bool(Indices)> p);
+/// A <tot alloc size of subtree, idx in full tree> conditionally-allocated tree
+TreeP<std::pair<int, int>>
+get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree);
+
 TreeP<std::pair<int, int>>
 get_offset_tree(const TreeP<std::pair<int, int>> &size_tree);
 

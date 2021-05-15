@@ -41,15 +41,11 @@ At the moment there is no way
 to distinguish between the two.
 There might not be need
 to distinguish between the two at all.
-I may add an ~Indices~ type alias
+I have added an ~Indices~ type alias
 as for ~Coordinates~ to make things clearer to the reader.
 
 * Differences with the Python versions
 ** General remarks
-I tried to create a zip function
-but it is either too complicated
-or beyond my c++ skills,
-so I refrained from it.
 The C++ code will be, in detail, more imperative
 than the python one
 because of the lack of list comprehensions
@@ -58,7 +54,6 @@ but it's still early).
 ** Q1D
 The Q1D partitioner has been split into
 a ~periodic~ and an ~open~ class.
-
 
 * ~None~'s in ~C++~
 A way to represent missing values in ~C++~

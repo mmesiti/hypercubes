@@ -73,9 +73,12 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
   }();
 
   int isite = 0;
-  auto size_tree = get_size_tree(t, [&](Indices idx) -> BoolM {
-    return no_bulk_borders(partitioners, idx);
-  });
+
+  auto size_tree = get_size_tree(
+      get_nchildren_alloc_tree(t, //
+                               [&](Indices idx) -> BoolM {
+                                 return no_bulk_borders(partitioners, idx);
+                               }));
   while (isite + 1 < haloonly1D.size()) {
     int i, ip;
     Indices idx, idxp;
