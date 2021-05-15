@@ -1,4 +1,9 @@
-#+TITLE: Readme
+#+TITLE: Legacy branch
+
+*The code on this branch is not developed.
+This branch is kept only
+to keep old work easily accessible
+but out of the way.*
 
 A number of tools and functions
 to do hierarchical domain decomposition
