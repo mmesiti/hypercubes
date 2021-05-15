@@ -16,9 +16,13 @@ especially if not filtered.
 The number of partition classes can be several order of magnitude smaller,
 especially for lattices that can be split in a very symmetric way.
 
-* Partitioners
+* Geometric Partitioners
 There are partitioners that are intrinsically mono-dimensional,
-i.e., they can work only in 1D.
+i.e., they can work only in 1D,
+and partitioners that need
+to work on multiple dimensions
+at the same time.
+An extensible library of partitioners is provided.
 ** 1-Dimensional partitioners
 A small number of 1D partitioners is provided.
 A base class - ~Partitioner1D~ is provided.
@@ -43,6 +47,11 @@ ceiling(size/nparts)*(nparts-1) < size
 #+end_src
 otherwise it will not be geometrically possible
 to produce the partitions.
+
+The ~Q~ partitioner exists in two flavours,
+~QPeriodic~ and ~QOpen~,
+which differ in the way the "ghost" sites are looked up.
+
 *** HBB - Halo, Border, Bulk
 This partitioner splits a 1-D partition into
 3 partitions - the start, the middle, and the end.
@@ -51,9 +60,15 @@ In addition to these 3 partitions,
 two other "halo" partitions are added.
 
 The ~HBB~ partitioner can return 1,2 or 3 partition classes.
-*** Leaf
-This assumes no *geometrical* partitioning is going to happen.
-This partitioner returns a single partition class.
+It has a number of children always equal to 5
+(the halo in the negative direction,
+the border in the negative direction,
+the bulk,
+the border in the positive direction
+and the halo in the positive direction).
+*** Plain
+This assumes no *geometrical* sub-partitioning is going to happen.
+It has a number of children equal to its extent.
 ** Dimensionalised Partitioners
 A 1-D partitioner can be "Dimensionalised"
 (i.e., be made able to accept n-dimensional lattice partitions)
@@ -66,14 +81,14 @@ Notice that out of n dimensions
 only a subset could be involved in the "checkerboarding",
 as for example not all the dimensions of the lattice
 may represent physical directions.
-The ~EO~ partitioner takes as input a n-dimensional partition
-and returns up to 2 n+1-dimensional partition classes,
+The ~EO~ partitioner takes as input a ~n~-dimensional partition
+and returns up to 2 ~n+1~-dimensional partition classes,
 where the checkerboarded dimensions are collapsed to size 1.
 The extent of the new partitions (classes) in the additional dimension
 is equal to the amount of even or odd sites.
 
 
-* Trees
+* Types of Trees
 At each step in the partitioning process,
 a partition class is divided into
 1 or more partition classes,
@@ -84,3 +99,79 @@ e.g.,:
 #+begin_src
 template <typename Node> using Tree = std::tuple<Node,std::vector<std::shared_ptr<Node>>>
 #+end_src
+** Partition Tree
+Each ~N~-dimensional portion of the lattice
+that is produced during the partition process
+will have a number of children
+equal to the number of geometric partitions
+(see [[*Geometric Partitioners]]).
+The Tree will have as many levels as partitioners,
+plus one level for the leaves.
+
+The children will be split in a number of partition classes.
+All the children in a partition class
+are represented by a pointer to the same object.
+** Partition class tree.
+An alternative representation of partition trees
+is possible, but not necessary since we can alias the nodes
+as described in [[*Partition Trees]].
+** ~nalloc_children_tree~
+A tree that contains,
+in each node,
+the number of allocated children.
+(see [[*Partition Predicate]]).
+Produced out of a [[*Partition Trees]]
+and a partition predicate.
+** Size tree
+A tree that contains,
+in each node,
+the allocated size
+of the relative subtree.
+Produced from a [[*~nalloc_children_tree~]].
+** Offset tree
+A tree that contains,
+in each node,
+the distance from the start of the allocation
+where the content of the relative subtree starts.
+Produced from a [[*Size tree]].
+
+* Tree level swap
+In order to descibe Grid like setups
+with virtual nodes,
+the levels in the tree must be swappable.
+This can be done on a [[*~nalloc_children_tree~]].
+(~WIP~).
+
+* Partition Predicate
+Out of a ful [[*Partition Tree]]
+one usually wants to allocate
+only a part of it.
+In particular,
+in most cases one does not need
+all the ~5^D~ partitions
+that come from
+a multi-dimensional group
+of [[*HBB]] partitioners.
+A numer of partitioners are implemented.
+A partitioner is a function
+that takes an ~Indices~ object
+and returns a ~BoolM~ object,
+where ~BoolM~ is a logic type
+that contains also a "maybe" value,
+for ternary logic.
+Partitioners can be combined
+to express any choice of partitions.
+The reason why ternary logic is needed
+is that **the partition predicates
+need to be written in a way
+so that they can work on indices
+that are shorter than needed**.
+In such cases, the partition predicates
+must return a "maybe" value.
+Eventually, when deciding
+whether or not a partition
+needs to be allocated,
+then the "maybe" value
+must be cast to a boolean,
+usually ~true~
+for the benefit of the doubt.
