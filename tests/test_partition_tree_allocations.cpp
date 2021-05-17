@@ -22,7 +22,8 @@ struct Simple1D {
   Simple1D()
       : tree_builder(),                                                      //
         partitioners{QPeriodic("MPI1", 0, 2),                                //
-                     Plain("Plain1", 0)},                                    //
+                     Plain("Plain1", 0),                                     //
+                     partitioners::Site()},                                  //
         spd{{32, Parity::EVEN}},                                             //
         t(tree_builder(spd, partitioners)),                                  //
         max_idx_tree(get_nchildren_alloc_tree(t,                             //
@@ -41,10 +42,13 @@ struct LessSimple1D {
   TreeP<std::pair<int, int>> sizetree;
 
   LessSimple1D()
-      : tree_builder(),                                                      //
-        partitioners{QPeriodic("MPI1", 0, 2),                                //
-                     QOpen("Vector1", 0, 2),                                 //
-                     Plain("Plain1", 0)},                                    //
+      : tree_builder(), //
+        partitioners{
+            QPeriodic("MPI1", 0, 2), //
+            QOpen("Vector1", 0, 2),  //
+            Plain("Plain1", 0),      //
+            partitioners::Site(),
+        },                                                                   //
         spd{{32, Parity::EVEN}},                                             //
         t(tree_builder(spd, partitioners)),                                  //
         max_idx_tree(get_nchildren_alloc_tree(t,                             //
@@ -61,7 +65,8 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_maxidx, Simple1D) {
 
   decltype(max_idx_tree) exptree = mt(mp(2, 0), {mt(mp(16, 0), {}), //
                                                  mt(mp(16, 1), {})});
-  BOOST_TEST(*max_idx_tree == *exptree);
+  int site_level = 1;
+  BOOST_TEST(*truncate_tree(max_idx_tree, site_level) == *exptree);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_size, Simple1D) {
@@ -70,7 +75,8 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_size, Simple1D) {
 
   decltype(sizetree) exptree = mt(mp(32, 0), {mt(mp(16, 0), {}), //
                                               mt(mp(16, 1), {})});
-  BOOST_TEST(*sizetree == *exptree);
+  int site_level = 1;
+  BOOST_TEST(*truncate_tree(sizetree, site_level) == *exptree);
 }
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_maxidx, LessSimple1D) {
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
@@ -80,7 +86,8 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_maxidx, LessSimple1D) {
                                   mt(mp(8, 1), {})}), //
                     mt(mp(2, 1), {mt(mp(8, 0), {}),   //
                                   mt(mp(8, 1), {})})});
-  BOOST_TEST(*max_idx_tree == *exptree);
+  int site_level = 2;
+  BOOST_TEST(*truncate_tree(max_idx_tree, site_level) == *exptree);
 }
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_size, LessSimple1D) {
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
@@ -90,7 +97,8 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_size, LessSimple1D) {
                                     mt(mp(8, 1), {})}), //
                      mt(mp(16, 1), {mt(mp(8, 0), {}),   //
                                     mt(mp(8, 1), {})})});
-  BOOST_TEST(*sizetree == *exptree);
+  int site_level = 2;
+  BOOST_TEST(*truncate_tree(sizetree, site_level) == *exptree);
 }
 BOOST_AUTO_TEST_CASE(test_all_allocated) {
   PTBuilder tree_builder;
@@ -99,7 +107,8 @@ BOOST_AUTO_TEST_CASE(test_all_allocated) {
                         HBB("HalosX", 0, 1),            //
                         partitioners::EO("EO", {true}), //
                         Plain("PlainExtra", 1),         //
-                        Plain("PlainX", 0)};
+                        Plain("PlainX", 0),             //
+                        partitioners::Site()};
   SizeParityD spd{{42, Parity::EVEN}};
   PartitionTree t = tree_builder(spd, partitioners);
 
@@ -117,7 +126,8 @@ BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
                         HBB("HalosX", 0, 1),            //
                         partitioners::EO("EO", {true}), //
                         Plain("PlainExtra", 1),         //
-                        Plain("PlainX", 0)};
+                        Plain("PlainX", 0),             //
+                        partitioners::Site()};
   SizeParityD spd{{42, Parity::EVEN}};
   PartitionTree t = tree_builder(spd, partitioners);
 
@@ -170,8 +180,8 @@ BOOST_FIXTURE_TEST_CASE(test_offset_tree_simple, Simple1D) {
   decltype(offset_tree) expected = mt(mp(0, 0), {mt(mp(0, 0), {}), //
                                                  mt(mp(16, 1), {})});
 
-  bool success = *offset_tree == *expected;
-  BOOST_TEST(success);
+  int site_level = 1;
+  BOOST_TEST(*truncate_tree(offset_tree, site_level) == *expected);
 }
 BOOST_FIXTURE_TEST_CASE(test_offset_tree_lesssimple, LessSimple1D) {
 
@@ -184,19 +194,23 @@ BOOST_FIXTURE_TEST_CASE(test_offset_tree_lesssimple, LessSimple1D) {
                                    mt(mp(24, 1), {})})}
 
       );
-  BOOST_TEST(*offset_tree == *expected);
+  int site_level = 2;
+  BOOST_TEST(*truncate_tree(offset_tree, site_level) == *expected);
 }
 
 BOOST_AUTO_TEST_CASE(test_no_zerosize) {
 
   enum { X, EXTRA };
   PTBuilder tree_builder;
-  auto t = tree_builder({{42, Parity::EVEN}},            //
-                        {QPeriodic("MPI X", X, 4),       //
-                         QOpen("VECTOR X", X, 2),        //
-                         HBB("halos X", X, 1),           //
-                         partitioners::EO("EO", {true}), //
-                         Plain("EO-flattened", EXTRA)});
+  auto t = tree_builder({{42, Parity::EVEN}}, //
+                        {
+                            QPeriodic("MPI X", X, 4),       //
+                            QOpen("VECTOR X", X, 2),        //
+                            HBB("halos X", X, 1),           //
+                            partitioners::EO("EO", {true}), //
+                            Plain("EO-flattened", EXTRA),   //
+                            partitioners::Site(),           //
+                        });
 
   auto size_tree =
       get_size_tree(get_nchildren_alloc_tree(t, [](auto _) { return true; }));

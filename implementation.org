@@ -86,7 +86,15 @@ and returns up to 2 ~n+1~-dimensional partition classes,
 where the checkerboarded dimensions are collapsed to size 1.
 The extent of the new partitions (classes) in the additional dimension
 is equal to the amount of even or odd sites.
-
+** "Site" partitioning
+The Site partitioning
+is a mostly trivial class
+used to represent the leaves
+in the partition tree.
+These objects are just placeholders
+that need to be there to make sure
+that the second-last level
+has the right number of children.
 
 * Types of Trees
 At each step in the partitioning process,

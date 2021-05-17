@@ -14,19 +14,27 @@ SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS
 endif()
 
 include_directories(./include )
-add_library(eo src/eo.cpp)
 
+# Base libraries
+add_library(eo src/eo.cpp)
 add_library(geometry src/geometry.cpp)
 add_library(print_utils src/print_utils.cpp)
+
+# Partitioning
 add_library(partitioning src/partitioning.cpp)
 
+## Multi-D partitioning
+add_library(eo_partitioning src/eo_partitioning.cpp)
+target_link_libraries(eo_partitioning geometry
+                                      eo
+                                      print_utils
+                                      partitioning)
 
-add_library(partitioners src/partitioners.cpp)
-target_link_libraries(partitioners eo_partitioning
-  q1D
-  hbb1D
-  plain1D)
+add_library(site src/site.cpp)
+target_link_libraries(site geometry
+                           partitioning)                                    
 
+## 1-D partitioning
 add_library(partitioning1D src/1D/partitioning1D.cpp)
 target_link_libraries(partitioning1D geometry)
 
@@ -42,12 +50,15 @@ add_library(plain1D src/1D/plain1D.cpp)
 target_link_libraries(plain1D partitioning1D
                               partitioning)
 
-add_library(eo_partitioning src/eo_partitioning.cpp)
-target_link_libraries(eo_partitioning geometry
-                                      eo
-                                      print_utils
-                                      partitioning)
+# Partitioners
+add_library(partitioners src/partitioners.cpp)
+target_link_libraries(partitioners eo_partitioning
+                                   q1D
+                                   hbb1D
+                                   plain1D
+                                   site)
 
+# Trees                                
 add_library(partition_tree src/partition_tree.cpp)
 target_link_libraries(partition_tree partitioners)
 

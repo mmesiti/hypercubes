@@ -3,6 +3,7 @@
 #include "partition_tree_allocations.hpp"
 #include "size_tree_iterator.hpp"
 #include "test_utils.hpp"
+#include "tree.hpp"
 #include "utils.hpp"
 #include <boost/test/unit_test.hpp>
 
@@ -79,14 +80,16 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
                                [&](Indices idx) -> BoolM {
                                  return no_bulk_borders(partitioners, idx);
                                }));
+  auto no_sites = truncate_tree(size_tree, //
+                                get_max_depth(size_tree) - 2);
   while (isite + 1 < haloonly1D.size()) {
     int i, ip;
     Indices idx, idxp;
     std::tie(i, idx) = haloonly1D[isite];
     std::tie(ip, idxp) = haloonly1D[isite + 1];
 
-    BOOST_TEST(size_tree->n.first == 16);
-    BOOST_TEST(next(size_tree, idx) == idxp);
+    BOOST_TEST(no_sites->n.first == 16);
+    BOOST_TEST(next(no_sites, idx) == idxp);
     ++isite;
   };
 }

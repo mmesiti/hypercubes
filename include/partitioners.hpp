@@ -7,6 +7,7 @@
 #include "dimensionalise.hpp"
 #include "eo_partitioning.hpp"
 #include "partitioning.hpp"
+#include "site.hpp"
 #include <memory>
 #include <string>
 namespace hypercubes {
@@ -35,6 +36,13 @@ private:
   hypercubes::slow::EO *get(SizeParityD sp) const;
 };
 
+class Site_ : public IPartitioningRequest {
+public:
+  Site_();
+
+private:
+  hypercubes::slow::Site *get(SizeParityD sp) const;
+};
 class QPeriodic_ : public IPartitioningRequest {
 public:
   QPeriodic_(std::string name, int dimension, int nparts);
@@ -74,6 +82,7 @@ private:
 using IPartRP = std::shared_ptr<IPartitioningRequest>;
 
 IPartRP EO(std::string name, CBFlags cbflags);
+IPartRP Site();
 IPartRP QPeriodic(std::string name, int dimension, int nparts);
 IPartRP QOpen(std::string name, int dimension, int nparts);
 IPartRP Plain(std::string name, int dimension);

@@ -40,8 +40,8 @@ std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
    * Find first child that represent each class
    * in the children vector.
    * */
-  auto get_first_class_indices = [](const PartitionTree &t) {
-    int nclasses = t->n->sub_sizeparity_info_list().size();
+  int nclasses = t->n->sub_sizeparity_info_list().size();
+  auto get_first_class_indices = [&nclasses](const PartitionTree &t) {
     vector<int> first_class_indices(nclasses);
     std::fill(first_class_indices.begin(), //
               first_class_indices.end(),   //
@@ -56,15 +56,17 @@ std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
 
   vector<int> first_class_indices = get_first_class_indices(t);
   if (t->children.size() != 0) {
-    for (int i = 0; i < first_class_indices.size() - 1; ++i)
-      children_results.push_back(
-          tree_class_repr(t->children[first_class_indices[i]], //
-                          new_prefix + "|",                    //
-                          max_level - 1));
-    children_results.push_back(
-        tree_class_repr(t->children[*first_class_indices.rbegin()], //
-                        new_prefix + " ",                           //
-                        max_level - 1));
+    auto add_child_repr_no_leaves = [&](int iclass, //
+                                        std::string prefix) {
+      auto child = t->children[first_class_indices[iclass]];
+      if (child->n->get_name() != "Site")
+        children_results.push_back(tree_class_repr(child,  //
+                                                   prefix, //
+                                                   max_level - 1));
+    };
+    for (int iclass = 0; iclass < nclasses - 1; ++iclass)
+      add_child_repr_no_leaves(iclass, new_prefix + "|");
+    add_child_repr_no_leaves(nclasses - 1, new_prefix + " ");
   }
   if (max_level == 0)
     return "";
@@ -76,7 +78,7 @@ std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
   return res;
 }
 
-TreeP<int> get_indices_tree(const PartitionTree &t, const Coordinates &xs) {
+Indices get_real_indices(const PartitionTree &t, const Coordinates &xs) {
   auto partition_class = t->n;
   vector<IndexResultD> idxs = partition_class->coord_to_idxs(xs);
   IndexResultD real_idr =
@@ -84,12 +86,15 @@ TreeP<int> get_indices_tree(const PartitionTree &t, const Coordinates &xs) {
                     idxs.end(),   //
                     [](IndexResultD i) { return not i.cached_flag; });
 
-  vector<TreeP<int>> children_results;
-  if (t->children.size() != 0) {
-    children_results.push_back(
-        get_indices_tree(t->children[real_idr.idx], real_idr.rest));
-  }
-  return mt(real_idr.idx, children_results);
+  auto child = t->children[real_idr.idx];
+  auto rest = real_idr.rest;
+  if (t->children.size() != 0 and child->n->get_name() != "Site")
+    return append(real_idr.idx, //
+                  get_real_indices(child, rest));
+  else
+    return Indices{
+        real_idr.idx,
+    };
 }
 
 TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
@@ -105,7 +110,8 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
     vector<IndexResultD> idrs = partition_class->coord_to_idxs(xs);
     vector<TreeP<GhostResult>> children_results;
     for (IndexResultD idr : idrs) {
-      if (t->children.size() != 0) {
+      if (t->children.size() != 0 and //
+          t->children[idr.idx]->n->get_name() != "Site") {
         children_results.push_back(f(idr.idx,                     //
                                      idr.cached_flag,             //
                                      t->children[idr.idx],        //
@@ -172,8 +178,11 @@ Sizes get_sizes_from_idx(const PartitionTree &t, const Indices &idxs) {
 }
 
 TreeP<int> get_max_idx_tree(const PartitionTree &t) {
+  int up_to_Sites = get_max_depth(t) - 1;
+
   return nodemap<std::shared_ptr<IPartitioning>, int>(
-      t, [](const auto &n) { return n->max_idx_value(); });
+      truncate_tree(t, up_to_Sites - 1),
+      [](const auto &n) { return n->max_idx_value(); });
 }
 
 bool validate_idx(const PartitionTree &t, const Indices &idxs) {

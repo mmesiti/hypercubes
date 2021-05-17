@@ -44,8 +44,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_indices_tree_wg_4D_full, Part4DF) {
   //                                                       Coordinates xs{20,
   //                                                       13, 23, 4};
 
-  TreeP<int> idxt = get_indices_tree(t, xs);
-  vector<int> idxs = get_all_paths(idxt)[0];
+  Indices idxs = get_real_indices(t, xs);
 
   BOOST_TEST(idxs == expected_idx);
 }
@@ -86,7 +85,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_coords_from_idx_roundtrip, Part4DF) {
   auto xs = datasource.begin();
   for (int icase = 0; icase < 500; ++icase) {
 
-    Indices idx = get_all_paths(get_indices_tree(t, *xs))[0];
+    Indices idx = get_real_indices(t, *xs);
     Coordinates new_coords = get_coord_from_idx(t, idx);
     BOOST_TEST(new_coords == *xs);
     ++xs;

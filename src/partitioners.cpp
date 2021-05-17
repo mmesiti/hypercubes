@@ -8,6 +8,7 @@ namespace partitioners {
 IPartitioningRequest::IPartitioningRequest(std::string name_) : name(name_) {}
 EO_::EO_(std::string name_, hypercubes::slow::EO::CBFlags cbflags_)
     : IPartitioningRequest(name_), cbflags(cbflags_) {}
+Site_::Site_() : IPartitioningRequest("Site") {}
 QPeriodic_::QPeriodic_(std::string name_, int dimension_, int nparts_)
     : IPartitioningRequest(name_), dimension(dimension_), nparts(nparts_) {}
 QOpen_::QOpen_(std::string name_, int dimension_, int nparts_)
@@ -24,8 +25,12 @@ IPartitioningRequest::partition(SizeParityD sp) const {
 
 std::string IPartitioningRequest::get_name() const { return name; }
 
-hypercubes::slow::EO *EO_::get(SizeParities sp) const {
-  return new hypercubes::slow::EO(sp, cbflags, name);
+class EO *EO_::get(SizeParities sp) const {
+  return new class EO(sp, cbflags, name);
+}
+
+class Site *Site_::get(SizeParities sp) const {
+  return new class Site(sp);
 }
 
 Dimensionalise<Q1DPeriodic> *QPeriodic_::get(SizeParityD sp) const {
@@ -44,6 +49,8 @@ Dimensionalise<HBB1D> *HBB_::get(SizeParityD sp) const {
 IPartRP EO(std::string name, CBFlags cbflags) {
   return std::make_shared<EO_>(name, cbflags);
 };
+
+IPartRP Site() { return std::make_shared<Site_>(); };
 IPartRP QPeriodic(std::string name, int dimension, int nparts) {
   return std::make_shared<QPeriodic_>(name, dimension, nparts);
 };

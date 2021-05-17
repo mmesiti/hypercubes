@@ -19,12 +19,15 @@ public:
   PartitionTree operator()(SizeParityD sp, //
                            const PartList &partitioners);
 };
+/**
+ * Does not print "Sites"
+ * */
 std::string tree_class_repr(const PartitionTree &t,    //
                             const std::string &prefix, //
                             int max_level);
 
-TreeP<int> get_indices_tree(const PartitionTree &t, //
-                            const Coordinates &xs);
+Indices get_real_indices(const PartitionTree &t, //
+                         const Coordinates &xs);
 
 struct GhostResult {
   int idx;

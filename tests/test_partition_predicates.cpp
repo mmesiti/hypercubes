@@ -114,8 +114,7 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_right, Part4DF) {
 
 BOOST_DATA_TEST_CASE_F(Part1D42, test_no_border_bulk_no, bdata::xrange(42), i) {
 
-  auto idx_tree = get_indices_tree(t, Coordinates{i});
-  Indices idx = get_all_paths(idx_tree)[0];
+  Indices idx = get_real_indices(t, Coordinates{i});
   BOOST_TEST(no_bulk_borders(partitioners, idx) == BoolM::F);
 }
 
