@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(test_truncate_tree) {
                                              mt(13, {})}),
                                   });
 
-  BOOST_TEST(*truncated_expected == *truncate_tree(t, 2));
+  BOOST_TEST(*truncated_expected == *truncate_tree(t, 3)); // FIXED
 }
 
 BOOST_AUTO_TEST_CASE(test_get_leaves_list) {

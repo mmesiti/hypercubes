@@ -147,16 +147,17 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
 // TODO: Consider memoization.
 template <class Node>
 TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level) {
-  if (level > 0) {
+  if (level > 1) {
     auto children = vtransform(tree->children,                       //
                                [level](TreeP<Node> c) {              //
-                                 return truncate_tree(c, level - 1); //
+                                 return truncate_tree(c, level - 1); // FIXED
                                });
     return mt(tree->n, children);
 
-  } else {
+  } else if (level == 1) {
     return mt(tree->n, {});
-  }
+  } else
+    return TreeP<Node>(nullptr);
 }
 
 template <class Node> vector<Node> get_leaves_list(const TreeP<Node> &tree) {
@@ -204,7 +205,6 @@ TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
 template <class Node>
 TreeP<Node> collapse_level(const TreeP<Node> &tree, int level_to_collapse,
                            int child_to_replace) {
-
   if (level_to_collapse == 0)
     return tree->children[child_to_replace];
   else {
@@ -219,34 +219,62 @@ TreeP<Node> collapse_level(const TreeP<Node> &tree, int level_to_collapse,
 
 template <class Node>
 TreeP<Node> bring_level_on_top(const TreeP<Node> &tree, int level) {
+  /* Example:
+   * bring_level_on_top(t,1)
+   *      a                b
+   *    /   \           /  |  \
+   *   b     b    ->   a   a   a
+   * / | \ / | \      / \ / \ / \
+   * d e f g h i      d g e h f i
+   */
 
+  // in example: nchildren_at_level = 3
   using TreeP = TreeP<Node>;
-  int nchildren = [&tree, level]() {
-    TreeP top_tree = truncate_tree(tree, level + 1);
+  int nchildren_at_level = [&tree, level]() {
+    TreeP top_tree = truncate_tree(tree, level + 2);
     vector<TreeP> subtrees = get_flat_list_of_subtrees(top_tree, level);
-    int nchildren = get_leaves_list(subtrees[0]).size();
+    /*    b
+     *  / | \
+     *  d e f
+     *  ,
+     *    b
+     *  / | \
+     *  g h i
+     **/
+    int nchildren_at_level = get_leaves_list(subtrees[0]).size();
     for (const auto &st : subtrees)
-      if (nchildren != get_leaves_list(st).size())
+      if (nchildren_at_level != get_leaves_list(st).size())
         throw std::invalid_argument(
             "Not all subtrees have the same number of children.");
-    return nchildren;
+    return nchildren_at_level;
   }();
 
   Node new_top = [&tree, level]() {
-    TreeP top_tree = truncate_tree(tree, level);
-    vector<Node> leaves = get_leaves_list(top_tree);
-    for (const auto &l : leaves)
-      if (l != leaves[0])
+    TreeP top_tree = truncate_tree(tree, level + 1);
+    /*
+     *      a
+     *    /   \
+     *   b     b
+     */
+    vector<Node> nodes_at_level = get_leaves_list(top_tree);
+    /* b,  b */
+    for (const auto &l : nodes_at_level)
+      if (l != nodes_at_level[0])
         throw std::invalid_argument(
             "Not all nodes are equal on the required level.");
-    return leaves[0];
+    return nodes_at_level[0];
   }();
 
   vector<TreeP> new_subtrees;
-  for (int child_to_pick = 0;     //
-       child_to_pick < nchildren; //
+  for (int child_to_pick = 0;              //
+       child_to_pick < nchildren_at_level; //
        ++child_to_pick)
     new_subtrees.push_back(collapse_level(tree, level, child_to_pick));
+  /* new subtrees:
+   *  a     a     a
+   * / \ , / \ , / \
+   * d g   e h   f i
+   * */
   return mt(new_top, new_subtrees);
 }
 

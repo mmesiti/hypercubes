@@ -65,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_maxidx, Simple1D) {
 
   decltype(max_idx_tree) exptree = mt(mp(2, 0), {mt(mp(16, 0), {}), //
                                                  mt(mp(16, 1), {})});
-  int site_level = 1;
+  int site_level = 2;
   BOOST_TEST(*truncate_tree(max_idx_tree, site_level) == *exptree);
 }
 
@@ -75,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_size, Simple1D) {
 
   decltype(sizetree) exptree = mt(mp(32, 0), {mt(mp(16, 0), {}), //
                                               mt(mp(16, 1), {})});
-  int site_level = 1;
+  int site_level = 2;
   BOOST_TEST(*truncate_tree(sizetree, site_level) == *exptree);
 }
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_maxidx, LessSimple1D) {
@@ -86,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_maxidx, LessSimple1D) {
                                   mt(mp(8, 1), {})}), //
                     mt(mp(2, 1), {mt(mp(8, 0), {}),   //
                                   mt(mp(8, 1), {})})});
-  int site_level = 2;
+  int site_level = 3;
   BOOST_TEST(*truncate_tree(max_idx_tree, site_level) == *exptree);
 }
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_size, LessSimple1D) {
@@ -97,7 +97,7 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_size, LessSimple1D) {
                                     mt(mp(8, 1), {})}), //
                      mt(mp(16, 1), {mt(mp(8, 0), {}),   //
                                     mt(mp(8, 1), {})})});
-  int site_level = 2;
+  int site_level = 3;
   BOOST_TEST(*truncate_tree(sizetree, site_level) == *exptree);
 }
 BOOST_AUTO_TEST_CASE(test_all_allocated) {
@@ -180,7 +180,7 @@ BOOST_FIXTURE_TEST_CASE(test_offset_tree_simple, Simple1D) {
   decltype(offset_tree) expected = mt(mp(0, 0), {mt(mp(0, 0), {}), //
                                                  mt(mp(16, 1), {})});
 
-  int site_level = 1;
+  int site_level = 2;
   BOOST_TEST(*truncate_tree(offset_tree, site_level) == *expected);
 }
 BOOST_FIXTURE_TEST_CASE(test_offset_tree_lesssimple, LessSimple1D) {
@@ -194,7 +194,7 @@ BOOST_FIXTURE_TEST_CASE(test_offset_tree_lesssimple, LessSimple1D) {
                                    mt(mp(24, 1), {})})}
 
       );
-  int site_level = 2;
+  int site_level = 3;
   BOOST_TEST(*truncate_tree(offset_tree, site_level) == *expected);
 }
 

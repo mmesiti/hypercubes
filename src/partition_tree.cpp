@@ -110,8 +110,7 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
     vector<IndexResultD> idrs = partition_class->coord_to_idxs(xs);
     vector<TreeP<GhostResult>> children_results;
     for (IndexResultD idr : idrs) {
-      if (t->children.size() != 0 and //
-          t->children[idr.idx]->n->get_name() != "Site") {
+      if (t->children.size() != 0) {
         children_results.push_back(f(idr.idx,                     //
                                      idr.cached_flag,             //
                                      t->children[idr.idx],        //
@@ -127,7 +126,10 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
     return mt(g, children_results);
   };
 
-  return _get_idtree_wghosts(0, false, t, xs, "ROOT", _get_idtree_wghosts);
+  auto res_with_leaves =
+      _get_idtree_wghosts(0, false, t, xs, "ROOT", _get_idtree_wghosts);
+  return truncate_tree(res_with_leaves,
+                       get_max_depth(res_with_leaves) - 1); // FIXED
 }
 
 vector<std::tuple<int, Indices>>
@@ -181,7 +183,7 @@ TreeP<int> get_max_idx_tree(const PartitionTree &t) {
   int up_to_Sites = get_max_depth(t) - 1;
 
   return nodemap<std::shared_ptr<IPartitioning>, int>(
-      truncate_tree(t, up_to_Sites - 1),
+      truncate_tree(t, up_to_Sites), // FIXED
       [](const auto &n) { return n->max_idx_value(); });
 }
 
