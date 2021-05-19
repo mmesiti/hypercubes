@@ -150,7 +150,7 @@ TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level) {
   if (level > 1) {
     auto children = vtransform(tree->children,                       //
                                [level](TreeP<Node> c) {              //
-                                 return truncate_tree(c, level - 1); // FIXED
+                                 return truncate_tree(c, level - 1); //
                                });
     return mt(tree->n, children);
 

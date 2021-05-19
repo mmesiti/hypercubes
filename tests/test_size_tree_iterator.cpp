@@ -81,7 +81,7 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
                                  return no_bulk_borders(partitioners, idx);
                                }));
   auto no_sites = truncate_tree(size_tree,                     //
-                                get_max_depth(size_tree) - 1); // FIXED
+                                get_max_depth(size_tree) - 1); //
   while (isite + 1 < haloonly1D.size()) {
     int i, ip;
     Indices idx, idxp;
