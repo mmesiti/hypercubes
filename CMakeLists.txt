@@ -75,6 +75,7 @@ add_library(size_tree_iterator src/size_tree_iterator.cpp)
 target_link_libraries(size_tree_iterator geometry partition_tree_allocations)
 
 add_library(bool_maybe src/bool_maybe.cpp)
+add_library(level_swap src/level_swap.cpp)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 add_custom_target(coverage
@@ -83,6 +84,7 @@ add_custom_target(coverage
              --directory tests/CMakeFiles/test_dimensionalise.dir
              --directory tests/CMakeFiles/test_tree.dir
              --directory tests/CMakeFiles/test_size_tree_iterator.dir
+             --directory tests/CMakeFiles/test_level_swap.dir
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
      COMMAND genhtml --demangle-cpp coverage.info

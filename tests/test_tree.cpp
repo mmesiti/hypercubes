@@ -288,8 +288,25 @@ BOOST_AUTO_TEST_CASE(test_swap_levels) {
   BOOST_TEST(*newt == *newt_exp);
 }
 
-BOOST_AUTO_TEST_CASE(test_first_nodes_list) {
+BOOST_AUTO_TEST_CASE(test_swap_levels_non_cylic) {
 
+  auto t = mt(1, {mt(2, {mt(3, {mt(5, {}),     //
+                                mt(6, {})})}), //
+                  mt(2, {mt(3, {mt(7, {}),     //
+                                mt(8, {})})})});
+  vector<int> new_level_ordering{2, 1, 0};
+
+  auto newt_exp = mt(3, {mt(2, {mt(1, {mt(5, {}),     //
+                                       mt(7, {})})}), //
+                         mt(2, {mt(1, {mt(6, {}),     //
+                                       mt(8, {})})})});
+
+  auto newt = swap_levels(t, new_level_ordering);
+
+  BOOST_TEST(*newt == *newt_exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_first_nodes_list) {
   auto t = mt(1, {mt(2, {mt(3, {mt(5, {}),     //
                                 mt(6, {})})}), //
                   mt(4, {mt(3, {mt(7, {}),     //
@@ -303,7 +320,6 @@ BOOST_AUTO_TEST_CASE(test_first_nodes_list) {
 }
 
 BOOST_AUTO_TEST_CASE(test_depth_first_flatten) {
-
   auto t = mt(1, {mt(2, {mt(3, {mt(5, {}),     //
                                 mt(6, {})})}), //
                   mt(4, {mt(3, {mt(7, {}),     //

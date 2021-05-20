@@ -12,6 +12,7 @@ get_nchildren_alloc_tree(const PartitionTree &t,
 
   auto get_n_alloc_children = [](ResType t) { return t->n.first; };
 
+  // TODO: merge with get_max_idx_tree
   auto _get_max_idx_tree = [&predicate, //
                             &get_n_alloc_children](const PartitionTree &pct,
                                                    const Indices &top_idxs,

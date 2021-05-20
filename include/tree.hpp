@@ -70,18 +70,15 @@ TreeP<Node> mt(const Node n, const vector<TreeP<Node>> v) {
 /* A newline before each subtree,
  * and a newline after each child. */
 template <class Node> std::string tree_str(const Tree<Node> &tree) {
-  std::function<std::string(const std::string &, //
-                            const Tree<Node> &)>
-      _tree_str;
-  _tree_str = [&](const std::string &prefix,
-                  const Tree<Node> &t) -> std::string {
+  auto _tree_str = [&](const std::string &prefix, const Tree<Node> &t,
+                       auto f) -> std::string {
     std::stringstream ss;
     ss << std::endl << prefix << t.n; // head
     for (const auto &c : t.children)
-      ss << _tree_str(prefix + "  ", *c) << std::endl;
+      ss << f(prefix + "  ", *c, f) << std::endl;
     return ss.str();
   };
-  return _tree_str("", tree);
+  return _tree_str("", tree, _tree_str);
 }
 
 /**
@@ -308,6 +305,7 @@ TreeP<Node> swap_levels(const TreeP<Node> &tree,
                  });
   return mt(new_tree->n, new_children);
 }
+
 template <class Node> vector<Node> first_nodes_list(const TreeP<Node> &tree) {
 
   vector<Node> res;
