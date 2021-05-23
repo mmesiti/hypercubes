@@ -198,49 +198,39 @@ TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
 }
 
 // TODO: consider memoization.
-// TODO: check similarities with other version.
-template <class Node>
-TreeP<Node> //
-collapse_level(const TreeP<Node> &tree, int level_to_collapse,
-               int child_to_replace) {
+template <class Node, class F>
+TreeP<Node>                              //
+_collapse_level(const TreeP<Node> &tree, //
+                int level_to_collapse,   //
+                int child_to_replace,    //
+                F solder_subtree_in) {
   if (level_to_collapse == 0) {
     auto c = tree->children[child_to_replace];
-    auto bridge_to_subtree = [](auto c, auto tree) { return c; };
-    return bridge_to_subtree(c, tree);
+    return solder_subtree_in(c, tree);
   } else {
-    vector<TreeP<Node>> children = vtransform(
-        tree->children, //
-        [level_to_collapse, child_to_replace](const TreeP<Node> &c) {
-          return collapse_level(c, level_to_collapse - 1, child_to_replace);
-        });
+    vector<TreeP<Node>> children =
+        vtransform(tree->children, //
+                   [level_to_collapse, child_to_replace,
+                    &solder_subtree_in](const TreeP<Node> &c) {
+                     return _collapse_level(c,                     //
+                                            level_to_collapse - 1, //
+                                            child_to_replace,      //
+                                            solder_subtree_in);
+                   });
     return mt(tree->n, children);
   }
-}
-template <class Value>
-TreeP<std::pair<int, Value>> fix_key(const TreeP<std::pair<int, Value>> &t,
-                                     int new_key) {
-  return mt(std::make_pair(new_key, t->n.second), t->children);
 }
 
-template <class V>
-TreeP<std::pair<int, V>> collapse_level(const TreeP<std::pair<int, V>> &tree,
-                                        int level_to_collapse,
-                                        int child_to_replace) {
-  if (level_to_collapse == 0) {
-    auto bridge_to_subtree = [](auto c, auto tree) {
-      return fix_key(c, tree->n.first);
-    };
-    auto c = tree->children[child_to_replace];
-    return bridge_to_subtree(c, tree);
-  } else {
-    vector<TreeP<std::pair<int, V>>> children = vtransform(
-        tree->children, //
-        [level_to_collapse,
-         child_to_replace](const TreeP<std::pair<int, V>> &c) {
-          return collapse_level(c, level_to_collapse - 1, child_to_replace);
-        });
-    return mt(tree->n, children);
-  }
+template <class Node>
+TreeP<Node>                             //
+collapse_level(const TreeP<Node> &tree, //
+               int level_to_collapse,   //
+               int child_to_replace) {
+  auto just_get_child = [](auto child, auto tree) { return child; };
+  return _collapse_level(tree,              //
+                         level_to_collapse, //
+                         child_to_replace,  //
+                         just_get_child);
 }
 
 template <class Node, class F1, class F2, class F3, class F4>
@@ -276,9 +266,8 @@ TreeP<Node> _bring_level_on_top(const TreeP<Node> &tree,              //
     if (subtree_features[0] != n_and_cs)
       throw std::invalid_argument("Not all subtrees are equivalent.");
   auto new_top = subtree_features[0].first;
-  int nchildren_at_level;
   auto other_features = subtree_features[0].second;
-  nchildren_at_level = get_nchildren_from_other_features(other_features);
+  int nchildren_at_level = get_nchildren_from_other_features(other_features);
 
   vector<TreeP> new_subtrees;
   for (int child_to_pick = 0;              //
@@ -324,38 +313,6 @@ bring_level_on_top(const TreeP<Node> &tree, int level) {
                              create_top_node);
 }
 
-template <class Value>
-TreeP<std::pair<int, Value>> //
-bring_level_on_top(const TreeP<std::pair<int, Value>> &tree, int level) {
-  using Node = std::pair<int, Value>;
-  using TreeP = TreeP<Node>;
-  auto get_subtree_features = [](TreeP c) {
-    vector<int> children_keys_at_level =
-        vtransform(c->children, [](TreeP t) { return t->n.first; });
-    return std::make_pair(c->n.second, //
-                          children_keys_at_level);
-  };
-  auto get_nchildren_from_other_features =
-      [](vector<int> children_keys_at_level) {
-        return children_keys_at_level.size();
-      };
-  auto fix_tree_indices = [](TreeP new_subtree,
-                             vector<int> children_keys_at_level,
-                             int child_to_pick) {
-    return fix_key(new_subtree,
-                   children_keys_at_level[child_to_pick]); // DIFF
-  };
-  auto create_top_node = [](Value new_top) {
-    return std::make_pair(0, new_top);
-  };
-
-  return _bring_level_on_top(tree,                              //
-                             level,                             //
-                             get_subtree_features,              //
-                             get_nchildren_from_other_features, //
-                             fix_tree_indices,                  //
-                             create_top_node);
-}
 template <class Node, class F>
 TreeP<Node> _swap_levels(const TreeP<Node> &tree,
                          const vector<int> &new_level_ordering,
@@ -398,19 +355,6 @@ swap_levels(const TreeP<Node> &tree, //
   auto id = [](const TreeP<Node> &new_tree, //
                const TreeP<Node> &parent_tree) { return new_tree; };
   return _swap_levels(tree, new_level_ordering, id);
-}
-
-template <class Value>
-TreeP<std::pair<int, Value>>
-swap_levels(const TreeP<std::pair<int, Value>> &tree,
-            const vector<int> &new_level_ordering) {
-  using Node = std::pair<int, Value>;
-  auto fix_new_tree = [](const TreeP<Node> &new_tree, //
-                         const TreeP<Node> &tree) {
-    return fix_key(new_tree, tree->n.first);
-  };
-
-  return _swap_levels(tree, new_level_ordering, fix_new_tree);
 }
 
 template <class Node> vector<Node> first_nodes_list(const TreeP<Node> &tree) {

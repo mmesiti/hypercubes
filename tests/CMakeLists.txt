@@ -33,6 +33,9 @@ target_link_libraries(test_comments q1D hbb1D plain1D eo_partitioning boost_test
 add_executable(test_tree test_tree.cpp)
 target_link_libraries(test_tree boost_test_helper -lgcov)
 
+add_executable(test_kvtree test_kvtree.cpp)
+target_link_libraries(test_kvtree boost_test_helper -lgcov)
+
 add_executable(test_partitioners test_partitioners.cpp)
 target_link_libraries(test_partitioners partitioners
                                         boost_test_helper)
@@ -85,7 +88,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(test_dimensionalise PRIVATE "-fprofile-arcs"
                                                      "-ftest-coverage")
   target_compile_options(test_tree PRIVATE "-fprofile-arcs"
-                                           "-ftest-coverage")
+    "-ftest-coverage")
+
+  target_compile_options(test_kvtree PRIVATE "-fprofile-arcs"
+    "-ftest-coverage")
+
+
   target_compile_options(test_size_tree_iterator PRIVATE "-fprofile-arcs"
                                                          "-ftest-coverage")
   target_compile_options(test_level_swap PRIVATE "-fprofile-arcs"
@@ -96,20 +104,22 @@ endif()
 # TESTING #
 ###########
 
+add_subdirectory(1D)
 enable_testing()
-add_test(eo test_eo -r confirm)
-add_test(rilist test_rilist -r confirm)
-add_test(eo_partitioning test_eo_partitioning -r confirm)
-add_test(dimensionalise test_dimensionalise -r confirm)
+# Ordered by duration, asc
 add_test(comments test_comments -r confirm)
 add_test(tree test_tree -r confirm)
+add_test(ktree test_tree -r confirm)
 add_test(partitioners test_partitioners -r confirm)
-add_test(partition_tree test_partition_tree -r confirm)
-add_test(pct_full test_pct_full -r confirm)
-add_test(partition_predicates test_partition_predicates -r confirm)
-add_test(partition_tree_allocations test_partition_tree_allocations -r confirm)
 add_test(size_tree_iterator test_size_tree_iterator -r confirm)
 add_test(bool_maybe test_bool_maybe -r confirm)
 add_test(level_swap test_level_swap -r confirm)
+add_test(partition_tree test_partition_tree -r confirm)
+add_test(rilist test_rilist -r confirm)
+add_test(eo test_eo -r confirm)
+add_test(eo_partitioning test_eo_partitioning -r confirm)
+add_test(dimensionalise test_dimensionalise -r confirm)
+add_test(partition_tree_allocations test_partition_tree_allocations -r confirm)
+add_test(partition_predicates test_partition_predicates -r confirm)
+add_test(pct_full test_pct_full -r confirm)
 
-add_subdirectory(1D)
