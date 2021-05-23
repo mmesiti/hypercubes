@@ -1,5 +1,6 @@
 #ifndef PARTITION_CLASS_TREE_H_
 #define PARTITION_CLASS_TREE_H_
+#include "memoisation.hpp"
 #include "partitioners.hpp"
 #include "tree.hpp"
 #include <map>
@@ -10,6 +11,11 @@ namespace hypercubes {
 namespace slow {
 using partitioners::PartList;
 using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
+
+PartitionTree build_partition_tree_base(
+    std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
+    SizeParityD spd,                                                  //
+    const PartList &partitioners);
 
 class PTBuilder {
   using Input = std::tuple<SizeParityD, PartList>;

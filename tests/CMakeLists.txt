@@ -81,6 +81,9 @@ add_executable(test_level_swap test_level_swap.cpp)
 target_link_libraries(test_level_swap boost_test_helper
                                       level_swap
                                       fixtures)
+
+add_executable(test_memoisation test_memoisation.cpp)
+
                                     
 # Adding compile options for coverage for some tests.
 # This is needed because some code exists only as template.
@@ -107,6 +110,7 @@ endif()
 add_subdirectory(1D)
 enable_testing()
 # Ordered by duration, asc
+add_test(memoisation test_memoisation)
 add_test(comments test_comments -r confirm)
 add_test(tree test_tree -r confirm)
 add_test(ktree test_tree -r confirm)
@@ -122,4 +126,3 @@ add_test(dimensionalise test_dimensionalise -r confirm)
 add_test(partition_tree_allocations test_partition_tree_allocations -r confirm)
 add_test(partition_predicates test_partition_predicates -r confirm)
 add_test(pct_full test_pct_full -r confirm)
-

@@ -1,4 +1,5 @@
 #include "partition_tree.hpp"
+#include "memoisation.hpp"
 #include "tree.hpp"
 #include "utils.hpp"
 #include <functional>
@@ -6,27 +7,41 @@
 
 namespace hypercubes {
 namespace slow {
-PartitionTree PTBuilder::operator()(SizeParityD sp, //
+
+PartitionTree build_partition_tree_base(
+    std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
+    SizeParityD spd,                                                  //
+    const PartList &partitioners) {
+  PartList other_partitioners;
+  std::copy(partitioners.begin() + 1, partitioners.end(),
+            std::back_inserter(other_partitioners));
+
+  std::shared_ptr<IPartitioning> n = partitioners[0]->partition(spd);
+  vector<PartitionTree> children;
+  if (other_partitioners.size() != 0) {
+    for (int idx = 0; idx < n->max_idx_value(); ++idx) {
+      SizeParitiesD spsD = n->sub_sizeparity_info_list();
+      SizeParityD sp_child = spsD[n->idx_to_child_kind(idx)];
+      auto new_child = frec(sp_child, other_partitioners);
+      children.push_back(new_child);
+    }
+  }
+  return mt(n, children);
+};
+
+PartitionTree PTBuilder::operator()(SizeParityD spd, //
                                     const PartList &partitioners) {
-  Input args{sp, partitioners};
+
+  Input args{spd, partitioners};
   if (pct_cache.find(args) == pct_cache.end()) {
 
-    PartList other_partitioners;
-    std::copy(partitioners.begin() + 1, partitioners.end(),
-              std::back_inserter(other_partitioners));
-
-    std::shared_ptr<IPartitioning> n = partitioners[0]->partition(sp);
-    vector<PartitionTree> children;
-    if (other_partitioners.size() != 0) {
-      for (int idx = 0; idx < n->max_idx_value(); ++idx) {
-        SizeParitiesD spsD = n->sub_sizeparity_info_list();
-        SizeParityD sp_child = spsD[n->idx_to_child_kind(idx)];
-        auto new_child = (*this)(sp_child, other_partitioners);
-        children.push_back(new_child);
-      }
-    }
-    pct_cache[args] = mt(n, children);
+    pct_cache[args] = build_partition_tree_base(
+        [this](SizeParityD spd, const PartList &partitioners) {
+          return (*this)(spd, partitioners);
+        },
+        spd, partitioners);
   }
+
   return pct_cache[args];
 }
 
