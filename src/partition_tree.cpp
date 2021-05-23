@@ -29,21 +29,9 @@ PartitionTree build_partition_tree_base(
   return mt(n, children);
 };
 
-PartitionTree PTBuilder::operator()(SizeParityD spd, //
-                                    const PartList &partitioners) {
-
-  Input args{spd, partitioners};
-  if (pct_cache.find(args) == pct_cache.end()) {
-
-    pct_cache[args] = build_partition_tree_base(
-        [this](SizeParityD spd, const PartList &partitioners) {
-          return (*this)(spd, partitioners);
-        },
-        spd, partitioners);
-  }
-
-  return pct_cache[args];
-}
+PTBuilder::PTBuilder()
+    : Memoiser<PartitionTree, SizeParityD, PartList>(
+          build_partition_tree_base) {}
 
 std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
                             int max_level) {

@@ -17,14 +17,11 @@ PartitionTree build_partition_tree_base(
     SizeParityD spd,                                                  //
     const PartList &partitioners);
 
-class PTBuilder {
-  using Input = std::tuple<SizeParityD, PartList>;
-  std::map<Input, PartitionTree> pct_cache;
-
+class PTBuilder : public Memoiser<PartitionTree, SizeParityD, PartList> {
 public:
-  PartitionTree operator()(SizeParityD sp, //
-                           const PartList &partitioners);
+  PTBuilder();
 };
+
 /**
  * Does not print "Sites"
  * */
