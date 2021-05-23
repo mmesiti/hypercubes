@@ -18,5 +18,11 @@ std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
 template <>
 std::ostream &operator<<(std::ostream &os, const std::vector<bool> &v);
 
+template <class A, class B>
+std::ostream &operator<<(std::ostream &os, const std::pair<A, B> &p) {
+  os << "(" << p.first << ", " << p.second << ")";
+  return os;
+}
+
 } // namespace std
 #endif // __PRINT_UTILS_H_
