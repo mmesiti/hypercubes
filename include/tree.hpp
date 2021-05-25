@@ -198,6 +198,18 @@ TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
 }
 
 // TODO: consider memoization.
+template <class Node>
+TreeP<Node> filternode(const TreeP<Node> &t,
+                       std::function<bool(Node)> predicate) {
+
+  vector<TreeP<Node>> children;
+  std::copy_if(t->children.begin(), t->children.end(), //
+               std::back_inserter(children),           //
+               predicate);
+  return mt(f(t->n), children);
+}
+
+// TODO: consider memoization.
 template <class Node, class F>
 TreeP<Node>                              //
 _collapse_level(const TreeP<Node> &tree, //
