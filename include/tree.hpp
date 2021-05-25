@@ -311,7 +311,6 @@ TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = true) {
 template <class Node>
 TreeP<Node> filternode(const TreeP<Node> &t,
                        std::function<bool(Node)> predicate) {
-  // NOTE: here resmap could be passed between calls.
 
   vector<TreeP<Node>> children;
   std::copy_if(t->children.begin(), t->children.end(), //
