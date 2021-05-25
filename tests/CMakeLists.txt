@@ -91,14 +91,15 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(test_dimensionalise PRIVATE "-fprofile-arcs"
                                                      "-ftest-coverage")
   target_compile_options(test_tree PRIVATE "-fprofile-arcs"
-    "-ftest-coverage")
+                                           "-ftest-coverage")
 
   target_compile_options(test_kvtree PRIVATE "-fprofile-arcs"
-    "-ftest-coverage")
+                                             "-ftest-coverage")
 
 
   target_compile_options(test_size_tree_iterator PRIVATE "-fprofile-arcs"
                                                          "-ftest-coverage")
+
   target_compile_options(test_level_swap PRIVATE "-fprofile-arcs"
                                                   "-ftest-coverage")
 
@@ -125,4 +126,4 @@ add_test(eo_partitioning test_eo_partitioning -r confirm)
 add_test(dimensionalise test_dimensionalise -r confirm)
 add_test(partition_tree_allocations test_partition_tree_allocations -r confirm)
 add_test(partition_predicates test_partition_predicates -r confirm)
-add_test(pct_full test_pct_full -r confirm)
+add_test(pt_full test_pt_full -r confirm)
