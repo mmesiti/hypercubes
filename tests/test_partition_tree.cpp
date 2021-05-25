@@ -230,7 +230,8 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
                                     Plain("Remainder", 0),
                                     partitioners::Site(),
                                 });
-  TreeP<int> expmaxtree = mt(4, {mt(2, {mt(5, {mt(1, {}),     //
+  // expmtreens: expected max tree no sites
+  TreeP<int> expmtreens = mt(4, {mt(2, {mt(5, {mt(1, {}),     //
                                                mt(1, {}),     //
                                                mt(4, {}),     //
                                                mt(1, {}),     //
@@ -273,7 +274,10 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
 
   TreeP<int> maxtree = get_max_idx_tree(t);
 
-  BOOST_TEST(*expmaxtree == *maxtree);
+  BOOST_TEST(*expmtreens ==
+             *truncate_tree(maxtree, get_max_depth(maxtree) - 1));
+  for (auto i : get_leaves_list(maxtree))
+    BOOST_TEST(i == 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
@@ -290,7 +294,8 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
                                 });
 
   TreeP<int> a;
-  TreeP<int> expmaxtree = mt(2, {mt(5, {mt(2, {mt(0, {}),            //
+  // expmtreens: expected max tree no sites
+  TreeP<int> expmtreens = mt(2, {mt(5, {mt(2, {mt(0, {}),            //
                                                mt(1, {mt(1, {})})}), //
                                         mt(2, {mt(1, {mt(1, {})}),   //
                                                mt(0, {})}),          //
@@ -316,7 +321,13 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
 
   TreeP<int> maxtree = get_max_idx_tree(t);
 
-  BOOST_TEST(*expmaxtree == *maxtree);
+  BOOST_TEST(*expmtreens ==
+             *truncate_tree(maxtree, get_max_depth(maxtree) - 1));
+  for (auto i : get_leaves_list(maxtree)) {
+    bool success = i == 1 or // Site exists
+                   i == 0;   // Site does not exist
+    BOOST_TEST(success);
+  }
 }
 
 BOOST_DATA_TEST_CASE(test_validate_idx, //

@@ -182,7 +182,8 @@ Sizes get_sizes_from_idx(const PartitionTree &t, const Indices &idxs) {
 }
 
 TreeP<int> get_max_idx_tree(const PartitionTree &t) {
-  int up_to_Sites = get_max_depth(t) - 1;
+  // int up_to_Sites = get_max_depth(t) - 1;
+  int up_to_Sites = get_max_depth(t) + 1;
 
   return nodemap<std::shared_ptr<IPartitioning>, int>(
       truncate_tree(t, up_to_Sites),

@@ -68,7 +68,6 @@ BOOST_FIXTURE_TEST_CASE(test_swap_levels_max_idx_tree, Part1D42) {
   int a = get_max_depth(max_idx_tree); // FOR DEBUG
   auto st = tree_str(*max_idx_tree);   // FOR DEBUG
 
-  new_level_ordering = std::vector<int>{0, 3, 2, 1}; // FIXME
   auto max_idx_tree_swapped = swap_levels(max_idx_tree, new_level_ordering);
   auto ml = [](int i) { return mt(i, {}); };
   decltype(max_idx_tree_swapped) exptree_nosites =
@@ -153,7 +152,9 @@ BOOST_FIXTURE_TEST_CASE(test_swap_levels_max_idx_tree, Part1D42) {
                                   ml(1)}),       // 3   1   3   1  41
                            mt(2, {ml(0),         // 3   0   4   1  38
                                   ml(0)})})})}); // 3   1   4   1  42
-  BOOST_TEST(*max_idx_tree_swapped == *exptree_nosites);
+  BOOST_TEST(*truncate_tree(max_idx_tree_swapped,
+                            get_max_depth(max_idx_tree_swapped) - 1) ==
+             *exptree_nosites);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

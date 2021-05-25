@@ -45,8 +45,8 @@ target_link_libraries(test_partition_tree partition_tree
                                           boost_test_helper
                                           test_utils)
 
-add_executable(test_pct_full test_pct_full.cpp)
-target_link_libraries(test_pct_full partition_tree
+add_executable(test_pt_full test_pt_full.cpp)
+target_link_libraries(test_pt_full partition_tree
                                     boost_test_helper
                                     test_utils
                                     fixtures)
@@ -125,4 +125,4 @@ add_test(eo_partitioning test_eo_partitioning -r confirm)
 add_test(dimensionalise test_dimensionalise -r confirm)
 add_test(partition_tree_allocations test_partition_tree_allocations -r confirm)
 add_test(partition_predicates test_partition_predicates -r confirm)
-add_test(pct_full test_pct_full -r confirm)
+add_test(pct_full test_pt_full -r confirm)
