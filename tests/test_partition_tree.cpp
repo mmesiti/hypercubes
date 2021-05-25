@@ -105,6 +105,8 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_simple) {
   BOOST_TEST(expected == idx);
 }
 
+int get_idx_from_ghost(GhostResult gr) { return gr.idx; }
+
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 
   SizeParityD sp{{42, Parity::EVEN}};
@@ -120,8 +122,8 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
   Coordinates xs{22};
 
   TreeP<GhostResult> idxt_gr = get_indices_tree_with_ghosts(t, xs);
-  TreeP<int> idxt =
-      nodemap<GhostResult, int>(idxt_gr, [](GhostResult gr) { return gr.idx; });
+  TreeP<int> idxt = nodemap<GhostResult, int, get_idx_from_ghost>(
+      idxt_gr); //, [](GhostResult gr) { return gr.idx; });
   vector<Indices> idxs = get_all_paths(idxt);
   decltype(idxs) relevant_idxs;
   std::copy_if(idxs.begin(), idxs.end(), std::back_inserter(relevant_idxs),
@@ -149,10 +151,7 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
   Coordinates xs{22};
 
   TreeP<GhostResult> idxt_gr = get_indices_tree_with_ghosts(t, xs);
-  TreeP<int> idxt = nodemap<GhostResult, int>(idxt_gr,             //
-                                              [](GhostResult gr) { //
-                                                return gr.idx;     //
-                                              });
+  TreeP<int> idxt = nodemap<GhostResult, int, get_idx_from_ghost>(idxt_gr);
   vector<Indices> idxs = get_all_paths(idxt);
   decltype(idxs) relevant_idxs;
   std::copy_if(idxs.begin(), idxs.end(),          //

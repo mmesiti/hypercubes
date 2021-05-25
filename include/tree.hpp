@@ -259,20 +259,53 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(const TreeP<Node> &t,
   return mt(n, children);
 }
 
-// TODO: consider memoization, but without passing f
-template <class Node, class NewNode>
-TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
-  // NOTE: here resmap could be passed between calls.
+namespace nodemap_detail {
+
+template <class Node, class NewNode, NewNode (*f)(Node)>
+TreeP<NewNode> base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
+                    const TreeP<Node> &t) {
   std::map<TreeP<Node>, TreeP<NewNode>> resmap;
 
   vector<TreeP<NewNode>> children =
       vtransform(t->children, //
-                 [&f, &resmap](const TreeP<Node> &c) {
+                 [&resmap, &frec](const TreeP<Node> &c) {
                    if (resmap.find(c) == resmap.end())
-                     resmap[c] = nodemap(c, f);
+                     resmap[c] = frec(c);
                    return resmap[c];
                  });
   return mt(f(t->n), children);
+}
+
+template <class Node, class NewNode, NewNode (*f)(Node)>
+class _Memoiser : public Memoiser<TreeP<NewNode>, TreeP<Node>> {
+public:
+  _Memoiser() : Memoiser<TreeP<NewNode>, TreeP<Node>>(base<Node, NewNode, f>){};
+};
+
+template <class Node, class NewNode, NewNode (*f)(Node)>
+TreeP<NewNode> memoised(const TreeP<Node> &t) {
+  _Memoiser<Node, NewNode, f> m;
+  return m(t);
+}
+
+} // namespace nodemap_detail
+template <class Node, class NewNode, NewNode (*f)(Node)>
+TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = true) {
+  if (memoised) {
+    return nodemap_detail::memoised<Node, NewNode, f>(t);
+  } else {
+    // NOTE: here resmap could be passed between calls.
+    std::map<TreeP<Node>, TreeP<NewNode>> resmap;
+
+    vector<TreeP<NewNode>> children =
+        vtransform(t->children, //
+                   [&resmap](const TreeP<Node> &c) {
+                     if (resmap.find(c) == resmap.end())
+                       resmap[c] = nodemap<Node, NewNode, f>(c);
+                     return resmap[c];
+                   });
+    return mt(f(t->n), children);
+  }
 }
 
 template <class Node>
