@@ -91,6 +91,21 @@ BOOST_FIXTURE_TEST_CASE(test_get_coords_from_idx_roundtrip, Part4DF) {
     ++xs;
   }
 }
+
+BOOST_DATA_TEST_CASE_F(Part4DFWLocal, test_coord_idx_roundtrip_wlocal,
+                       bdata::xrange(8), loc) {
+
+  auto datasource = data::rilist(0, 41, 4, 4);
+  auto xs = datasource.begin();
+  for (int icase = 0; icase < 10; ++icase) {
+    Coordinates xs_wloc = *xs;
+    xs_wloc.push_back(loc);
+    Indices idx = get_real_indices(t, xs_wloc);
+    Coordinates new_coords = get_coord_from_idx(t, idx);
+    BOOST_TEST(new_coords == xs_wloc);
+    ++xs;
+  }
+}
 BOOST_DATA_TEST_CASE_F(Part1D42, test_validate_idx_yes, //
                        bdata::make(vector<vector<int>>{{3, 1, 0, 1, 0},
                                                        {0, 0, 4, 0, 0},

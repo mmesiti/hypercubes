@@ -181,12 +181,21 @@ Sizes get_sizes_from_idx(const PartitionTree &t, const Indices &idxs) {
     return t->n->idx_to_sizes(idx);
 }
 
-TreeP<int> get_max_idx_tree(const PartitionTree &t) {
-  int up_to_Sites = get_max_depth(t) - 1;
+namespace get_max_idx_tree_detail {
 
-  return nodemap<std::shared_ptr<IPartitioning>, int>(
-      truncate_tree(t, up_to_Sites),
-      [](const auto &n) { return n->max_idx_value(); });
+int get_max_idx(std::shared_ptr<IPartitioning> n) {
+  return n->max_idx_value();
+};
+} // namespace get_max_idx_tree_detail
+
+TreeP<int> get_max_idx_tree(const PartitionTree &t) {
+  // int up_to_Sites = get_max_depth(t) - 1;
+  int up_to_Sites = get_max_depth(t) + 1;
+
+  return nodemap<std::shared_ptr<IPartitioning>, //
+                 int,                            //
+                 get_max_idx_tree_detail::get_max_idx>(
+      truncate_tree(t, up_to_Sites));
 }
 
 bool validate_idx(const PartitionTree &t, const Indices &idxs) {

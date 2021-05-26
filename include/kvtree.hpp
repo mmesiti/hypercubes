@@ -70,6 +70,25 @@ swap_levels(const TreeP<std::pair<int, Value>> &tree,
   return _swap_levels(tree, new_level_ordering, fix_new_tree);
 }
 
+// TODO: consider memoisation
+template <class Value>
+TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree) {
+  using Node = std::pair<int, Value>;
+  using ResType = TreeP<Node>;
+
+  Node new_root = std::make_pair(0, tree->n);
+  int ichild = 0;
+  vector<ResType> new_children =
+      vtransform(tree->children, //
+                 [&ichild](auto c) {
+                   ResType new_child = number_children(c);
+                   Node new_root = std::make_pair(ichild, //
+                                                  new_child->n.second);
+                   return mt(new_root, new_child->children);
+                 });
+  return mt(new_root, new_children);
+}
+
 } // namespace slow
 } // namespace hypercubes
 

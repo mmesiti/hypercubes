@@ -45,8 +45,8 @@ target_link_libraries(test_partition_tree partition_tree
                                           boost_test_helper
                                           test_utils)
 
-add_executable(test_pct_full test_pct_full.cpp)
-target_link_libraries(test_pct_full partition_tree
+add_executable(test_pt_full test_pt_full.cpp)
+target_link_libraries(test_pt_full partition_tree
                                     boost_test_helper
                                     test_utils
                                     fixtures)

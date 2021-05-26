@@ -16,19 +16,20 @@ struct Simple1D {
   PartList partitioners;
   SizeParityD spd;
   PartitionTree t;
-  TreeP<std::pair<int, int>> max_idx_tree;
+  TreeP<std::pair<int, int>> nalloc_children_tree;
   TreeP<std::pair<int, int>> sizetree;
 
   Simple1D()
-      : tree_builder(),                                                      //
-        partitioners{QPeriodic("MPI1", 0, 2),                                //
-                     Plain("Plain1", 0),                                     //
-                     partitioners::Site()},                                  //
-        spd{{32, Parity::EVEN}},                                             //
-        t(tree_builder(spd, partitioners)),                                  //
-        max_idx_tree(get_nchildren_alloc_tree(t,                             //
-                                              [](auto x) { return true; })), //
-        sizetree(get_size_tree(max_idx_tree))                                //
+      : tree_builder(),                       //
+        partitioners{QPeriodic("MPI1", 0, 2), //
+                     Plain("Plain1", 0),      //
+                     partitioners::Site()},   //
+        spd{{32, Parity::EVEN}},              //
+        t(tree_builder(spd, partitioners)),   //
+        nalloc_children_tree(
+            get_nchildren_alloc_tree(t,                             //
+                                     [](auto x) { return true; })), //
+        sizetree(get_size_tree(nalloc_children_tree))               //
         {};
 };
 
@@ -38,7 +39,7 @@ struct LessSimple1D {
   SizeParityD spd;
   PartitionTree t;
 
-  TreeP<std::pair<int, int>> max_idx_tree;
+  TreeP<std::pair<int, int>> nalloc_children_tree;
   TreeP<std::pair<int, int>> sizetree;
 
   LessSimple1D()
@@ -48,12 +49,13 @@ struct LessSimple1D {
             QOpen("Vector1", 0, 2),  //
             Plain("Plain1", 0),      //
             partitioners::Site(),
-        },                                                                   //
-        spd{{32, Parity::EVEN}},                                             //
-        t(tree_builder(spd, partitioners)),                                  //
-        max_idx_tree(get_nchildren_alloc_tree(t,                             //
-                                              [](auto x) { return true; })), //
-        sizetree(get_size_tree(max_idx_tree))                                //
+        },                                  //
+        spd{{32, Parity::EVEN}},            //
+        t(tree_builder(spd, partitioners)), //
+        nalloc_children_tree(
+            get_nchildren_alloc_tree(t,                             //
+                                     [](auto x) { return true; })), //
+        sizetree(get_size_tree(nalloc_children_tree))               //
         {};
 };
 
@@ -63,10 +65,10 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_maxidx, Simple1D) {
 
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
 
-  decltype(max_idx_tree) exptree = mt(mp(2, 0), {mt(mp(16, 0), {}), //
-                                                 mt(mp(16, 1), {})});
+  decltype(nalloc_children_tree) exptree = mt(mp(2, 0), {mt(mp(16, 0), {}), //
+                                                         mt(mp(16, 1), {})});
   int site_level = 2;
-  BOOST_TEST(*truncate_tree(max_idx_tree, site_level) == *exptree);
+  BOOST_TEST(*truncate_tree(nalloc_children_tree, site_level) == *exptree);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_size, Simple1D) {
@@ -81,13 +83,13 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_simple_size, Simple1D) {
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_maxidx, LessSimple1D) {
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
 
-  decltype(max_idx_tree) exptree =
+  decltype(nalloc_children_tree) exptree =
       mt(mp(2, 0), {mt(mp(2, 0), {mt(mp(8, 0), {}),   //
                                   mt(mp(8, 1), {})}), //
                     mt(mp(2, 1), {mt(mp(8, 0), {}),   //
                                   mt(mp(8, 1), {})})});
   int site_level = 3;
-  BOOST_TEST(*truncate_tree(max_idx_tree, site_level) == *exptree);
+  BOOST_TEST(*truncate_tree(nalloc_children_tree, site_level) == *exptree);
 }
 BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_size, LessSimple1D) {
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };

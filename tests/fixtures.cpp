@@ -51,6 +51,34 @@ Part4DF::Part4DF()
       bulk_sites(get_bulk_sites42()),                                //
       border_sites(get_border_sites42()) {}
 
+Part4DFWLocal::Part4DFWLocal()
+    : sp{{42, Parity::EVEN}, //
+         {42, Parity::EVEN}, //
+         {42, Parity::EVEN}, //
+         {42, Parity::EVEN}, //
+         {9, Parity::NONE},  //
+    },
+      partitioners{QPeriodic("MPI X", X, 4),                         //
+                   QPeriodic("MPI Y", Y, 4),                         //
+                   QPeriodic("MPI Z", Z, 4),                         //
+                   QPeriodic("MPI T", T, 4),                         //
+                   QOpen("Vector X", X, 2),                          //
+                   QOpen("Vector Y", Y, 2),                          //
+                   QOpen("Vector Z", Z, 2),                          //
+                   QOpen("Vector T", T, 2),                          //
+                   HBB("Halo X", X, 1),                              //
+                   HBB("Halo Y", Y, 1),                              //
+                   HBB("Halo Z", Z, 1),                              //
+                   HBB("Halo T", T, 1),                              //
+                   partitioners::EO("EO", {true, true, true, true, false}), //
+                   Plain("Local",     LOCAL),                        //
+                   Plain("Remainder", EXTRA),                        //
+                   partitioners::Site()},                            //
+      treeBuilder(),                                                 //
+      t(treeBuilder(sp, partitioners)),                              //
+      bulk_sites(get_bulk_sites42()),                                //
+      border_sites(get_border_sites42()) {}
+
 Part1D42::Part1D42()
     : sp{{42, Parity::EVEN}},
       partitioners{

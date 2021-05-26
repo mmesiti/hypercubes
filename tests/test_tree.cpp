@@ -156,18 +156,18 @@ BOOST_AUTO_TEST_CASE(test_ziptree) {
   BOOST_TEST(check);
 }
 
+std::string arbitrary_transform(int i) {
+  std::stringstream ss;
+  ss << "N: ";
+  ss << i * 3;
+  return ss.str();
+}
+
 BOOST_AUTO_TEST_CASE(test_nodemap) {
 
   TreeP<int> t = mt(1, {mt(2, {}),                     //
                         mt(3, {mt(4, {}), mt(5, {})}), //
                         mt(6, {mt(7, {mt(8, {})})})});
-
-  std::function<std::string(int)> f = [](int i) {
-    std::stringstream ss;
-    ss << "N: ";
-    ss << i * 3;
-    return ss.str();
-  };
 
   auto s = [](const char *st) { return std::string(st); };
   auto expt =
@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE(test_nodemap) {
                      mt(s("N: 9"), {mt(s("N: 12"), {}), mt(s("N: 15"), {})}), //
                      mt(s("N: 18"), {mt(s("N: 21"), {mt(s("N: 24"), {})})})});
 
-  auto newt = nodemap(t, f);
+  auto newt = nodemap<int, std::string, arbitrary_transform>(t); //, f);
   BOOST_TEST(*expt == *newt);
 }
 

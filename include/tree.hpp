@@ -1,5 +1,6 @@
 #ifndef TREE_H_
 #define TREE_H_
+#include "memoisation.hpp"
 #include "print_utils.hpp"
 #include "utils.hpp"
 #include <algorithm>
@@ -140,13 +141,18 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
   }
 }
 
+namespace truncate_tree_detail {
+
 // TODO: Consider memoization.
 template <class Node>
-TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level) {
+TreeP<Node> base(                                              //
+    std::function<TreeP<Node>(const TreeP<Node> &, int)> frec, //
+    const TreeP<Node> &tree,                                   //
+    int level) {
   if (level > 1) {
-    auto children = vtransform(tree->children,                       //
-                               [level](TreeP<Node> c) {              //
-                                 return truncate_tree(c, level - 1); //
+    auto children = vtransform(tree->children,                 //
+                               [level, &frec](TreeP<Node> c) { //
+                                 return frec(c, level - 1);    //
                                });
     return mt(tree->n, children);
 
@@ -156,18 +162,90 @@ TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level) {
     return TreeP<Node>(nullptr);
 }
 
-template <class Node> vector<Node> get_leaves_list(const TreeP<Node> &tree) {
+template <class Node>
+class _Memoiser : public Memoiser<TreeP<Node>, TreeP<Node>, int> {
+public:
+  _Memoiser() : Memoiser<TreeP<Node>, TreeP<Node>, int>(base<Node>){};
+};
+
+template <class Node> TreeP<Node> memoised(const TreeP<Node> &tree, int level) {
+  _Memoiser<Node> m;
+  return m(tree, level);
+}
+
+} // namespace truncate_tree_detail
+
+template <class Node>
+TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level,
+                          bool memoised = false) {
+  if (memoised) {
+    return truncate_tree_detail::memoised(tree, level);
+  } else {
+    if (level > 1) {
+      auto children = vtransform(tree->children,                       //
+                                 [level](TreeP<Node> c) {              //
+                                   return truncate_tree(c, level - 1); //
+                                 });
+      return mt(tree->n, children);
+
+    } else if (level == 1) {
+      return mt(tree->n, {});
+    } else
+      return TreeP<Node>(nullptr);
+  }
+};
+
+namespace get_leaves_list_detail {
+
+template <class Node>
+vector<Node> base(                                         //
+    std::function<vector<Node>(const TreeP<Node> &)> frec, //
+    const TreeP<Node> &tree) {
   vector<Node> res;
   if (tree->children.size() == 0)
     res.push_back(tree->n);
   else
     for (const auto &c : tree->children) {
-      vector<Node> child_leaves = get_leaves_list(c);
+      vector<Node> child_leaves = frec(c);
       std::copy(child_leaves.begin(), //
                 child_leaves.end(),   //
                 std::back_inserter(res));
     }
   return res;
+}
+
+template <class Node>
+class _Memoiser : public Memoiser<vector<Node>, TreeP<Node>> {
+public:
+  _Memoiser() : Memoiser<vector<Node>, TreeP<Node>>(base<Node>){};
+};
+
+template <class Node> vector<Node> memoised(const TreeP<Node> &tree) {
+  _Memoiser<Node> m;
+  return m(tree);
+}
+
+} // namespace get_leaves_list_detail
+
+template <class Node>
+vector<Node> get_leaves_list(const TreeP<Node> &tree, bool memoised = false) {
+  if (memoised) {
+    return get_leaves_list_detail::memoised(tree);
+
+  } else {
+
+    vector<Node> res;
+    if (tree->children.size() == 0)
+      res.push_back(tree->n);
+    else
+      for (const auto &c : tree->children) {
+        vector<Node> child_leaves = get_leaves_list(c);
+        std::copy(child_leaves.begin(), //
+                  child_leaves.end(),   //
+                  std::back_inserter(res));
+      }
+    return res;
+  }
 }
 
 template <class Node, class... Nodes>
@@ -181,23 +259,55 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(const TreeP<Node> &t,
   return mt(n, children);
 }
 
-// TODO: consider memoization.
-template <class Node, class NewNode>
-TreeP<NewNode> nodemap(const TreeP<Node> &t, std::function<NewNode(Node)> f) {
-  // NOTE: here resmap could be passed between calls.
+namespace nodemap_detail {
+
+template <class Node, class NewNode, NewNode (*f)(Node)>
+TreeP<NewNode> base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
+                    const TreeP<Node> &t) {
   std::map<TreeP<Node>, TreeP<NewNode>> resmap;
 
   vector<TreeP<NewNode>> children =
       vtransform(t->children, //
-                 [&f, &resmap](const TreeP<Node> &c) {
+                 [&resmap, &frec](const TreeP<Node> &c) {
                    if (resmap.find(c) == resmap.end())
-                     resmap[c] = nodemap(c, f);
+                     resmap[c] = frec(c);
                    return resmap[c];
                  });
   return mt(f(t->n), children);
 }
 
-// TODO: consider memoization.
+template <class Node, class NewNode, NewNode (*f)(Node)>
+class _Memoiser : public Memoiser<TreeP<NewNode>, TreeP<Node>> {
+public:
+  _Memoiser() : Memoiser<TreeP<NewNode>, TreeP<Node>>(base<Node, NewNode, f>){};
+};
+
+template <class Node, class NewNode, NewNode (*f)(Node)>
+TreeP<NewNode> memoised(const TreeP<Node> &t) {
+  _Memoiser<Node, NewNode, f> m;
+  return m(t);
+}
+
+} // namespace nodemap_detail
+template <class Node, class NewNode, NewNode (*f)(Node)>
+TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = true) {
+  if (memoised) {
+    return nodemap_detail::memoised<Node, NewNode, f>(t);
+  } else {
+    // NOTE: here resmap could be passed between calls.
+    std::map<TreeP<Node>, TreeP<NewNode>> resmap;
+
+    vector<TreeP<NewNode>> children =
+        vtransform(t->children, //
+                   [&resmap](const TreeP<Node> &c) {
+                     if (resmap.find(c) == resmap.end())
+                       resmap[c] = nodemap<Node, NewNode, f>(c);
+                     return resmap[c];
+                   });
+    return mt(f(t->n), children);
+  }
+}
+
 template <class Node>
 TreeP<Node> filternode(const TreeP<Node> &t,
                        std::function<bool(Node)> predicate) {
@@ -209,7 +319,6 @@ TreeP<Node> filternode(const TreeP<Node> &t,
   return mt(f(t->n), children);
 }
 
-// TODO: consider memoization.
 template <class Node, class F>
 TreeP<Node>                              //
 _collapse_level(const TreeP<Node> &tree, //
@@ -233,6 +342,7 @@ _collapse_level(const TreeP<Node> &tree, //
   }
 }
 
+// TODO: consider memoization.
 template <class Node>
 TreeP<Node>                             //
 collapse_level(const TreeP<Node> &tree, //
@@ -253,7 +363,7 @@ TreeP<Node> _bring_level_on_top(const TreeP<Node> &tree,              //
                                 F3 fix_tree_from_other_features,      //
                                 F4 create_top_node) {
   /* Example:
-   * bring_level_on_top(t,1)
+   * _bring_level_on_top(t,1,...)
    *      a                b
    *    /   \           /  |  \
    *   b     b    ->   a   a   a
@@ -331,7 +441,6 @@ TreeP<Node> _swap_levels(const TreeP<Node> &tree,
                          F fix_new_tree) {
 
   using TreeP = TreeP<Node>;
-  // auto fix_new_tree = [](auto new_tree, auto tree) { return new_tree; };
   if (new_level_ordering.size() == 0)
     return tree;
 
@@ -354,8 +463,8 @@ TreeP<Node> _swap_levels(const TreeP<Node> &tree,
 
   vector<TreeP> new_children =
       vtransform(new_tree_transformed->children, //
-                 [&sub_new_level_ordering](const TreeP &c) {
-                   return swap_levels(c, sub_new_level_ordering);
+                 [&sub_new_level_ordering, &fix_new_tree](const TreeP &c) {
+                   return _swap_levels(c, sub_new_level_ordering, fix_new_tree);
                  });
   return mt(new_tree_transformed->n, new_children);
 }
@@ -364,9 +473,9 @@ template <class Node>
 TreeP<Node>                          //
 swap_levels(const TreeP<Node> &tree, //
             const vector<int> &new_level_ordering) {
-  auto id = [](const TreeP<Node> &new_tree, //
-               const TreeP<Node> &parent_tree) { return new_tree; };
-  return _swap_levels(tree, new_level_ordering, id);
+  auto no_changes = [](const TreeP<Node> &new_tree, //
+                       const TreeP<Node> &parent_tree) { return new_tree; };
+  return _swap_levels(tree, new_level_ordering, no_changes);
 }
 
 template <class Node> vector<Node> first_nodes_list(const TreeP<Node> &tree) {
