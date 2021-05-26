@@ -329,4 +329,18 @@ BOOST_AUTO_TEST_CASE(test_depth_first_flatten) {
   BOOST_TEST(dfflat_expected == dfflat);
 }
 
+bool predicate(int i) { return i > 1; }
+
+BOOST_AUTO_TEST_CASE(test_filter_node) {
+
+  auto tfull = mt(3, {mt(2, {mt(3, {mt(0, {}),     //
+                                    mt(6, {})})}), //
+                      mt(1, {mt(2, {mt(0, {}),     //
+                                    mt(8, {})})})});
+
+  auto expt = mt(3, {mt(2, {mt(3, {mt(6, {})})})});
+  auto t = filternode<int, predicate>(tfull);
+  BOOST_TEST(*t == *expt);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

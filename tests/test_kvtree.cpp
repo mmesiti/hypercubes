@@ -1,6 +1,7 @@
 
 #include "kvtree.hpp"
 #include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_suite.hpp>
 
 using namespace hypercubes::slow;
 BOOST_AUTO_TEST_SUITE(test_tree_kv)
@@ -65,6 +66,41 @@ BOOST_AUTO_TEST_CASE(test_swap_levels_kv) {
   auto newt = swap_levels(t, new_level_ordering);
 
   BOOST_TEST(*newt == *newt_exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_number_children) {
+  auto tnoidx = mt(1, {mt(2, {mt(3, {mt(5, {}),     //
+                                     mt(6, {})})}), //
+                       mt(4, {mt(3, {mt(7, {}),     //
+                                     mt(8, {})})})});
+
+  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
+  auto expt = mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
+                                                        mt(mp(1, 6), {})})}), //
+                            mt(mp(1, 4), {mt(mp(0, 3), {mt(mp(0, 7), {}),     //
+                                                        mt(mp(1, 8), {})})})});
+
+  auto t = number_children(tnoidx);
+  BOOST_TEST(*expt == *t);
+}
+
+BOOST_AUTO_TEST_CASE(test_prune_tree) {
+
+  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
+  auto tfull =
+      mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
+                                                mt(mp(1, 6), {})})}), //
+                    mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
+                                                 mt(mp(1, 8), {})})})});
+
+  auto predicate = [](vector<int> idxs) {
+    return idxs.size() < 2 or idxs[1] == 1;
+  };
+  auto expt = mt(mp(0, 1), {mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}), //
+                                                         mt(mp(1, 8), {})})})});
+
+  auto t = prune_tree(tfull, predicate);
+  BOOST_TEST(*t == *expt);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

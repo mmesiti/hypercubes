@@ -1,4 +1,5 @@
 #include "partition_tree_allocations.hpp"
+#include "kvtree.hpp"
 #include "utils.hpp"
 #include <memory>
 namespace hypercubes {
@@ -45,6 +46,23 @@ get_nchildren_alloc_tree(const PartitionTree &t,
   return _get_max_idx_tree(t, {0}, _get_max_idx_tree);
 }
 
+namespace get_nchildren_alloc_tree_detail {
+bool nonzero(std::pair<int, int> node) { return node.second > 0; };
+
+} // namespace get_nchildren_alloc_tree_detail
+
+TreeP<std::pair<int, int>>
+get_nchildren_alloc_tree2(const PartitionTree &t,
+                          std::function<bool(Indices)> predicate) {
+
+  auto max_idx_tree = get_max_idx_tree(t);
+  auto max_idx_tree_kv = number_children(max_idx_tree);
+  auto max_idx_tree_pruned = prune_tree(max_idx_tree_kv, predicate);
+  auto max_idx_tree_nozeros =
+      filternode<std::pair<int, int>, get_nchildren_alloc_tree_detail::nonzero>(
+          max_idx_tree_pruned);
+  return max_idx_tree_nozeros;
+}
 TreeP<std::pair<int, int>>
 get_nchildren_alloc_tree(const PartitionTree &t, PartitionPredicate predicate) {
 

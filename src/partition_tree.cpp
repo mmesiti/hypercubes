@@ -8,10 +8,12 @@
 namespace hypercubes {
 namespace slow {
 
-PartitionTree build_partition_tree_base(
-    std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
-    SizeParityD spd,                                                  //
-    const PartList &partitioners) {
+namespace get_partition_tree_detail {
+
+PartitionTree
+base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
+     SizeParityD spd,                                                  //
+     const PartList &partitioners) {
   PartList other_partitioners;
   std::copy(partitioners.begin() + 1, partitioners.end(),
             std::back_inserter(other_partitioners));
@@ -27,11 +29,24 @@ PartitionTree build_partition_tree_base(
     }
   }
   return mt(n, children);
+}
+
+class _Memoiser : public Memoiser<PartitionTree, SizeParityD, PartList> {
+public:
+  _Memoiser() : Memoiser<PartitionTree, SizeParityD, PartList>(base) {}
 };
 
-PTBuilder::PTBuilder()
-    : Memoiser<PartitionTree, SizeParityD, PartList>(
-          build_partition_tree_base) {}
+PartitionTree memoised(SizeParityD spd, const PartList &partitioners) {
+  _Memoiser m;
+  return m(spd, partitioners);
+}
+
+} // namespace get_partition_tree_detail
+
+PartitionTree get_partition_tree(SizeParityD spd,
+                                 const PartList &partitioners) {
+  return get_partition_tree_detail::memoised(spd, partitioners);
+}
 
 std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
                             int max_level) {

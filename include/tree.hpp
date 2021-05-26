@@ -290,7 +290,7 @@ TreeP<NewNode> memoised(const TreeP<Node> &t) {
 
 } // namespace nodemap_detail
 template <class Node, class NewNode, NewNode (*f)(Node)>
-TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = true) {
+TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = false) {
   if (memoised) {
     return nodemap_detail::memoised<Node, NewNode, f>(t);
   } else {
@@ -308,15 +308,20 @@ TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = true) {
   }
 }
 
-template <class Node>
-TreeP<Node> filternode(const TreeP<Node> &t,
-                       std::function<bool(Node)> predicate) {
+// TODO: consider memoisation
+template <class Node, bool (*predicate)(Node)>
+TreeP<Node> filternode(const TreeP<Node> &t) {
 
-  vector<TreeP<Node>> children;
+  vector<TreeP<Node>> selected_children;
   std::copy_if(t->children.begin(), t->children.end(), //
-               std::back_inserter(children),           //
-               predicate);
-  return mt(f(t->n), children);
+               std::back_inserter(selected_children),  //
+               [](const TreeP<Node> &c) { return predicate(c->n); });
+
+  vector<TreeP<Node>> pruned_children =
+      vtransform(selected_children, [](const TreeP<Node> &c) {
+        return filternode<Node, predicate>(c);
+      });
+  return mt(t->n, pruned_children);
 }
 
 template <class Node, class F>

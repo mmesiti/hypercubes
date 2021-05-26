@@ -25,7 +25,6 @@ struct Part4DF {
   enum { X, Y, Z, T, EXTRA };
   SizeParityD sp;
   PartList partitioners;
-  PTBuilder treeBuilder;
   PartitionTree t;
   std::vector<int> bulk_sites;
   std::vector<int> border_sites;
@@ -38,7 +37,6 @@ struct Part4DFWLocal {
   enum { X, Y, Z, T, LOCAL, EXTRA };
   SizeParityD sp;
   PartList partitioners;
-  PTBuilder treeBuilder;
   PartitionTree t;
   std::vector<int> bulk_sites;
   std::vector<int> border_sites;
@@ -51,7 +49,6 @@ struct Part1D42 {
   enum { X, EXTRA };
   SizeParityD sp;
   PartList partitioners;
-  PTBuilder treeBuilder;
   PartitionTree t;
   std::vector<int> bulk_sites;
   std::vector<int> border_sites;

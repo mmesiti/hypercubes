@@ -82,11 +82,32 @@ TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree) {
       vtransform(tree->children, //
                  [&ichild](auto c) {
                    ResType new_child = number_children(c);
-                   Node new_root = std::make_pair(ichild, //
+                   Node new_root = std::make_pair(ichild++, //
                                                   new_child->n.second);
                    return mt(new_root, new_child->children);
                  });
   return mt(new_root, new_children);
+}
+
+// TODO: consider memoisation
+template <class Node>
+TreeP<std::pair<int, Node>>
+prune_tree(const TreeP<std::pair<int, Node>> &t,
+           std::function<bool(vector<int>)> predicate) {
+  using Tree = TreeP<std::pair<int, Node>>;
+  using Indices = vector<int>;
+  auto _prune_tree = [&predicate](const Tree &t, const Indices &top_idxs,
+                                  auto &f) -> Tree {
+    vector<Tree> children;
+    Indices predicate_idxs = tail(top_idxs);
+    for (int idx = 0; idx < t->children.size(); ++idx) {
+      Indices new_idxs = append(top_idxs, idx);
+      if (predicate(new_idxs))
+        children.push_back(f(t->children[idx], new_idxs, f));
+    }
+    return mt(t->n, children);
+  };
+  return _prune_tree(t, {0}, _prune_tree);
 }
 
 } // namespace slow

@@ -12,16 +12,7 @@ namespace slow {
 using partitioners::PartList;
 using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
 
-PartitionTree build_partition_tree_base(
-    std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
-    SizeParityD spd,                                                  //
-    const PartList &partitioners);
-
-class PTBuilder : public Memoiser<PartitionTree, SizeParityD, PartList> {
-public:
-  PTBuilder();
-};
-
+PartitionTree get_partition_tree(SizeParityD spd, const PartList &partitioners);
 /**
  * Does not print "Sites"
  * */
