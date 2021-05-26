@@ -128,8 +128,9 @@ BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
   SizeParityD spd{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(spd, partitioners);
 
-  TreeP<std::pair<int, int>> sizetree = get_size_tree(
-      get_nchildren_alloc_tree(t, get_NmD_halo_predicate(partitioners, 0)));
+  auto nct =
+      get_nchildren_alloc_tree(t, get_NmD_halo_predicate(partitioners, 0));
+  TreeP<std::pair<int, int>> sizetree = get_size_tree(nct);
 
   // no copies
   int exp_size = 42;

@@ -6,8 +6,8 @@ namespace hypercubes {
 namespace slow {
 
 TreeP<std::pair<int, int>>
-get_nchildren_alloc_tree(const PartitionTree &t,
-                         std::function<bool(Indices)> predicate) {
+get_nchildren_alloc_tree1(const PartitionTree &t,
+                          std::function<bool(Indices)> predicate) {
 
   using ResType = TreeP<std::pair<int, int>>;
 
@@ -22,8 +22,8 @@ get_nchildren_alloc_tree(const PartitionTree &t,
     auto children = pct->children;
     vector<ResType> children_results;
     int n_allocated_children = 0;
+    Indices predicate_idxs = tail(top_idxs);
     if (children.size() != 0) {
-      Indices predicate_idxs = tail(top_idxs);
       if (predicate(predicate_idxs)) {
         for (int idx = 0; idx < partition_class->max_idx_value(); ++idx) {
           auto new_pc = children[idx];
@@ -51,10 +51,9 @@ bool nonzero(std::pair<int, int> node) { return node.second > 0; };
 
 } // namespace get_nchildren_alloc_tree_detail
 
-// CURRENTLY NOT PASSING TESTS
 TreeP<std::pair<int, int>>
-get_nchildren_alloc_tree2(const PartitionTree &t,
-                          std::function<bool(Indices)> predicate) {
+get_nchildren_alloc_tree(const PartitionTree &t,
+                         std::function<bool(Indices)> predicate) {
 
   auto max_idx_tree = get_max_idx_tree(t, true);
   auto max_idx_tree_kv = number_children(max_idx_tree, true);

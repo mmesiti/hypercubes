@@ -94,6 +94,10 @@ Out<Value> base(                                          //
   return mt(new_root, new_children);
 }
 
+template <class Value> Out<Value> nomemo(const TreeP<Value> &tree) {
+  return base<Value>(nomemo<Value>, tree);
+}
+
 template <class Value>
 class _Memoiser : public Memoiser<Out<Value>, TreeP<Value>> {
 public:
@@ -108,24 +112,11 @@ template <class Value> Out<Value> memoised(const TreeP<Value> &tree) {
 } // namespace number_children_detail
 template <class Value>
 TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree,
-                                             bool memoised = true) {
+                                             bool memoised = false) {
   if (memoised) {
     return number_children_detail::memoised(tree);
   } else {
-    using Node = std::pair<int, Value>;
-    using ResType = TreeP<Node>;
-
-    Node new_root = std::make_pair(0, tree->n);
-    int ichild = 0;
-    vector<ResType> new_children =
-        vtransform(tree->children, //
-                   [&ichild](auto c) {
-                     ResType new_child = number_children(c);
-                     Node new_root = std::make_pair(ichild++, //
-                                                    new_child->n.second);
-                     return mt(new_root, new_child->children);
-                   });
-    return mt(new_root, new_children);
+    return number_children_detail::nomemo(tree);
   }
 }
 
@@ -141,13 +132,24 @@ Tree<Value> base_wp(
     const Indices &top_idxs,                                               //
     Predicate predicate) {
   vector<Tree<Value>> children;
-  Indices predicate_idxs = tail(top_idxs);
   for (int idx = 0; idx < t->children.size(); ++idx) {
     Indices new_idxs = append(top_idxs, idx);
-    if (predicate(new_idxs))
+    if (predicate(tail(new_idxs)))
       children.push_back(frec(t->children[idx], new_idxs));
   }
   return mt(t->n, children);
+}
+
+template <class Value>
+Tree<Value> nomemo(const Tree<Value> &t,    //
+                   const Indices &top_idxs, //
+                   Predicate predicate) {
+
+  return base_wp<Value>(
+      [&predicate](auto tree, auto top_idxs) -> Tree<Value> {
+        return nomemo<Value>(tree, top_idxs, predicate);
+      },
+      t, top_idxs, predicate);
 }
 
 template <class Value>
@@ -166,7 +168,6 @@ public:
 template <class Value>
 Tree<Value> memoised(const Tree<Value> &tree, const Indices &top_idxs,
                      Predicate predicate) {
-
   _Memoiser<Value> m(predicate);
   return m(tree, top_idxs);
 }
@@ -175,24 +176,11 @@ Tree<Value> memoised(const Tree<Value> &tree, const Indices &top_idxs,
 template <class Value>
 TreeP<std::pair<int, Value>>
 prune_tree(const TreeP<std::pair<int, Value>> &t,
-           std::function<bool(vector<int>)> predicate, bool memoised = true) {
+           std::function<bool(vector<int>)> predicate, bool memoised = false) {
   if (memoised) {
     return prune_tree_details::memoised(t, {0}, predicate);
   } else {
-    using Tree = TreeP<std::pair<int, Value>>;
-    using Indices = vector<int>;
-    auto _prune_tree = [&predicate](const Tree &t, const Indices &top_idxs,
-                                    auto &f) -> Tree {
-      vector<Tree> children;
-      Indices predicate_idxs = tail(top_idxs);
-      for (int idx = 0; idx < t->children.size(); ++idx) {
-        Indices new_idxs = append(top_idxs, idx);
-        if (predicate(new_idxs))
-          children.push_back(f(t->children[idx], new_idxs, f));
-      }
-      return mt(t->n, children);
-    };
-    return _prune_tree(t, {0}, _prune_tree);
+    return prune_tree_details::nomemo(t, {0}, predicate);
   }
 }
 

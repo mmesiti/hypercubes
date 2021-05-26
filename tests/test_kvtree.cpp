@@ -94,12 +94,12 @@ BOOST_AUTO_TEST_CASE(test_prune_tree) {
                                                  mt(mp(1, 8), {})})})});
 
   auto predicate = [](vector<int> idxs) {
-    return idxs.size() < 2 or idxs[1] == 1;
+    return idxs.size() < 1 or idxs[0] == 1;
   };
   auto expt = mt(mp(0, 1), {mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}), //
                                                          mt(mp(1, 8), {})})})});
 
-  auto t = prune_tree(tfull, predicate);
+  auto t = prune_tree(tfull, predicate, false);
   BOOST_TEST(*t == *expt);
 }
 
