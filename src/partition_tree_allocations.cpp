@@ -51,13 +51,14 @@ bool nonzero(std::pair<int, int> node) { return node.second > 0; };
 
 } // namespace get_nchildren_alloc_tree_detail
 
+// CURRENTLY NOT PASSING TESTS
 TreeP<std::pair<int, int>>
 get_nchildren_alloc_tree2(const PartitionTree &t,
                           std::function<bool(Indices)> predicate) {
 
-  auto max_idx_tree = get_max_idx_tree(t);
-  auto max_idx_tree_kv = number_children(max_idx_tree);
-  auto max_idx_tree_pruned = prune_tree(max_idx_tree_kv, predicate);
+  auto max_idx_tree = get_max_idx_tree(t, true);
+  auto max_idx_tree_kv = number_children(max_idx_tree, true);
+  auto max_idx_tree_pruned = prune_tree(max_idx_tree_kv, predicate, true);
   auto max_idx_tree_nozeros =
       filternode<std::pair<int, int>, get_nchildren_alloc_tree_detail::nonzero>(
           max_idx_tree_pruned);

@@ -46,7 +46,7 @@ Coordinates get_coord_from_idx(const PartitionTree &t, //
 
 Sizes get_sizes_from_idx(const PartitionTree &t, const Indices &idx);
 
-TreeP<int> get_max_idx_tree(const PartitionTree &t);
+TreeP<int> get_max_idx_tree(const PartitionTree &t, bool memoised = false);
 
 bool validate_idx(const PartitionTree &t, const Indices &idx);
 
