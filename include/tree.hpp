@@ -143,7 +143,6 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
 
 namespace truncate_tree_detail {
 
-// TODO: Consider memoization.
 template <class Node>
 TreeP<Node> base(                                              //
     std::function<TreeP<Node>(const TreeP<Node> &, int)> frec, //
