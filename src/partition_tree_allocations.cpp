@@ -11,7 +11,7 @@ get_nchildren_alloc_tree(const PartitionTree &t,
 
   using ResType = TreeP<std::pair<int, int>>;
 
-  auto get_n_alloc_children = [](ResType t) { return t->n.first; };
+  auto get_n_alloc_children = [](ResType t) { return t->n.second; };
 
   // TODO: merge with get_max_idx_tree
   auto _get_max_idx_tree = [&predicate, //
@@ -38,8 +38,8 @@ get_nchildren_alloc_tree(const PartitionTree &t,
       n_allocated_children = partition_class->max_idx_value();
 
     int idx_in_full_tree = *top_idxs.rbegin();
-    auto subn = std::make_pair(n_allocated_children, //
-                               idx_in_full_tree);
+    auto subn = std::make_pair(idx_in_full_tree, //
+                               n_allocated_children);
     return mt(subn, children_results);
   };
 
@@ -77,8 +77,8 @@ get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
 
   using InOutType = TreeP<std::pair<int, int>>;
 
-  auto getsize = [](InOutType t) { return t->n.first; };
-  auto getidx = [](InOutType t) { return t->n.second; };
+  auto getsize = [](InOutType t) { return t->n.second; };
+  auto getidx = [](InOutType t) { return t->n.first; };
 
   auto _get_size_tree = [&getsize, &getidx](const InOutType &max_idx_tree,
                                             auto &f) -> InOutType {
@@ -96,10 +96,10 @@ get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
       for (const auto &c : children_results)
         nodesize += getsize(c);
     } else
-      nodesize = max_alloc_and_idx.first;
+      nodesize = max_alloc_and_idx.second;
 
-    auto subn = std::make_pair(nodesize, //
-                               max_alloc_and_idx.second);
+    auto subn = std::make_pair(max_alloc_and_idx.first, //
+                               nodesize);
     return mt(subn, children_results);
   };
 
@@ -119,9 +119,9 @@ get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {
     int _idx_so_far = start;
     for (const auto &child : st->children) {
       children_results.push_back(_get_start_tree(child, _idx_so_far));
-      _idx_so_far += child->n.first;
+      _idx_so_far += child->n.second;
     }
-    return mt(std::make_pair(start, st->n.second), children_results);
+    return mt(std::make_pair(st->n.first, start), children_results);
   };
   return _get_start_tree(size_tree, 0);
 }

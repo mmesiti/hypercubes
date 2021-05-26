@@ -14,10 +14,10 @@ struct SimpleSizeTree {
   std::pair<int, int> mp(int a, int b) { return std::make_pair(a, b); }
   TreeP<std::pair<int, int>> tree;
   SimpleSizeTree()
-      : tree(mt(mp(32, 0), {mt(mp(16, 0), {mt(mp(8, 0), {}),   //
-                                           mt(mp(8, 1), {})}), //
-                            mt(mp(16, 1), {mt(mp(8, 0), {}),   //
-                                           mt(mp(8, 1), {})})})){};
+      : tree(mt(mp(0, 32), {mt(mp(0, 16), {mt(mp(0, 8), {}),   //
+                                           mt(mp(1, 8), {})}), //
+                            mt(mp(1, 16), {mt(mp(0, 8), {}),   //
+                                           mt(mp(1, 8), {})})})){};
 };
 
 BOOST_AUTO_TEST_SUITE(test_size_tree_iterator)
@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
     std::tie(i, idx) = haloonly1D[isite];
     std::tie(ip, idxp) = haloonly1D[isite + 1];
 
-    BOOST_TEST(no_sites->n.first == 16);
+    BOOST_TEST(no_sites->n.second == 16);
     BOOST_TEST(next(no_sites, idx) == idxp);
     ++isite;
   };
