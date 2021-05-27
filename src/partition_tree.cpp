@@ -31,28 +31,19 @@ base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
   return mt(n, children);
 }
 
-PartitionTree nomemo(SizeParityD spd, const PartList &partitioners) {
-  return base(nomemo, spd, partitioners);
-}
-
-class _Memoiser : public Memoiser<PartitionTree, SizeParityD, PartList> {
+class Memo : public Memoiser<PartitionTree, SizeParityD, PartList> {
 public:
-  _Memoiser() : Memoiser<PartitionTree, SizeParityD, PartList>(base) {}
+  Memo() : Memoiser<PartitionTree, SizeParityD, PartList>(base) {}
 };
-
-PartitionTree memoised(SizeParityD spd, const PartList &partitioners) {
-  _Memoiser m;
-  return m(spd, partitioners);
-}
 
 } // namespace get_partition_tree_detail
 
 PartitionTree get_partition_tree(SizeParityD spd, const PartList &partitioners,
                                  bool memoised) {
   if (memoised)
-    return get_partition_tree_detail::memoised(spd, partitioners);
+    return get_partition_tree_detail::Memo().memoised(spd, partitioners);
   else
-    return get_partition_tree_detail::nomemo(spd, partitioners);
+    return get_partition_tree_detail::Memo().nomemo(spd, partitioners);
 }
 
 std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,

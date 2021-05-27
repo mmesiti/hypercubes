@@ -129,3 +129,14 @@ which is undesirable.
 It is possible to force the templates to be instantiated
 in some source files instead.
 This might be worth investigating.
+
+* Memoisation
+ Many of the algorithm in the ~tree.hpp~ library use [[https://en.wikipedia.org/wiki/Memoization][memoisation]]
+ to avoid the time and memory penalties of tree recursion.
+ The saving happen mostly because **pointers** are used
+ to represent tree nodes,
+ and such pointers are used as key in the memoisation map.
+ This allows to detect easily
+ if a given node has been processed
+ and if so, to retrieve the result
+ of the function call on that pointer.

@@ -102,9 +102,9 @@ template <class Value>
 TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree,
                                              bool memoised = false) {
   if (memoised) {
-    return number_children_detail::memoised(tree);
+    return number_children_detail::Memo<Value>().memoised(tree);
   } else {
-    return number_children_detail::nomemo(tree);
+    return number_children_detail::Memo<Value>().nomemo(tree);
   }
 }
 
@@ -135,9 +135,9 @@ TreeP<std::pair<int, Value>>
 prune_tree(const TreeP<std::pair<int, Value>> &t,
            std::function<bool(vector<int>)> predicate, bool memoised = false) {
   if (memoised) {
-    return prune_tree_details::memoised(t, {0}, predicate);
+    return prune_tree_details::Memo<Value>(predicate).memoised(t, {0});
   } else {
-    return prune_tree_details::nomemo(t, {0}, predicate);
+    return prune_tree_details::Memo<Value>(predicate).nomemo(t, {0});
   }
 }
 

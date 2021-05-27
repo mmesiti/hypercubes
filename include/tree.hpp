@@ -111,9 +111,9 @@ template <class Node>
 TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level,
                           bool memoised = false) {
   if (memoised) {
-    return truncate_tree_detail::memoised(tree, level);
+    return truncate_tree_detail::Memo<Node>().memoised(tree, level);
   } else {
-    return truncate_tree_detail::nomemo(tree, level);
+    return truncate_tree_detail::Memo<Node>().nomemo(tree, level);
   }
 };
 
@@ -137,9 +137,9 @@ vector<Node> get_leaves_list_detail::base(                 //
 template <class Node>
 vector<Node> get_leaves_list(const TreeP<Node> &tree, bool memoised = false) {
   if (memoised) {
-    return get_leaves_list_detail::memoised(tree);
+    return get_leaves_list_detail::Memo<Node>().memoised(tree);
   } else {
-    return get_leaves_list_detail::nomemo(tree);
+    return get_leaves_list_detail::Memo<Node>().nomemo(tree);
   }
 }
 
@@ -174,9 +174,9 @@ nodemap_detail::base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
 template <class Node, class NewNode, NewNode (*f)(Node)>
 TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = false) {
   if (memoised) {
-    return nodemap_detail::memoised<Node, NewNode, f>(t);
+    return nodemap_detail::Memo<Node, NewNode, f>().memoised(t);
   } else {
-    return nodemap_detail::nomemo<Node, NewNode, f>(t);
+    return nodemap_detail::Memo<Node, NewNode, f>().nomemo(t);
   }
 }
 
