@@ -6,8 +6,9 @@
 
 namespace hypercubes {
 namespace slow {
+namespace memodetails {
 
-namespace truncate_tree_detail {
+namespace truncate_tree {
 // forward declaration
 template <class Node>
 TreeP<Node> base(                                              //
@@ -22,9 +23,9 @@ public:
   Memo() : Memoiser<TreeP<Node>, TreeP<Node>, int>(base<Node>){};
 };
 
-} // namespace truncate_tree_detail
+} // namespace truncate_tree
 
-namespace get_leaves_list_detail {
+namespace get_leaves_list {
 
 // forward declaration
 template <class Node>
@@ -38,9 +39,9 @@ public:
   Memo() : Memoiser<vector<Node>, TreeP<Node>>(base<Node>){};
 };
 
-} // namespace get_leaves_list_detail
+} // namespace get_leaves_list
 
-namespace nodemap_detail {
+namespace nodemap {
 
 // forward declaration
 template <class Node, class NewNode, NewNode (*f)(Node)>
@@ -55,9 +56,9 @@ public:
   Memo() : Memoiser<TreeP<NewNode>, TreeP<Node>>(base<Node, NewNode, f>){};
 };
 
-} // namespace nodemap_detail
+} // namespace nodemap
 
-namespace number_children_detail {
+namespace number_children {
 
 template <class Value> using Out = TreeP<std::pair<int, Value>>;
 
@@ -73,9 +74,9 @@ public:
   Memo() : Memoiser<Out<Value>, TreeP<Value>>(base<Value>){};
 };
 
-} // namespace number_children_detail
+} // namespace number_children
 
-namespace prune_tree_details {
+namespace prune_tree {
 
 template <class Value> using Tree = TreeP<std::pair<int, Value>>;
 using Predicate = std::function<bool(vector<int>)>;
@@ -103,8 +104,9 @@ public:
               return base_wp<Value>(frec, t, top_idxs, predicate);
             }){};
 };
-} // namespace prune_tree_details
+} // namespace prune_tree
+} // namespace memodetails
 } // namespace slow
 } // namespace hypercubes
 
-#endif // MEMOISATION_DETAILS_H_
+#endif // MEMOISATIONS_H_

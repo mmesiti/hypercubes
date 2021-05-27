@@ -90,7 +90,7 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
 }
 
 template <class Node>
-TreeP<Node> truncate_tree_detail::base(                        //
+TreeP<Node> memodetails::truncate_tree::base(                  //
     std::function<TreeP<Node>(const TreeP<Node> &, int)> frec, //
     const TreeP<Node> &tree,                                   //
     int level) {
@@ -110,15 +110,16 @@ TreeP<Node> truncate_tree_detail::base(                        //
 template <class Node>
 TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level,
                           bool memoised = false) {
+  using namespace memodetails::truncate_tree;
   if (memoised) {
-    return truncate_tree_detail::Memo<Node>().memoised(tree, level);
+    return Memo<Node>().memoised(tree, level);
   } else {
-    return truncate_tree_detail::Memo<Node>().nomemo(tree, level);
+    return Memo<Node>().nomemo(tree, level);
   }
 };
 
 template <class Node>
-vector<Node> get_leaves_list_detail::base(                 //
+vector<Node> memodetails::get_leaves_list::base(           //
     std::function<vector<Node>(const TreeP<Node> &)> frec, //
     const TreeP<Node> &tree) {
   vector<Node> res;
@@ -136,10 +137,11 @@ vector<Node> get_leaves_list_detail::base(                 //
 
 template <class Node>
 vector<Node> get_leaves_list(const TreeP<Node> &tree, bool memoised = false) {
+  using namespace memodetails::get_leaves_list;
   if (memoised) {
-    return get_leaves_list_detail::Memo<Node>().memoised(tree);
+    return Memo<Node>().memoised(tree);
   } else {
-    return get_leaves_list_detail::Memo<Node>().nomemo(tree);
+    return Memo<Node>().nomemo(tree);
   }
 }
 
@@ -155,9 +157,9 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(const TreeP<Node> &t,
 }
 
 template <class Node, class NewNode, NewNode (*f)(Node)>
-TreeP<NewNode>
-nodemap_detail::base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
-                     const TreeP<Node> &t) {
+TreeP<NewNode> memodetails::nodemap::base(
+    std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
+    const TreeP<Node> &t) {
   // NOTE: here resmap could be passed between calls.
   std::map<TreeP<Node>, TreeP<NewNode>> resmap;
 
@@ -173,10 +175,11 @@ nodemap_detail::base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
 
 template <class Node, class NewNode, NewNode (*f)(Node)>
 TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = false) {
+  using namespace memodetails::nodemap;
   if (memoised) {
-    return nodemap_detail::Memo<Node, NewNode, f>().memoised(t);
+    return Memo<Node, NewNode, f>().memoised(t);
   } else {
-    return nodemap_detail::Memo<Node, NewNode, f>().nomemo(t);
+    return Memo<Node, NewNode, f>().nomemo(t);
   }
 }
 

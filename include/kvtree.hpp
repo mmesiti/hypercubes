@@ -73,7 +73,8 @@ swap_levels(const TreeP<std::pair<int, Value>> &tree,
   return _swap_levels(tree, new_level_ordering, fix_new_tree);
 }
 
-namespace number_children_detail {
+namespace memodetails {
+namespace number_children {
 
 template <class Value> using Out = TreeP<std::pair<int, Value>>;
 
@@ -97,18 +98,21 @@ Out<Value> base(                                          //
   return mt(new_root, new_children);
 }
 
-} // namespace number_children_detail
+} // namespace number_children
+} // namespace memodetails
 template <class Value>
 TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree,
                                              bool memoised = false) {
+  using namespace memodetails::number_children;
   if (memoised) {
-    return number_children_detail::Memo<Value>().memoised(tree);
+    return Memo<Value>().memoised(tree);
   } else {
-    return number_children_detail::Memo<Value>().nomemo(tree);
+    return Memo<Value>().nomemo(tree);
   }
 }
 
-namespace prune_tree_details {
+namespace memodetails {
+namespace prune_tree {
 
 template <class Value> using Tree = TreeP<std::pair<int, Value>>;
 using Predicate = std::function<bool(vector<int>)>;
@@ -128,16 +132,18 @@ Tree<Value> base_wp(
   return mt(t->n, children);
 }
 
-} // namespace prune_tree_details
+} // namespace prune_tree
+} // namespace memodetails
 
 template <class Value>
 TreeP<std::pair<int, Value>>
 prune_tree(const TreeP<std::pair<int, Value>> &t,
            std::function<bool(vector<int>)> predicate, bool memoised = false) {
+  using namespace memodetails::prune_tree;
   if (memoised) {
-    return prune_tree_details::Memo<Value>(predicate).memoised(t, {0});
+    return Memo<Value>(predicate).memoised(t, {0});
   } else {
-    return prune_tree_details::Memo<Value>(predicate).nomemo(t, {0});
+    return Memo<Value>(predicate).nomemo(t, {0});
   }
 }
 
