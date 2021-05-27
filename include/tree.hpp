@@ -108,14 +108,14 @@ TreeP<Node> memodetails::truncate_tree::base(                  //
 }
 
 template <class Node>
-TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level,
-                          bool memoised = false) {
+TreeP<Node> truncate_treeM(const TreeP<Node> &tree, int level) {
   using namespace memodetails::truncate_tree;
-  if (memoised) {
-    return Memo<Node>().memoised(tree, level);
-  } else {
-    return Memo<Node>().nomemo(tree, level);
-  }
+  return Memo<Node>().memoised(tree, level);
+}
+template <class Node>
+TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level) {
+  using namespace memodetails::truncate_tree;
+  return Memo<Node>().nomemo(tree, level);
 };
 
 template <class Node>
@@ -135,14 +135,13 @@ vector<Node> memodetails::get_leaves_list::base(           //
   return res;
 }
 
-template <class Node>
-vector<Node> get_leaves_list(const TreeP<Node> &tree, bool memoised = false) {
+template <class Node> vector<Node> get_leaves_listM(const TreeP<Node> &tree) {
   using namespace memodetails::get_leaves_list;
-  if (memoised) {
-    return Memo<Node>().memoised(tree);
-  } else {
-    return Memo<Node>().nomemo(tree);
-  }
+  return Memo<Node>().memoised(tree);
+}
+template <class Node> vector<Node> get_leaves_list(const TreeP<Node> &tree) {
+  using namespace memodetails::get_leaves_list;
+  return Memo<Node>().nomemo(tree);
 }
 
 template <class Node, class... Nodes>
@@ -174,13 +173,15 @@ TreeP<NewNode> memodetails::nodemap::base(
 }
 
 template <class Node, class NewNode, NewNode (*f)(Node)>
-TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = false) {
+TreeP<NewNode> nodemapM(const TreeP<Node> &t) {
   using namespace memodetails::nodemap;
-  if (memoised) {
-    return Memo<Node, NewNode, f>().memoised(t);
-  } else {
-    return Memo<Node, NewNode, f>().nomemo(t);
-  }
+  return Memo<Node, NewNode, f>().memoised(t);
+}
+
+template <class Node, class NewNode, NewNode (*f)(Node)>
+TreeP<NewNode> nodemap(const TreeP<Node> &t) {
+  using namespace memodetails::nodemap;
+  return Memo<Node, NewNode, f>().nomemo(t);
 }
 
 // TODO: consider memoisation

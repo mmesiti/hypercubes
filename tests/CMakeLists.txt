@@ -83,7 +83,8 @@ target_link_libraries(test_level_swap boost_test_helper
                                       fixtures)
 
 add_executable(test_memoisation test_memoisation.cpp)
-
+target_link_libraries(test_memoisation boost_test_helper
+                                       partition_tree)
                                     
 # Adding compile options for coverage for some tests.
 # This is needed because some code exists only as template.

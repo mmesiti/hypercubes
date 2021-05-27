@@ -8,7 +8,8 @@
 namespace hypercubes {
 namespace slow {
 
-namespace get_partition_tree_detail {
+namespace memodetails {
+namespace get_partition_tree {
 
 PartitionTree
 base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
@@ -31,19 +32,18 @@ base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
   return mt(n, children);
 }
 
-class Memo : public Memoiser<PartitionTree, SizeParityD, PartList> {
-public:
-  Memo() : Memoiser<PartitionTree, SizeParityD, PartList>(base) {}
-};
+} // namespace get_partition_tree
+} // namespace memodetails
 
-} // namespace get_partition_tree_detail
-
-PartitionTree get_partition_tree(SizeParityD spd, const PartList &partitioners,
-                                 bool memoised) {
-  if (memoised)
-    return get_partition_tree_detail::Memo().memoised(spd, partitioners);
-  else
-    return get_partition_tree_detail::Memo().nomemo(spd, partitioners);
+PartitionTree get_partition_treeM(SizeParityD spd,
+                                  const PartList &partitioners) {
+  using namespace memodetails::get_partition_tree;
+  return Memo().memoised(spd, partitioners);
+}
+PartitionTree get_partition_tree(SizeParityD spd,
+                                 const PartList &partitioners) {
+  using namespace memodetails::get_partition_tree;
+  return Memo().nomemo(spd, partitioners);
 }
 
 std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
@@ -201,14 +201,21 @@ int get_max_idx(std::shared_ptr<IPartitioning> n) {
 };
 } // namespace get_max_idx_tree_detail
 
-TreeP<int> get_max_idx_tree(const PartitionTree &t, bool memoised) {
-  // int up_to_Sites = get_max_depth(t) - 1;
+TreeP<int> get_max_idx_treeM(const PartitionTree &t) {
+  int up_to_Sites = get_max_depth(t) + 1;
+
+  return nodemapM<std::shared_ptr<IPartitioning>, //
+                  int,                            //
+                  get_max_idx_tree_detail::get_max_idx>(
+      truncate_treeM(t, up_to_Sites));
+}
+TreeP<int> get_max_idx_tree(const PartitionTree &t) {
   int up_to_Sites = get_max_depth(t) + 1;
 
   return nodemap<std::shared_ptr<IPartitioning>, //
                  int,                            //
                  get_max_idx_tree_detail::get_max_idx>(
-      truncate_tree(t, up_to_Sites, memoised), memoised);
+      truncate_tree(t, up_to_Sites));
 }
 
 bool validate_idx(const PartitionTree &t, const Indices &idxs) {

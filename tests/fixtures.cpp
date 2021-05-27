@@ -46,7 +46,7 @@ Part4DF::Part4DF()
                    partitioners::EO("EO", {true, true, true, true}), //
                    Plain("Remainder", EXTRA),                        //
                    partitioners::Site()},                            //
-      t(get_partition_tree(sp, partitioners)),                       //
+      t(get_partition_treeM(sp, partitioners)),                      //
       bulk_sites(get_bulk_sites42()),                                //
       border_sites(get_border_sites42()) {}
 
@@ -73,7 +73,7 @@ Part4DFWLocal::Part4DFWLocal()
                    Plain("Local",     LOCAL),                        //
                    Plain("Remainder", EXTRA),                        //
                    partitioners::Site()},                            //
-      t(get_partition_tree(sp, partitioners)),                              //
+      t(get_partition_treeM(sp, partitioners)),                              //
       bulk_sites(get_bulk_sites42()),                                //
       border_sites(get_border_sites42()) {}
 

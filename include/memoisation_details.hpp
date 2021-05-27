@@ -1,6 +1,7 @@
 #ifndef MEMOISATION_DETAILS_H_
 #define MEMOISATION_DETAILS_H_
 #include "memoisation.hpp"
+#include "partitioners.hpp"
 #include "tree_data_structure.hpp"
 #include "utils.hpp"
 
@@ -105,6 +106,22 @@ public:
             }){};
 };
 } // namespace prune_tree
+
+namespace get_partition_tree {
+using partitioners::PartList;
+using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
+PartitionTree
+base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
+     SizeParityD spd,                                                  //
+     const PartList &partitioners);
+
+class Memo : public Memoiser<PartitionTree, SizeParityD, PartList> {
+public:
+  Memo() : Memoiser<PartitionTree, SizeParityD, PartList>(base) {}
+};
+
+} // namespace get_partition_tree
+
 } // namespace memodetails
 } // namespace slow
 } // namespace hypercubes

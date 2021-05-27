@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(test_prune_tree) {
   auto expt = mt(mp(0, 1), {mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}), //
                                                          mt(mp(1, 8), {})})})});
 
-  auto t = prune_tree(tfull, predicate, false);
+  auto t = prune_tree(tfull, predicate);
   BOOST_TEST(*t == *expt);
 }
 

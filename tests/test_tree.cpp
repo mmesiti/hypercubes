@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE(test_nodemap) {
                      mt(s("N: 9"), {mt(s("N: 12"), {}), mt(s("N: 15"), {})}), //
                      mt(s("N: 18"), {mt(s("N: 21"), {mt(s("N: 24"), {})})})});
 
-  auto newt = nodemap<int, std::string, arbitrary_transform>(t); //, f);
+  auto newt = nodemap<int, std::string, arbitrary_transform>(t);
   BOOST_TEST(*expt == *newt);
 }
 

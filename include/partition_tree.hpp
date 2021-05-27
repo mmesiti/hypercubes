@@ -12,8 +12,11 @@ namespace slow {
 using partitioners::PartList;
 using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
 
-PartitionTree get_partition_tree(SizeParityD spd, const PartList &partitioners,
-                                 bool memoised = true);
+PartitionTree get_partition_treeM(SizeParityD spd, //
+                                  const PartList &partitioners);
+PartitionTree get_partition_tree(SizeParityD spd, //
+                                 const PartList &partitioners);
+
 /**
  * Does not print "Sites"
  * */
@@ -47,7 +50,8 @@ Coordinates get_coord_from_idx(const PartitionTree &t, //
 
 Sizes get_sizes_from_idx(const PartitionTree &t, const Indices &idx);
 
-TreeP<int> get_max_idx_tree(const PartitionTree &t, bool memoised = false);
+TreeP<int> get_max_idx_treeM(const PartitionTree &t);
+TreeP<int> get_max_idx_tree(const PartitionTree &t);
 
 bool validate_idx(const PartitionTree &t, const Indices &idx);
 

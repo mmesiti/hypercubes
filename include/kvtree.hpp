@@ -101,14 +101,15 @@ Out<Value> base(                                          //
 } // namespace number_children
 } // namespace memodetails
 template <class Value>
-TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree,
-                                             bool memoised = false) {
+TreeP<std::pair<int, Value>> number_childrenM(const TreeP<Value> &tree) {
   using namespace memodetails::number_children;
-  if (memoised) {
-    return Memo<Value>().memoised(tree);
-  } else {
-    return Memo<Value>().nomemo(tree);
-  }
+  return Memo<Value>().memoised(tree);
+}
+
+template <class Value>
+TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree) {
+  using namespace memodetails::number_children;
+  return Memo<Value>().nomemo(tree);
 }
 
 namespace memodetails {
@@ -137,14 +138,17 @@ Tree<Value> base_wp(
 
 template <class Value>
 TreeP<std::pair<int, Value>>
-prune_tree(const TreeP<std::pair<int, Value>> &t,
-           std::function<bool(vector<int>)> predicate, bool memoised = false) {
+prune_treeM(const TreeP<std::pair<int, Value>> &t, //
+            std::function<bool(vector<int>)> predicate) {
   using namespace memodetails::prune_tree;
-  if (memoised) {
-    return Memo<Value>(predicate).memoised(t, {0});
-  } else {
-    return Memo<Value>(predicate).nomemo(t, {0});
-  }
+  return Memo<Value>(predicate).memoised(t, {0});
+}
+template <class Value>
+TreeP<std::pair<int, Value>>
+prune_tree(const TreeP<std::pair<int, Value>> &t, //
+           std::function<bool(vector<int>)> predicate) {
+  using namespace memodetails::prune_tree;
+  return Memo<Value>(predicate).nomemo(t, {0});
 }
 
 } // namespace slow
