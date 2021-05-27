@@ -2,7 +2,7 @@
 #define PARTITION_TREE_H_
 #include "partition_predicates.hpp"
 #include "partition_tree.hpp"
-#include "tree.hpp"
+#include "tree_data_structure.hpp"
 #include <map>
 
 namespace hypercubes {

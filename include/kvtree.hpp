@@ -1,6 +1,10 @@
 #ifndef KVTREE_H_
 #define KVTREE_H_
 #include "tree.hpp"
+#include "tree_data_structure.hpp"
+#include "utils.hpp"
+#include <functional>
+#include <memoisation_details.hpp>
 
 namespace hypercubes {
 namespace slow {
@@ -42,8 +46,7 @@ bring_level_on_top(const TreeP<std::pair<int, Value>> &tree, int level) {
   auto fix_tree_indices = [](TreeP new_subtree,
                              vector<int> children_keys_at_level,
                              int child_to_pick) {
-    return fix_key(new_subtree,
-                   children_keys_at_level[child_to_pick]); // DIFF
+    return fix_key(new_subtree, children_keys_at_level[child_to_pick]);
   };
   auto create_top_node = [](Value new_top) {
     return std::make_pair(0, new_top);
@@ -94,21 +97,6 @@ Out<Value> base(                                          //
   return mt(new_root, new_children);
 }
 
-template <class Value> Out<Value> nomemo(const TreeP<Value> &tree) {
-  return base<Value>(nomemo<Value>, tree);
-}
-
-template <class Value>
-class _Memoiser : public Memoiser<Out<Value>, TreeP<Value>> {
-public:
-  _Memoiser() : Memoiser<Out<Value>, TreeP<Value>>(base<Value>){};
-};
-
-template <class Value> Out<Value> memoised(const TreeP<Value> &tree) {
-  _Memoiser<Value> m;
-  return m(tree);
-}
-
 } // namespace number_children_detail
 template <class Value>
 TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree,
@@ -140,39 +128,8 @@ Tree<Value> base_wp(
   return mt(t->n, children);
 }
 
-template <class Value>
-Tree<Value> nomemo(const Tree<Value> &t,    //
-                   const Indices &top_idxs, //
-                   Predicate predicate) {
-
-  return base_wp<Value>(
-      [&predicate](auto tree, auto top_idxs) -> Tree<Value> {
-        return nomemo<Value>(tree, top_idxs, predicate);
-      },
-      t, top_idxs, predicate);
-}
-
-template <class Value>
-class _Memoiser : public Memoiser<Tree<Value>, Tree<Value>, Indices> {
-public:
-  _Memoiser(Predicate predicate)
-      : Memoiser<Tree<Value>, Tree<Value>, Indices>(
-            [&predicate](std::function<Tree<Value>(const Tree<Value> &, //
-                                                   const Indices &)>
-                             frec,             //
-                         const Tree<Value> &t, //
-                         const Indices &top_idxs) {
-              return base_wp<Value>(frec, t, top_idxs, predicate);
-            }){};
-};
-template <class Value>
-Tree<Value> memoised(const Tree<Value> &tree, const Indices &top_idxs,
-                     Predicate predicate) {
-  _Memoiser<Value> m(predicate);
-  return m(tree, top_idxs);
-}
-
 } // namespace prune_tree_details
+
 template <class Value>
 TreeP<std::pair<int, Value>>
 prune_tree(const TreeP<std::pair<int, Value>> &t,

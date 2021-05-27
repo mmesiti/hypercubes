@@ -6,68 +6,16 @@
 #include <algorithm>
 #include <functional>
 #include <map>
-#include <memory>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
-#include <tuple>
-#include <vector>
+
+#include "tree_data_structure.hpp"
+
+#include "memoisation_details.hpp"
 
 namespace hypercubes {
 namespace slow {
-
-using std::shared_ptr;
-using std::vector;
-
-template <class> struct Tree;
-template <class Node> using TreeP = shared_ptr<Tree<Node>>;
-
-template <class Node> struct Tree {
-  Node n;
-  vector<TreeP<Node>> children;
-  bool operator!=(const Tree &other) const {
-    if (n != other.n)
-      return true;
-    if (children.size() != other.children.size())
-      return true;
-    for (int i = 0; i < children.size(); ++i)
-      if (*children[i] != *other.children[i])
-        return true;
-    return false;
-  }
-  bool operator==(const Tree &other) const { return not(*this != other); };
-  bool operator<(const Tree &other) {
-    if (n < other.n)
-      return true;
-    if (other.n < n)
-      return false;
-    for (int i = 0;                                         //
-         i < children.size() and i < other.children.size(); //
-         ++i)
-      if (*children[i] < *other.children[i])
-        return true;
-    if (children.size() < other.children.size())
-      return true;
-    return false;
-  }
-};
-
-template <class Node> struct less {
-
-  bool operator()(const TreeP<Node> &t1, //
-                  const TreeP<Node> &t2) {
-    return *t1 < *t2;
-  }
-  bool operator()(const Tree<Node> &t1, //
-                  const Tree<Node> &t2) {
-    return t1 < t2;
-  }
-};
-
-template <class Node>
-TreeP<Node> mt(const Node n, const vector<TreeP<Node>> v) {
-  return std::make_shared<Tree<Node>>(std::move(Tree<Node>{n, v}));
-}
 
 /* A newline before each subtree,
  * and a newline after each child. */
@@ -141,10 +89,8 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
   }
 }
 
-namespace truncate_tree_detail {
-
 template <class Node>
-TreeP<Node> base(                                              //
+TreeP<Node> truncate_tree_detail::base(                        //
     std::function<TreeP<Node>(const TreeP<Node> &, int)> frec, //
     const TreeP<Node> &tree,                                   //
     int level) {
@@ -161,24 +107,6 @@ TreeP<Node> base(                                              //
     return TreeP<Node>(nullptr);
 }
 
-template <class Node> TreeP<Node> nomemo(const TreeP<Node> &tree, int level) {
-
-  return base<Node>(nomemo<Node>, tree, level);
-}
-
-template <class Node>
-class _Memoiser : public Memoiser<TreeP<Node>, TreeP<Node>, int> {
-public:
-  _Memoiser() : Memoiser<TreeP<Node>, TreeP<Node>, int>(base<Node>){};
-};
-
-template <class Node> TreeP<Node> memoised(const TreeP<Node> &tree, int level) {
-  _Memoiser<Node> m;
-  return m(tree, level);
-}
-
-} // namespace truncate_tree_detail
-
 template <class Node>
 TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level,
                           bool memoised = false) {
@@ -186,24 +114,11 @@ TreeP<Node> truncate_tree(const TreeP<Node> &tree, int level,
     return truncate_tree_detail::memoised(tree, level);
   } else {
     return truncate_tree_detail::nomemo(tree, level);
-    // if (level > 1) {
-    //  auto children = vtransform(tree->children,                       //
-    //                             [level](TreeP<Node> c) {              //
-    //                               return truncate_tree(c, level - 1); //
-    //                             });
-    //  return mt(tree->n, children);
-
-    //} else if (level == 1) {
-    //  return mt(tree->n, {});
-    //} else
-    //  return TreeP<Node>(nullptr);
   }
 };
 
-namespace get_leaves_list_detail {
-
 template <class Node>
-vector<Node> base(                                         //
+vector<Node> get_leaves_list_detail::base(                 //
     std::function<vector<Node>(const TreeP<Node> &)> frec, //
     const TreeP<Node> &tree) {
   vector<Node> res;
@@ -218,23 +133,6 @@ vector<Node> base(                                         //
     }
   return res;
 }
-
-template <class Node> vector<Node> nomemo(const TreeP<Node> &tree) {
-  return base<Node>(nomemo<Node>, tree);
-}
-
-template <class Node>
-class _Memoiser : public Memoiser<vector<Node>, TreeP<Node>> {
-public:
-  _Memoiser() : Memoiser<vector<Node>, TreeP<Node>>(base<Node>){};
-};
-
-template <class Node> vector<Node> memoised(const TreeP<Node> &tree) {
-  _Memoiser<Node> m;
-  return m(tree);
-}
-
-} // namespace get_leaves_list_detail
 
 template <class Node>
 vector<Node> get_leaves_list(const TreeP<Node> &tree, bool memoised = false) {
@@ -256,11 +154,10 @@ TreeP<std::tuple<Node, Nodes...>> ziptree(const TreeP<Node> &t,
   return mt(n, children);
 }
 
-namespace nodemap_detail {
-
 template <class Node, class NewNode, NewNode (*f)(Node)>
-TreeP<NewNode> base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
-                    const TreeP<Node> &t) {
+TreeP<NewNode>
+nodemap_detail::base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
+                     const TreeP<Node> &t) {
   // NOTE: here resmap could be passed between calls.
   std::map<TreeP<Node>, TreeP<NewNode>> resmap;
 
@@ -275,39 +172,11 @@ TreeP<NewNode> base(std::function<TreeP<NewNode>(const TreeP<Node> &)> frec, //
 }
 
 template <class Node, class NewNode, NewNode (*f)(Node)>
-TreeP<NewNode> nomemo(const TreeP<Node> &t) {
-  return base<Node, NewNode, f>(nomemo<Node, NewNode, f>, t);
-}
-
-template <class Node, class NewNode, NewNode (*f)(Node)>
-class _Memoiser : public Memoiser<TreeP<NewNode>, TreeP<Node>> {
-public:
-  _Memoiser() : Memoiser<TreeP<NewNode>, TreeP<Node>>(base<Node, NewNode, f>){};
-};
-
-template <class Node, class NewNode, NewNode (*f)(Node)>
-TreeP<NewNode> memoised(const TreeP<Node> &t) {
-  _Memoiser<Node, NewNode, f> m;
-  return m(t);
-}
-
-} // namespace nodemap_detail
-template <class Node, class NewNode, NewNode (*f)(Node)>
 TreeP<NewNode> nodemap(const TreeP<Node> &t, bool memoised = false) {
   if (memoised) {
     return nodemap_detail::memoised<Node, NewNode, f>(t);
   } else {
     return nodemap_detail::nomemo<Node, NewNode, f>(t);
-    // std::map<TreeP<Node>, TreeP<NewNode>> resmap;
-
-    // vector<TreeP<NewNode>> children =
-    //    vtransform(t->children, //
-    //               [&resmap](const TreeP<Node> &c) {
-    //                 if (resmap.find(c) == resmap.end())
-    //                   resmap[c] = nodemap<Node, NewNode, f>(c);
-    //                 return resmap[c];
-    //               });
-    // return mt(f(t->n), children);
   }
 }
 
