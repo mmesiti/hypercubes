@@ -27,32 +27,6 @@ template <class Node> struct Tree {
     return false;
   }
   bool operator==(const Tree &other) const { return not(*this != other); };
-  bool operator<(const Tree &other) {
-    if (n < other.n)
-      return true;
-    if (other.n < n)
-      return false;
-    for (int i = 0;                                         //
-         i < children.size() and i < other.children.size(); //
-         ++i)
-      if (*children[i] < *other.children[i])
-        return true;
-    if (children.size() < other.children.size())
-      return true;
-    return false;
-  }
-};
-
-template <class Node> struct less {
-
-  bool operator()(const TreeP<Node> &t1, //
-                  const TreeP<Node> &t2) {
-    return *t1 < *t2;
-  }
-  bool operator()(const Tree<Node> &t1, //
-                  const Tree<Node> &t2) {
-    return t1 < t2;
-  }
 };
 
 template <class Node>

@@ -1,4 +1,11 @@
 #+TITLE: CPP implementation Notes
+
+These notes contain also thoughts
+on how to improve the design.
+
+The notes might be vague on some details
+as the details are likely to change.
+
 * Dependencies for the tests
 (To be moved later to a proper location)
 - ~CMake > 3.5~
@@ -12,12 +19,10 @@
   should be already included
   in the distribution of gcc).
 
-
 * ~std::vector~ vs ~std::array~
 In general, I decided
 to use ~std::vector~ for collections everywhere.
-I tried to use ~std::array~
-when I believed that it was possible
+~std::array~ could be used when it is possible
 to determine the size at compile time,
 but that assumption turned out to be wrong
 most of the times.
@@ -44,22 +49,38 @@ to distinguish between the two at all.
 I have added an ~Indices~ type alias
 as for ~Coordinates~ to make things clearer to the reader.
 
-* Differences with the Python versions
-** General remarks
-The C++ code will be, in detail, more imperative
-than the python one
-because of the lack of list comprehensions
-(C++20 ranges would help in this regard,
-but it's still early).
-** Q1D
-The Q1D partitioner has been split into
-a ~periodic~ and an ~open~ class.
-
-* ~None~'s in ~C++~
-A way to represent missing values in ~C++~
-would be to use ~std::optional~,
-but it's C++17 and some compilers/libraries
-might not support that yet.
+* Implementation of trees
+There are 3 kind of trees we need:
+1. Trees where the children are organised in a "set",
+   i.e., when the order of the subtrees does not count
+   and there is no label associated with a subtree:
+   this is the case for the tree of indices
+   that is returned by ~get_indices_tree_with_ghosts~;
+2. Trees where the children are organised in a "list",
+   i.e., where the order of the subtrees count
+   and the labels are just integers
+   that go from 0 to a maximum value:
+   this is the case for the trees created by
+   ~get_partition_tree~.
+3. Treest where the children are organised in a "map",
+   i.e., where the subtrees are associated to an index
+   and the set of values that this index takes
+   is not contiguos:
+   this is the case for the trees created
+   by, e.g., ~get_max_idx_tree~
+   and all the functions in ~partition_tree_allocations.hpp~.
+All trees are implemented as a structure
+that contains a node and std::vector children.
+In the case 3, the node is a structure containing
+an ~int~ and a value.
+**NOTE**: it could have been better to use instead
+a ~std::map<int,Value>~ for storing the children.
+This would have fit perfectly case 3,
+a bit worse case 2,
+and not quite case 1.
+Notably, though, case 2 and 3
+are the most frequent and most important cases
+in the library.
 
 * Tests and hypothesis
 ** Testing Partitioning classes
@@ -129,14 +150,62 @@ which is undesirable.
 It is possible to force the templates to be instantiated
 in some source files instead.
 This might be worth investigating.
+** Troubleshooting
+Known reasons for some functions
+not displaying full coverage:
+1. The function is a template
+   and the compilation unit
+   where it is actually instantiated
+   is not covered by ~lcov~.
+2. The function is passed as a function pointer
+   as a template argument.
+   In this case coverage might not detect the function call.
+3. The function is not actually called everywhere.
+   Trivial case, but it happened to me,
+   so it is worth understanding
+   if case 1. or 2. happened instead.
 
 * Memoisation
  Many of the algorithm in the ~tree.hpp~ library use [[https://en.wikipedia.org/wiki/Memoization][memoisation]]
- to avoid the time and memory penalties of tree recursion.
- The saving happen mostly because **pointers** are used
- to represent tree nodes,
+ to avoid the time and memory penalties of tree recursion
+ (which would make the algorithm definitely too expensive
+ to be of any use).
+ The saving happen mostly because
+ **pointers** are used to represent tree nodes,
  and such pointers are used as key in the memoisation map.
  This allows to detect easily
  if a given node has been processed
  and if so, to retrieve the result
  of the function call on that pointer.
+ Technically, this means that the tree
+ is actually a directed acyclic graph
+ (with some additional properties,
+ like that all the paths that connect two nodes
+ have the same length).
+
+ Since it may not always be the case
+ that the memoised version is faster,
+ the non-memoised version of the function is left.
+
+ A common pattern is used for all the memoised functions:
+ a ~base~ function is defined, of the kind
+ #+begin_src C++
+RetType base(std::function<RetType(ArgTypes...)> f, //
+             ArgTypes... args);
+ #+end_src
+ In the non memoised version, we have
+ #+begin_src C++
+RetType nomemo(ArgTypes... args) { return base(nomemo, args...); }
+ #+end_src
+ While in the memoised version, we have
+ #+begin_src C++
+RetType memoised(ArgTypes... args) {
+  Memo m;
+  return base(m, args...);
+}
+ #+end_src
+ Where ~Memo~ is a class that encapsulate the ~Memoiser~ template.
+
+ **NOTE**: There might be nicer ways to do this,
+ that require less code duplication.
+ A better implementation is left for the future.

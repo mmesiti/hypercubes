@@ -88,7 +88,6 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
     return 1 + max;
   }
 }
-
 template <class Node>
 TreeP<Node> memodetails::truncate_tree::base(                  //
     std::function<TreeP<Node>(const TreeP<Node> &, int)> frec, //
@@ -184,7 +183,7 @@ TreeP<NewNode> nodemap(const TreeP<Node> &t) {
   return Memo<Node, NewNode, f>().nomemo(t);
 }
 
-// TODO: consider memoisation
+// todo: consider memoisation
 template <class Node, bool (*predicate)(Node)>
 TreeP<Node> filternode(const TreeP<Node> &t) {
 

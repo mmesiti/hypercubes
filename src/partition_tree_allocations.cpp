@@ -1,50 +1,10 @@
 #include "partition_tree_allocations.hpp"
 #include "kvtree.hpp"
 #include "utils.hpp"
+#include <iostream>
 #include <memory>
 namespace hypercubes {
 namespace slow {
-
-TreeP<std::pair<int, int>>
-get_nchildren_alloc_tree1(const PartitionTree &t,
-                          std::function<bool(Indices)> predicate) {
-
-  using ResType = TreeP<std::pair<int, int>>;
-
-  auto get_n_alloc_children = [](ResType t) { return t->n.second; };
-
-  // TODO: merge with get_max_idx_tree
-  auto _get_max_idx_tree = [&predicate, //
-                            &get_n_alloc_children](const PartitionTree &pct,
-                                                   const Indices &top_idxs,
-                                                   auto &f) -> ResType {
-    auto partition_class = pct->n;
-    auto children = pct->children;
-    vector<ResType> children_results;
-    int n_allocated_children = 0;
-    Indices predicate_idxs = tail(top_idxs);
-    if (children.size() != 0) {
-      if (predicate(predicate_idxs)) {
-        for (int idx = 0; idx < partition_class->max_idx_value(); ++idx) {
-          auto new_pc = children[idx];
-          Indices new_idxs = append(top_idxs, idx);
-          ResType r = f(new_pc, new_idxs, f);
-          if (get_n_alloc_children(r) != 0)
-            children_results.push_back(r);
-        }
-      }
-      n_allocated_children = children_results.size();
-    } else
-      n_allocated_children = partition_class->max_idx_value();
-
-    int idx_in_full_tree = *top_idxs.rbegin();
-    auto subn = std::make_pair(idx_in_full_tree, //
-                               n_allocated_children);
-    return mt(subn, children_results);
-  };
-
-  return _get_max_idx_tree(t, {0}, _get_max_idx_tree);
-}
 
 namespace get_nchildren_alloc_tree_detail {
 bool nonzero(std::pair<int, int> node) { return node.second > 0; };
@@ -96,9 +56,9 @@ get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
       for (const auto &c : children_results)
         nodesize += getsize(c);
     } else
-      nodesize = max_alloc_and_idx.second;
+      nodesize = getsize(max_idx_tree);
 
-    auto subn = std::make_pair(max_alloc_and_idx.first, //
+    auto subn = std::make_pair(getidx(max_idx_tree), //
                                nodesize);
     return mt(subn, children_results);
   };
