@@ -1,4 +1,4 @@
-#include "partitioners.hpp"
+#include "partitioners/partitioners.hpp"
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow;

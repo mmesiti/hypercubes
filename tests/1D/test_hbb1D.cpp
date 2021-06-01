@@ -2,7 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
-#include "1D/hbb1D.hpp"
+#include "partitioners/1D/hbb1D.hpp"
 
 using namespace hypercubes::slow;
 namespace bdata = boost::unit_test::data;

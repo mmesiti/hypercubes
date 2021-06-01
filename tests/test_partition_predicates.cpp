@@ -1,8 +1,8 @@
-#include "bool_maybe.hpp"
 #include "fixtures.hpp"
-#include "partition_predicates.hpp"
-#include "partition_tree.hpp"
+#include "selectors/bool_maybe.hpp"
+#include "selectors/partition_predicates.hpp"
 #include "test_utils.hpp"
+#include "trees/partition_tree.hpp"
 #include <algorithm>
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>

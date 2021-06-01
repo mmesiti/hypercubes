@@ -4,7 +4,7 @@
 #include <boost/test/unit_test_suite.hpp>
 #include <stdexcept>
 
-#include "1D/plain1D.hpp"
+#include "partitioners/1D/plain1D.hpp"
 
 using namespace hypercubes::slow;
 namespace bdata = boost::unit_test::data;

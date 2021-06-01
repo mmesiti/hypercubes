@@ -1,10 +1,10 @@
 #include "fixtures.hpp"
-#include "partition_tree.hpp"
-#include "partition_tree_allocations.hpp"
-#include "size_tree_iterator.hpp"
 #include "test_utils.hpp"
-#include "tree.hpp"
-#include "utils.hpp"
+#include "trees/partition_tree.hpp"
+#include "trees/partition_tree_allocations.hpp"
+#include "trees/size_tree_iterator.hpp"
+#include "trees/tree.hpp"
+#include "utils/utils.hpp"
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow;

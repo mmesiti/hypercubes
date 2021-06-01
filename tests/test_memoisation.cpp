@@ -1,8 +1,8 @@
-#include "kvtree.hpp"
-#include "memoisation.hpp"
-#include "partition_tree.hpp"
-#include "tree.hpp"
-#include "tree_data_structure.hpp"
+#include "trees/kvtree.hpp"
+#include "trees/memoisation/memoisation.hpp"
+#include "trees/partition_tree.hpp"
+#include "trees/tree.hpp"
+#include "trees/tree_data_structure.hpp"
 #include <boost/test/unit_test.hpp>
 #include <functional>
 #include <iostream>

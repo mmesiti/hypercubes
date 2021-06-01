@@ -1,6 +1,6 @@
-#include "partition_tree.hpp"
 #include "test_utils.hpp"
-#include "tree.hpp"
+#include "trees/partition_tree.hpp"
+#include "trees/tree.hpp"
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 

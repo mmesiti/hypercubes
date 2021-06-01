@@ -1,7 +1,7 @@
 #ifndef FIXTURES_H_
 #define FIXTURES_H_
-#include "partition_tree.hpp"
-#include "partitioners.hpp"
+#include "partitioners/partitioners.hpp"
+#include "trees/partition_tree.hpp"
 
 namespace hypercubes {
 namespace slow {

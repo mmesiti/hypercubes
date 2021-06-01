@@ -1,9 +1,9 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include "eo.hpp"
+#include "geometry/eo.hpp"
 #include "test_utils.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>

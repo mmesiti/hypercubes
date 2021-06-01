@@ -1,5 +1,5 @@
-#include "eo.hpp"
-#include "eo_partitioning.hpp"
+#include "geometry/eo.hpp"
+#include "partitioners/eo_partitioning.hpp"
 #include <algorithm>
 #include <boost/test/data/monomorphic.hpp>
 #include <boost/test/data/test_case.hpp>

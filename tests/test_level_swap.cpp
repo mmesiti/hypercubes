@@ -1,6 +1,6 @@
 #include "fixtures.hpp"
-#include "level_swap.hpp"
-#include "tree.hpp"
+#include "trees/level_swap.hpp"
+#include "trees/tree.hpp"
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>

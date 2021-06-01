@@ -2,7 +2,7 @@
 #include <boost/test/unit_test.hpp>
 #include <sstream>
 
-#include "tree.hpp"
+#include "trees/tree.hpp"
 
 using namespace hypercubes::slow::internals;
 

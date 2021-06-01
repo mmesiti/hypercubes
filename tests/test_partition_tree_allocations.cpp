@@ -1,10 +1,10 @@
 #include "fixtures.hpp"
-#include "partition_predicates.hpp"
-#include "partition_tree.hpp"
-#include "partition_tree_allocations.hpp"
-#include "partitioners.hpp"
+#include "partitioners/partitioners.hpp"
+#include "selectors/partition_predicates.hpp"
 #include "test_utils.hpp"
-#include "tree.hpp"
+#include "trees/partition_tree.hpp"
+#include "trees/partition_tree_allocations.hpp"
+#include "trees/tree.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 

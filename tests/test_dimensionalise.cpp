@@ -1,11 +1,11 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include "1D/hbb1D.hpp"
-#include "1D/plain1D.hpp"
-#include "1D/q1D.hpp"
-#include "dimensionalise.hpp"
-#include "utils.hpp"
+#include "partitioners/1D/hbb1D.hpp"
+#include "partitioners/1D/plain1D.hpp"
+#include "partitioners/1D/q1D.hpp"
+#include "partitioners/dimensionalise.hpp"
+#include "utils/utils.hpp"
 
 using namespace hypercubes::slow;
 namespace bdata = boost::unit_test::data;

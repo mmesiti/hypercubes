@@ -16,42 +16,42 @@ endif()
 include_directories(./include )
 
 # Base libraries
-add_library(eo src/eo.cpp)
-add_library(geometry src/geometry.cpp)
-add_library(print_utils src/print_utils.cpp)
+add_library(eo src/geometry/eo.cpp)
+add_library(geometry src/geometry/geometry.cpp)
+add_library(print_utils src/utils/print_utils.cpp)
 
 # Partitioning
-add_library(partitioning src/partitioning.cpp)
+add_library(partitioning src/partitioners/partitioning.cpp)
 
 ## Multi-D partitioning
-add_library(eo_partitioning src/eo_partitioning.cpp)
+add_library(eo_partitioning src/partitioners/eo_partitioning.cpp)
 target_link_libraries(eo_partitioning geometry
                                       eo
                                       print_utils
                                       partitioning)
 
-add_library(site src/site.cpp)
+add_library(site src/partitioners/site.cpp)
 target_link_libraries(site geometry
                            partitioning)                                    
 
 ## 1-D partitioning
-add_library(partitioning1D src/1D/partitioning1D.cpp)
+add_library(partitioning1D src/partitioners/1D/partitioning1D.cpp)
 target_link_libraries(partitioning1D geometry)
 
-add_library(q1D src/1D/q1D.cpp)
+add_library(q1D src/partitioners/1D/q1D.cpp)
 target_link_libraries(q1D partitioning1D
                           partitioning)
 
-add_library(hbb1D src/1D/hbb1D.cpp)
+add_library(hbb1D src/partitioners/1D/hbb1D.cpp)
 target_link_libraries(hbb1D partitioning1D
                             partitioning)
 
-add_library(plain1D src/1D/plain1D.cpp)
+add_library(plain1D src/partitioners/1D/plain1D.cpp)
 target_link_libraries(plain1D partitioning1D
                               partitioning)
 
 # Partitioners
-add_library(partitioners src/partitioners.cpp)
+add_library(partitioners src/partitioners/partitioners.cpp)
 target_link_libraries(partitioners eo_partitioning
                                    q1D
                                    hbb1D
@@ -59,23 +59,23 @@ target_link_libraries(partitioners eo_partitioning
                                    site)
 
 # Trees                                
-add_library(partition_tree src/partition_tree.cpp)
+add_library(partition_tree src/trees/partition_tree.cpp)
 target_link_libraries(partition_tree partitioners)
 
-add_library(partition_predicates src/partition_predicates.cpp)
+add_library(bool_maybe src/selectors/bool_maybe.cpp)
+add_library(partition_predicates src/selectors/partition_predicates.cpp)
 target_link_libraries(partition_predicates partitioners
                                            bool_maybe)
 
-add_library(partition_tree_allocations src/partition_tree_allocations.cpp)
+add_library(partition_tree_allocations src/trees/partition_tree_allocations.cpp)
 target_link_libraries(partition_tree_allocations partition_predicates
                                                  partition_tree                                                  
                                                  partitioners)
 
-add_library(size_tree_iterator src/size_tree_iterator.cpp)
+add_library(size_tree_iterator src/trees/size_tree_iterator.cpp)
 target_link_libraries(size_tree_iterator geometry partition_tree_allocations)
 
-add_library(bool_maybe src/bool_maybe.cpp)
-add_library(level_swap src/level_swap.cpp)
+add_library(level_swap src/trees/level_swap.cpp)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 add_custom_target(coverage
