@@ -8,6 +8,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 template <class Value>
 TreeP<std::pair<int, Value>> fix_key(const TreeP<std::pair<int, Value>> &t,
@@ -151,6 +152,7 @@ prune_tree(const TreeP<std::pair<int, Value>> &t, //
   return Memo<Value>(predicate).nomemo(t, {0});
 }
 
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes
 

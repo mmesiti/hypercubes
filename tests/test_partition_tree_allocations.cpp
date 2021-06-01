@@ -9,6 +9,7 @@
 #include <boost/test/unit_test_suite.hpp>
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 using namespace hypercubes::slow::partitioners;
 
 struct Simple1D {

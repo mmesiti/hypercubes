@@ -5,6 +5,7 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 using namespace hypercubes::slow::partitioners;
 namespace bdata = boost::unit_test::data;
 /**

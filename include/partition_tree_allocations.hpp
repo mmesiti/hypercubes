@@ -7,6 +7,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
+
 /// A <n_alloc_children, idx in full tree> conditionally-allocated tree
 TreeP<std::pair<int, int>>
 get_nchildren_alloc_tree(const PartitionTree &t,
@@ -21,6 +23,7 @@ get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree);
 TreeP<std::pair<int, int>>
 get_offset_tree(const TreeP<std::pair<int, int>> &size_tree);
 
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes
 

@@ -7,7 +7,9 @@
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
+
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 using namespace hypercubes::slow::partitioners;
 using namespace data;
 namespace bdata = boost::unit_test::data;

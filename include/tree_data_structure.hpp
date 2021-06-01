@@ -6,6 +6,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 using std::shared_ptr;
 using std::vector;
@@ -33,6 +34,7 @@ template <class Node>
 TreeP<Node> mt(const Node n, const vector<TreeP<Node>> v) {
   return std::make_shared<Tree<Node>>(std::move(Tree<Node>{n, v}));
 }
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes
 #endif // TREE_DATA_H_

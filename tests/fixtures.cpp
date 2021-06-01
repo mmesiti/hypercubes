@@ -4,6 +4,7 @@
 using namespace hypercubes::slow::partitioners;
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 std::vector<int> _assemble(const std::string &tens, const std::string &units) {
 
@@ -90,5 +91,6 @@ Part1D42::Part1D42()
       t(get_partition_tree(sp, partitioners)), //
       bulk_sites(get_bulk_sites42()),          //
       border_sites(get_border_sites42()) {}
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes

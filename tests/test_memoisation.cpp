@@ -15,6 +15,7 @@ int fib(std::function<int(int)> f, int i) {
   return f(i - 1) + f(i - 2);
 }
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_memoisation)
 

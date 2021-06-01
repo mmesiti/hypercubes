@@ -12,6 +12,8 @@ std::string to_string(std::string s);
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
+
 template <class T>
 std::vector<int> find_permutation(const std::vector<T> &in,
                                   const std::vector<T> &out) {
@@ -35,5 +37,6 @@ std::vector<int> find_permutation(const std::vector<T> &in,
 
 std::vector<std::string>
 get_partitioners_names(const partitioners::PartList &partitioners);
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes

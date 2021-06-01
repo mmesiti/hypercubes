@@ -7,6 +7,7 @@
 #include <cmath>
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 using namespace hypercubes::slow::partitioners;
 using namespace data;
 namespace bdata = boost::unit_test::data;

@@ -5,6 +5,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 // Partitioning expected, for each dimension, until EO level:
 // Site index:
@@ -56,6 +57,7 @@ struct Part1D42 {
   Part1D42();
 };
 
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes
 

@@ -16,6 +16,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 /* A newline before each subtree,
  * and a newline after each child. */
@@ -387,6 +388,7 @@ vector<Node> depth_first_flatten(const TreeP<Node> &tree) {
   return res;
 }
 
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes
 
@@ -394,8 +396,8 @@ namespace std {
 
 template <class Node>
 std::ostream &operator<<(std::ostream &os,
-                         const hypercubes::slow::Tree<Node> &tree) {
-  os << hypercubes::slow::tree_str(tree);
+                         const hypercubes::slow::internals::Tree<Node> &tree) {
+  os << hypercubes::slow::internals::tree_str(tree);
   return os;
 }
 

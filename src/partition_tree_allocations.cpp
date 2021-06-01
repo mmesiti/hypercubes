@@ -5,6 +5,7 @@
 #include <memory>
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 namespace get_nchildren_alloc_tree_detail {
 bool nonzero(std::pair<int, int> node) { return node.second > 0; };
@@ -86,5 +87,6 @@ get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {
   return _get_start_tree(size_tree, 0);
 }
 
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes

@@ -6,6 +6,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 template <class Out, class... Args> class Memoiser {
 private:
@@ -32,8 +33,9 @@ public:
   }
 };
 
-} // namespace slow
+} // namespace internals
 
+} // namespace slow
 } // namespace hypercubes
 
 #endif // MEMOISATION_H_

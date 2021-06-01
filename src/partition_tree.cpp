@@ -7,6 +7,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
 
 namespace memodetails {
 namespace get_partition_tree {
@@ -238,5 +239,6 @@ vector<std::pair<int, int>> get_partition_limits(const PartitionTree &t, //
       [](int start, int size) { return std::make_pair(start, start + size); });
   return res;
 }
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes

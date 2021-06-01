@@ -3,8 +3,8 @@
 #include <cassert>
 
 namespace hypercubes {
-
 namespace slow {
+namespace internals {
 
 using SizeTree = TreeP<std::pair<int, int>>;
 
@@ -55,5 +55,6 @@ Indices next(const SizeTree &size_tree, const Indices &idxs) {
       return append(nidx, new_sub_idxs);
   }
 }
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes

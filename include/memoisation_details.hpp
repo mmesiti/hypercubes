@@ -7,6 +7,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
+
 namespace memodetails {
 
 namespace truncate_tree {
@@ -123,6 +125,7 @@ public:
 } // namespace get_partition_tree
 
 } // namespace memodetails
+} // namespace internals
 } // namespace slow
 } // namespace hypercubes
 

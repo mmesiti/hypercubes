@@ -6,6 +6,7 @@
 #include <boost/test/unit_test_suite.hpp>
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_level_swap)
 

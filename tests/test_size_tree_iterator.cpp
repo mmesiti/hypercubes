@@ -8,6 +8,7 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 
 struct SimpleSizeTree {
 

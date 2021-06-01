@@ -4,7 +4,7 @@
 
 #include "tree.hpp"
 
-using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_tree)
 

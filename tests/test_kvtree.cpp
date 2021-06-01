@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
-using namespace hypercubes::slow;
+using namespace hypercubes::slow::internals;
 BOOST_AUTO_TEST_SUITE(test_tree_kv)
 
 BOOST_AUTO_TEST_CASE(test_collapse_level_kv) {

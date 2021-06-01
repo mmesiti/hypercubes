@@ -9,6 +9,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace internals {
+
 using partitioners::PartList;
 using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
 
@@ -57,8 +59,8 @@ bool validate_idx(const PartitionTree &t, const Indices &idx);
 
 vector<std::pair<int, int>> get_partition_limits(const PartitionTree &t, //
                                                  const Indices &idx);
+} // namespace internals
 } // namespace slow
-
 } // namespace hypercubes
 
 #endif // PARTITION_CLASS_TREE_H_
