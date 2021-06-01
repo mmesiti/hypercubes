@@ -16,8 +16,10 @@ endif()
 include_directories(./include )
 
 # Base libraries
+add_library(int_vec_wrappers src/geometry/int_vec_wrappers.cpp)
 add_library(eo src/geometry/eo.cpp)
 add_library(geometry src/geometry/geometry.cpp)
+target_link_libraries(geometry int_vec_wrappers)
 add_library(print_utils src/utils/print_utils.cpp)
 
 # Partitioning

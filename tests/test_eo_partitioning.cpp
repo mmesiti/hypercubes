@@ -101,7 +101,7 @@ BOOST_DATA_TEST_CASE_F(EO5, test_idx_to_coords,
   Coordinates offset{0, 0, 0, 3, 0, idxh};
   auto r = P.idx_to_coords(parity, offset);
   eo::IntList sizes{11, 10, 9, 8};
-  Coordinates subexpected = eo::lexeo_idx_to_coord(parity, idxh, sizes);
+  Coordinates subexpected(eo::lexeo_idx_to_coord(parity, idxh, sizes));
   vector<int> subexp_index{0, 1, 2, 4};
   for (int j = 0; j < subexpected.size(); ++j) {
     int i = subexp_index[j];
@@ -118,7 +118,7 @@ BOOST_DATA_TEST_CASE_F(EOALLODD, test_idx_to_coords_allodd,
   Coordinates offset{0, 3, 0, idxh};
   auto r = P.idx_to_coords(parity, offset);
   eo::IntList sizes{11, 11};
-  Coordinates subexpected = eo::lexeo_idx_to_coord(origin_parity, idxh, sizes);
+  Coordinates subexpected(eo::lexeo_idx_to_coord(origin_parity, idxh, sizes));
   vector<int> subexp_index{0, 2};
   for (int j = 0; j < subexpected.size(); ++j) {
     int i = subexp_index[j];

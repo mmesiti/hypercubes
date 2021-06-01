@@ -62,7 +62,7 @@ Coordinates EO::idx_to_coords(int idx, const Coordinates &offset) const {
                                    [](auto sp_) { //
                                      return sp_.size;
                                    });
-    sub_res = eo::lexeo_idx_to_coord(parity, idxh, cbsizes);
+    sub_res = Coordinates(eo::lexeo_idx_to_coord(parity, idxh, cbsizes));
   }
   {
     int cbdim_count = 0;
@@ -116,7 +116,7 @@ std::string EO::get_name() const { return name; }
 std::string EO::comments() const { return tuple_to_str(key()); }
 vector<IndexResultD> EO::coord_to_idxs(const Coordinates &coord) const {
   vector<IndexResultD> res;
-  Coordinates cbcoord;
+  vector<int> cbcoord;
   for (int i = 0; i < cbflags.size(); ++i)
     if (cbflags[i])
       cbcoord.push_back(coord[i]);
@@ -124,12 +124,12 @@ vector<IndexResultD> EO::coord_to_idxs(const Coordinates &coord) const {
   std::tie(relative_eo_idx, idxh) = eo::lex_coord_to_eoidx(cbcoord, cumcbsizes);
   int eo_idx = (relative_eo_idx + static_cast<int>(origin_parity)) % 2;
 
-  Coordinates rests(cbflags.size());
+  vector<int> _rests(cbflags.size());
   for (int i = 0; i < cbflags.size(); ++i)
-    rests[i] = cbflags[i] ? 0 : coord[i];
-  rests.push_back(idxh);
+    _rests[i] = cbflags[i] ? 0 : coord[i];
+  _rests.push_back(idxh);
 
-  return vector<IndexResultD>{{eo_idx, rests, false}};
+  return vector<IndexResultD>{{eo_idx, Coordinates(_rests), false}};
 }
 
 int EO::dimensionality() const { return spd.size(); }

@@ -13,6 +13,7 @@ bool operator==(IndexResult i1, IndexResult i2) {
   return i1.idx == i2.idx and i1.rest == i2.rest and
          i1.cached_flag == i2.cached_flag;
 }
+
 } // namespace slow
 } // namespace hypercubes
 

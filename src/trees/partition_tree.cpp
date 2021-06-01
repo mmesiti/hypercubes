@@ -181,8 +181,8 @@ Coordinates get_coord_from_idx(const PartitionTree &t, //
   if (idxs.size() > 1) {
     offsets = get_coord_from_idx(t->children[idx], tail(idxs));
   } else {
-    offsets = Coordinates(t->n->dimensionality());
-    std::fill(offsets.begin(), offsets.end(), 0);
+    offsets = Coordinates(t->n->dimensionality(), 0);
+    // std::fill(offsets.begin(), offsets.end(), 0); // TODO: remove
   }
   return t->n->idx_to_coords(idx, offsets);
 }

@@ -121,7 +121,8 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
   TreeP<GhostResult> idxt_gr = get_indices_tree_with_ghosts(t, xs);
   TreeP<int> idxt = nodemap<GhostResult, int, get_idx_from_ghost>(
       idxt_gr); //, [](GhostResult gr) { return gr.idx; });
-  vector<Indices> idxs = get_all_paths(idxt);
+  vector<Indices> idxs = vtransform(get_all_paths(idxt),
+                                    [](auto _idxs) { return Indices(_idxs); });
   decltype(idxs) relevant_idxs;
   std::copy_if(idxs.begin(), idxs.end(), std::back_inserter(relevant_idxs),
                [](auto v) { return v.size() == 4; });
@@ -148,7 +149,8 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 
   TreeP<GhostResult> idxt_gr = get_indices_tree_with_ghosts(t, xs);
   TreeP<int> idxt = nodemap<GhostResult, int, get_idx_from_ghost>(idxt_gr);
-  vector<Indices> idxs = get_all_paths(idxt);
+  vector<Indices> idxs = vtransform(get_all_paths(idxt),
+                                    [](auto _idxs) { return Indices(_idxs); });
   decltype(idxs) relevant_idxs;
   std::copy_if(idxs.begin(), idxs.end(),          //
                std::back_inserter(relevant_idxs), //

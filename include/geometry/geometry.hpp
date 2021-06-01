@@ -1,5 +1,6 @@
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
+#include "int_vec_wrappers.hpp"
 #include <ostream>
 #include <vector>
 
@@ -13,12 +14,6 @@ struct IndexResult {
   bool cached_flag;
 };
 
-struct IndexResultD {
-  int idx;
-  vector<int> rest;
-  bool cached_flag;
-};
-
 enum Parity { EVEN, ODD, NONE };
 
 struct SizeParity {
@@ -26,15 +21,15 @@ struct SizeParity {
   Parity parity;
 };
 
-// Coordinates are for locations in physical space - e.g, 4D
-using Coordinates = vector<int>;
 // Sizes are for extents in physical space
 using Sizes = vector<int>;
-// Indices are for location in the partitioning tree
-// (not that different from coordinates, after all,
-// but in a space with a different dimensionality
-// and some other constraint)
-using Indices = vector<int>;
+
+struct IndexResultD {
+  int idx;
+  Coordinates rest;
+  bool cached_flag;
+};
+
 // [nclasses]
 using SizeParities = vector<SizeParity>;
 // [dimensions]
@@ -51,6 +46,10 @@ bool operator==(IndexResult i1, IndexResult i2);
 } // namespace hypercubes
 namespace std {
 std::ostream &operator<<(std::ostream &os, hypercubes::slow::Parity p);
-std::ostream &operator<<(std::ostream &os, hypercubes::slow::SizeParity p);
+std::ostream &operator<<(std::ostream &os, hypercubes::slow::SizeParity sp);
+std::ostream &operator<<(std::ostream &os,
+                         const hypercubes::slow::Coordinates &cs);
+std::ostream &operator<<(std::ostream &os,
+                         const hypercubes::slow::Indices &idxs);
 } // namespace std
 #endif // GEOMETRY_H_

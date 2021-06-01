@@ -26,14 +26,14 @@ BOOST_FIXTURE_TEST_CASE(test_only_bulk_and_borders, Part4DF) {
     bool expected = std::all_of(idhbb.begin(), idhbb.end(),
                                 [](int i) { return i != 0 and i != 4; });
 
-    Indices idx{2,  //
-                3,  //
-                1,  //
-                0,  //# End of MPI
-                1,  //
-                2,  //
-                1,  //
-                1}; //# End of Vector
+    std::vector<int> idx{2,  //
+                         3,  //
+                         1,  //
+                         0,  //# End of MPI
+                         1,  //
+                         2,  //
+                         1,  //
+                         1}; //# End of Vector
 
     std::copy(idhbb.begin(), idhbb.end(), std::back_inserter(idx));
     idx.push_back(0);

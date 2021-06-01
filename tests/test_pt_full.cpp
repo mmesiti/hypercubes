@@ -99,8 +99,8 @@ BOOST_DATA_TEST_CASE_F(Part4DFWLocal, test_coord_idx_roundtrip_wlocal,
   auto datasource = data::rilist(0, 41, 4, 4);
   auto xs = datasource.begin();
   for (int icase = 0; icase < 10; ++icase) {
-    Coordinates xs_wloc = *xs;
-    xs_wloc.push_back(loc);
+    Coordinates xs_wloc(append(*xs, loc));
+    // xs_wloc.push_back(loc);
     Indices idx = get_real_indices(t, xs_wloc);
     Coordinates new_coords = get_coord_from_idx(t, idx);
     BOOST_TEST(new_coords == xs_wloc);
