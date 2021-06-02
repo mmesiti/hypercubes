@@ -53,6 +53,8 @@ struct Part1D42 {
   PartitionTree t;
   std::vector<int> bulk_sites;
   std::vector<int> border_sites;
+  vector<std::pair<int, Indices>> haloonly1D;
+  vector<std::pair<int, Indices>> get_haloonly1D();
 
   Part1D42();
 };

@@ -6,17 +6,16 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-using SizeTree = TreeP<std::pair<int, int>>;
+Indices get_start_idxs(const SizeTree &sizetree) {
+  return append(vtransform(tail(first_nodes_list(sizetree)),
+                           [](auto c) { return c.first; }),
+                0);
+}
 
 Indices next(const SizeTree &size_tree, const Indices &idxs) {
 
   // function to retrieve idx
   // subtree->n.first;
-  auto _get_start_idxs = [](SizeTree subtree) {
-    return append(vtransform(tail(first_nodes_list(subtree)),
-                             [](auto c) { return c.first; }),
-                  0);
-  };
 
   int s = size_tree->n.second;
   int idx = size_tree->n.first;
@@ -46,15 +45,18 @@ Indices next(const SizeTree &size_tree, const Indices &idxs) {
     Indices new_sub_idxs = next(children[i], sub_idxs);
     if (new_sub_idxs.size() == 0) {
       if (nidx == *idx_children.rbegin())
-        return Indices{};
+        return Indices{}; // last in subtree
       else {
-        new_sub_idxs = _get_start_idxs(children[i + 1]);
+        new_sub_idxs = get_start_idxs(children[i + 1]);
         return append(idx_children[i + 1], new_sub_idxs);
       }
     } else
       return append(nidx, new_sub_idxs);
   }
 }
+
+Indices get_end_idxs() { return Indices{}; }
+
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes

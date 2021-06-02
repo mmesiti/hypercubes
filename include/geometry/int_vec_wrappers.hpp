@@ -36,7 +36,8 @@ public:                                                                        \
   auto begin() const { return WRAPPEDNAME.begin(); }                           \
   auto end() { return WRAPPEDNAME.end(); }                                     \
   auto end() const { return WRAPPEDNAME.end(); }                               \
-  bool operator==(const CLASSNAME &other) const;
+  bool operator==(const CLASSNAME &other) const;                               \
+  bool operator!=(const CLASSNAME &other) const;
 
 // Coordinates are for locations in physical space - e.g, 4D
 class Coordinates {

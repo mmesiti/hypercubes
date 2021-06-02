@@ -23,6 +23,9 @@ namespace slow {
   bool CLASSNAME::operator==(const CLASSNAME &other) const {                   \
     return WRAPPEDNAME == other.WRAPPEDNAME;                                   \
   }                                                                            \
+  bool CLASSNAME::operator!=(const CLASSNAME &other) const {                   \
+    return WRAPPEDNAME != other.WRAPPEDNAME;                                   \
+  }                                                                            \
   CLASSNAME::CLASSNAME(std::initializer_list<int> il) : WRAPPEDNAME(il){};
 // coordinates
 INTVEC_BOILERPLATE(Coordinates, coords);

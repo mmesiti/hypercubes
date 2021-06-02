@@ -90,7 +90,40 @@ Part1D42::Part1D42()
       },                                       //
       t(get_partition_tree(sp, partitioners)), //
       bulk_sites(get_bulk_sites42()),          //
-      border_sites(get_border_sites42()) {}
+      border_sites(get_border_sites42()),      //
+      haloonly1D(get_haloonly1D()) {}
+
+vector<std::pair<int, Indices>> Part1D42::get_haloonly1D() {
+  vector<std::pair<int, Indices>> res;
+
+  auto reorder_sites = [](vector<int> _border_sites) {
+    int i = 1, step = 0;
+    vector<int> out;
+    while (i < _border_sites.size()) {
+      out.push_back(_border_sites[i]);
+      i += (step % 2 == 0) ? 3 : -1;
+      ++step;
+    }
+    return out;
+  };
+
+  auto get_halo_idx = [&](int _bs) {
+    auto itwg = get_indices_tree_with_ghosts(t, Coordinates{_bs});
+    return get_relevant_indices_flat(itwg);
+  };
+
+  for (auto bs : reorder_sites(border_sites)) {
+    for (auto halodim_idx : get_halo_idx(bs)) {
+      int halodim;
+      Indices idx;
+      std::tie(halodim, idx) = halodim_idx;
+      if (halodim)
+        res.push_back(std::make_pair(bs, idx));
+    }
+  }
+  return res;
+}
+
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes

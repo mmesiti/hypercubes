@@ -43,36 +43,6 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_simple3, SimpleSizeTree) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
-  auto haloonly1D = [&]() {
-    vector<std::pair<int, Indices>> res;
-
-    auto reorder_sites = [](vector<int> _border_sites) {
-      int i = 1, step = 0;
-      vector<int> out;
-      while (i < _border_sites.size()) {
-        out.push_back(_border_sites[i]);
-        i += (step % 2 == 0) ? 3 : -1;
-        ++step;
-      }
-      return out;
-    };
-
-    auto get_halo_idx = [&](int _bs) {
-      auto itwg = get_indices_tree_with_ghosts(t, Coordinates{_bs});
-      return get_relevant_indices_flat(itwg);
-    };
-
-    for (auto bs : reorder_sites(border_sites)) {
-      for (auto halodim_idx : get_halo_idx(bs)) {
-        int halodim;
-        Indices idx;
-        std::tie(halodim, idx) = halodim_idx;
-        if (halodim)
-          res.push_back(std::make_pair(bs, idx));
-      }
-    }
-    return res;
-  }();
 
   int isite = 0;
 
@@ -95,4 +65,43 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
   };
 }
 
+BOOST_FIXTURE_TEST_CASE(test_offset_iterator_match, Part1D42) {
+  auto size_tree = get_size_tree(
+      get_nchildren_alloc_tree(t, //
+                               [&](Indices idx) -> BoolM {
+                                 return no_bulk_borders(partitioners, idx);
+                               }));
+  auto no_sites = truncate_tree(size_tree,                     //
+                                get_max_depth(size_tree) - 1); //
+
+  auto idx = get_start_idxs(no_sites);
+  auto offset_tree = get_offset_tree(no_sites);
+  int expected_offset = 0;
+  while (idx != get_end_idxs()) {
+    int offset = get_offset(offset_tree, idx);
+    BOOST_TEST(offset == expected_offset);
+    idx = next(no_sites, idx);
+    expected_offset++;
+  }
+}
+
+BOOST_FIXTURE_TEST_CASE(test_offset_indices_roundtrip, Part1D42) {
+  auto size_tree = get_size_tree(
+      get_nchildren_alloc_tree(t, //
+                               [&](Indices idx) -> BoolM {
+                                 return no_bulk_borders(partitioners, idx);
+                               }));
+  auto no_sites = truncate_tree(size_tree,                     //
+                                get_max_depth(size_tree) - 1); //
+
+  Indices idx = get_start_idxs(no_sites);
+  auto offset_tree = get_offset_tree(no_sites);
+  int expected_offset = 0;
+  while (idx != get_end_idxs()) {
+    int offset = get_offset(offset_tree, idx);
+    Indices indices_roundtrip = get_indices(offset_tree, offset);
+    BOOST_TEST(idx == indices_roundtrip);
+    idx = next(no_sites, idx);
+  }
+}
 BOOST_AUTO_TEST_SUITE_END()

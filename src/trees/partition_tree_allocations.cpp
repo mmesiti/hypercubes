@@ -87,6 +87,41 @@ get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {
   return _get_start_tree(size_tree, 0);
 }
 
+int get_offset(const TreeP<std::pair<int, int>> &offset_tree, //
+               const Indices &idxs) {
+  auto children = offset_tree->children;
+  int key = idxs[0];
+  if (idxs.size() == 1)
+    return key + offset_tree->n.second;
+  else {
+    auto child =
+        std::find_if(children.begin(), //
+                     children.end(),   //
+                     [key](auto child) { return child->n.first == key; });
+    return get_offset(*child, tail(idxs));
+  }
+}
+Indices get_indices(const TreeP<std::pair<int, int>> &offset_tree, //
+                    int offset) {
+
+  auto _get_indices = [](const TreeP<std::pair<int, int>> &offset_tree,
+                         int offset, auto frec) {
+    auto children = offset_tree->children;
+    if (children.size() == 0) {
+      return Indices{(offset - offset_tree->n.second)};
+    } else {
+      auto child_after = std::find_if(children.begin(),      //
+                                      children.end(),        //
+                                      [offset](auto child) { //
+                                        return offset < child->n.second;
+                                      });
+      auto child = *(child_after - 1);
+      return append(child->n.first, frec(child, offset, frec));
+    }
+  };
+  return _get_indices(offset_tree, offset, _get_indices);
+}
+
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes
