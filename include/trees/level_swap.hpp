@@ -35,8 +35,7 @@ std::vector<int> find_permutation(const std::vector<T> &in,
   });
 }
 
-std::vector<std::string>
-get_partitioners_names(const partitioners::PartList &partitioners);
+std::vector<std::string> get_partitioners_names(const PartList &partitioners);
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes

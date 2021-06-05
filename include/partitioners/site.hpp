@@ -4,6 +4,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 /** An object of this type
  *represents a leaf in the partition tree.*/
@@ -25,6 +26,7 @@ private:
   void check_idx(int idx) const;
 };
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 

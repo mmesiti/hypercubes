@@ -6,6 +6,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
+
 class Plain1D : public Partitioning1D {
 public:
   Plain1D(SizeParity sp, int dimension_, std::string name_);
@@ -18,6 +20,7 @@ private:
   auto key() const { return std::make_tuple(size, parity, dimension, name); }
 };
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 

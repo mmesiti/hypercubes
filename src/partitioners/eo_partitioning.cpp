@@ -8,6 +8,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 EO::EO(const SizeParityD &sp_, const EO::CBFlags &cbflags_,
        const std::string &name_)
@@ -134,5 +135,6 @@ vector<IndexResultD> EO::coord_to_idxs(const Coordinates &coord) const {
 
 int EO::dimensionality() const { return spd.size(); }
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes

@@ -6,6 +6,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 class Q1DBase : public Partitioning1D {
 public:
@@ -45,12 +46,14 @@ private:
   std::tuple<int, int> idx_limits(int relative_x) const;
   BoundaryCondition bc() const;
 };
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 
 namespace std {
-ostream &operator<<(ostream &os,
-                    hypercubes::slow::Q1DBase::BoundaryCondition bc);
+ostream &
+operator<<(ostream &os,
+           hypercubes::slow::partitioning::Q1DBase::BoundaryCondition bc);
 }
 
 #endif // Q_H_

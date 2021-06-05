@@ -7,6 +7,7 @@
 #include <vector>
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::partitioning;
 
 struct Q1DFixture {
 

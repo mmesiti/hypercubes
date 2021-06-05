@@ -8,6 +8,7 @@
 namespace hypercubes {
 namespace slow {
 namespace internals {
+using partitioning::IPartitioning;
 
 namespace memodetails {
 namespace get_partition_tree {

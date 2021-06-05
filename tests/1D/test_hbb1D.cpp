@@ -5,6 +5,7 @@
 #include "partitioners/1D/hbb1D.hpp"
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::partitioning;
 namespace bdata = boost::unit_test::data;
 
 struct HBB1DFixture {

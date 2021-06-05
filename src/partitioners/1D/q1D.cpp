@@ -5,6 +5,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 // guaranteed to produce a result
 // which is positive or equal to zero.
@@ -91,20 +92,21 @@ std::tuple<int, int> Q1DPeriodic::idx_limits(int relative_x) const {
   int max_idx = idx_true + 2;
   return std::make_tuple(min_idx, max_idx);
 }
-
+} // namespace partitioning
 } // namespace slow
 
 } // namespace hypercubes
 
 namespace std {
-ostream &operator<<(ostream &os,
-                    hypercubes::slow::Q1DBase::BoundaryCondition bc) {
+ostream &
+operator<<(ostream &os,
+           hypercubes::slow::partitioning::Q1DBase::BoundaryCondition bc) {
 
   switch (bc) {
-  case hypercubes::slow::Q1DBase::BoundaryCondition::OPEN:
+  case hypercubes::slow::partitioning::Q1DBase::BoundaryCondition::OPEN:
     os << "OPEN";
     break;
-  case hypercubes::slow::Q1DBase::BoundaryCondition::PERIODIC:
+  case hypercubes::slow::partitioning::Q1DBase::BoundaryCondition::PERIODIC:
     os << "PERIODIC";
     break;
   }

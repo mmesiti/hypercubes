@@ -14,11 +14,13 @@ namespace hypercubes {
 namespace slow {
 namespace partitioners {
 
-class IPartitioningRequest {
+using partitioning::IPartitioning;
+
+class IPartitioner {
 public:
   std::shared_ptr<IPartitioning> partition(SizeParityD sp) const;
 
-  IPartitioningRequest(std::string name_);
+  IPartitioner(std::string name_);
   std::string get_name() const;
 
 protected:
@@ -26,61 +28,70 @@ protected:
   virtual IPartitioning *get(SizeParityD sp) const = 0;
 };
 
-using CBFlags = hypercubes::slow::EO::CBFlags;
-class EO_ : public IPartitioningRequest {
+using CBFlags = hypercubes::slow::partitioning::EO::CBFlags;
+class EO : public IPartitioner {
 public:
-  EO_(std::string name, CBFlags cbflags);
+  EO(std::string name, CBFlags cbflags);
 
 private:
   CBFlags cbflags;
-  hypercubes::slow::EO *get(SizeParityD sp) const;
+  hypercubes::slow::partitioning::EO *get(SizeParityD sp) const;
 };
 
-class Site_ : public IPartitioningRequest {
+class Site : public IPartitioner {
 public:
-  Site_();
+  Site();
 
 private:
-  hypercubes::slow::Site *get(SizeParityD sp) const;
+  hypercubes::slow::partitioning::Site *get(SizeParityD sp) const;
 };
-class QPeriodic_ : public IPartitioningRequest {
+class QPeriodic : public IPartitioner {
 public:
-  QPeriodic_(std::string name, int dimension, int nparts);
-
-private:
-  int dimension, nparts;
-  Dimensionalise<Q1DPeriodic> *get(SizeParityD sp) const;
-};
-
-class QOpen_ : public IPartitioningRequest {
-public:
-  QOpen_(std::string name, int dimension, int nparts);
+  QPeriodic(std::string name, int dimension, int nparts);
 
 private:
   int dimension, nparts;
-  Dimensionalise<Q1DOpen> *get(SizeParityD sp) const;
+  partitioning::Dimensionalise<partitioning::Q1DPeriodic> *
+  get(SizeParityD sp) const;
 };
 
-class Plain_ : public IPartitioningRequest {
+class QOpen : public IPartitioner {
 public:
-  Plain_(std::string name, int dimension);
+  QOpen(std::string name, int dimension, int nparts);
+
+private:
+  int dimension, nparts;
+  partitioning::Dimensionalise<partitioning::Q1DOpen> *
+  get(SizeParityD sp) const;
+};
+
+class Plain : public IPartitioner {
+public:
+  Plain(std::string name, int dimension);
 
 private:
   int dimension;
-  Dimensionalise<Plain1D> *get(SizeParityD sp) const;
+  partitioning::Dimensionalise<partitioning::Plain1D> *
+  get(SizeParityD sp) const;
 };
 
-class HBB_ : public IPartitioningRequest {
+class HBB : public IPartitioner {
 public:
-  HBB_(std::string name, int dimension, int halo);
+  HBB(std::string name, int dimension, int halo);
+  int get_dimension() const;
 
 private:
   int dimension, halo;
-  Dimensionalise<HBB1D> *get(SizeParityD sp) const;
+  partitioning::Dimensionalise<partitioning::HBB1D> *get(SizeParityD sp) const;
 };
 
-using IPartRP = std::shared_ptr<IPartitioningRequest>;
+} // namespace partitioners
 
+using IPartRP = std::shared_ptr<partitioners::IPartitioner>;
+using PartList = std::vector<IPartRP>;
+namespace partitioner_makers {
+
+using CBFlags = hypercubes::slow::partitioning::EO::CBFlags;
 IPartRP EO(std::string name, CBFlags cbflags);
 IPartRP Site();
 IPartRP QPeriodic(std::string name, int dimension, int nparts);
@@ -88,8 +99,7 @@ IPartRP QOpen(std::string name, int dimension, int nparts);
 IPartRP Plain(std::string name, int dimension);
 IPartRP HBB(std::string name, int dimension, int halo);
 
-using PartList = std::vector<IPartRP>;
-} // namespace partitioners
+} // namespace partitioner_makers
 } // namespace slow
 } // namespace hypercubes
 

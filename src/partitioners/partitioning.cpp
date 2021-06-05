@@ -3,6 +3,7 @@
 #include <algorithm>
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 Sizes IPartitioning::idx_to_sizes(int idx) const {
   int child_idx = idx_to_child_kind(idx);
@@ -12,5 +13,6 @@ Sizes IPartitioning::idx_to_sizes(int idx) const {
                       return sp.size;
                     });
 };
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes

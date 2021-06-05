@@ -8,6 +8,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
+
 class Partitioning1D {
 public:
   Partitioning1D(SizeParity sp, int dimension_, std::string name_)
@@ -33,6 +35,7 @@ protected:
   vector<int> limits;
 };
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 

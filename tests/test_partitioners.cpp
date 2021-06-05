@@ -6,7 +6,7 @@ using namespace hypercubes::slow;
 BOOST_AUTO_TEST_SUITE(test_partitioners)
 BOOST_AUTO_TEST_CASE(test_eo_partitioner) {
 
-  partitioners::IPartRP p = partitioners::EO("test_eo", {true, false, true});
+  IPartRP p = partitioner_makers::EO("test_eo", {true, false, true});
 
   SizeParities sps{{5, Parity::EVEN}, {6, Parity::NONE}, {7, Parity::ODD}};
   auto pc = p->partition(sps);
@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_CASE(test_eo_partitioner) {
 }
 BOOST_AUTO_TEST_CASE(test_qper_partitioner) {
 
-  partitioners::IPartRP p = partitioners::QPeriodic("test_qper", 1, 4);
+  IPartRP p = partitioner_makers::QPeriodic("test_qper", 1, 4);
 
   SizeParities sps{{42, Parity::EVEN}, {42, Parity::NONE}, {42, Parity::ODD}};
   auto pc = p->partition(sps);
@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(test_qper_partitioner) {
 }
 BOOST_AUTO_TEST_CASE(test_qopen_partitioner) {
 
-  partitioners::IPartRP p = partitioners::QOpen("test_qper", 1, 4);
+  IPartRP p = partitioner_makers::QOpen("test_qper", 1, 4);
 
   SizeParities sps{{42, Parity::EVEN}, {42, Parity::NONE}, {42, Parity::ODD}};
   auto pc = p->partition(sps);
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(test_qopen_partitioner) {
 }
 BOOST_AUTO_TEST_CASE(test_plain_partitioner) {
 
-  partitioners::IPartRP p = partitioners::Plain("test_plain", 1);
+  IPartRP p = partitioner_makers::Plain("test_plain", 1);
 
   SizeParities sps{{42, Parity::EVEN}, {42, Parity::NONE}, {42, Parity::ODD}};
   auto pc = p->partition(sps);
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(test_plain_partitioner) {
 }
 BOOST_AUTO_TEST_CASE(test_hbb_partitioner) {
 
-  partitioners::IPartRP p = partitioners::HBB("test_hbb", 1, 3);
+  IPartRP p = partitioner_makers::HBB("test_hbb", 1, 3);
 
   SizeParities sps{{42, Parity::EVEN}, {42, Parity::NONE}, {42, Parity::ODD}};
   auto pc = p->partition(sps);

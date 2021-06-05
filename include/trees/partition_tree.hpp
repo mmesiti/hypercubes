@@ -11,8 +11,8 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-using partitioners::PartList;
-using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
+// using partitioners::PartList;
+using PartitionTree = TreeP<std::shared_ptr<partitioning::IPartitioning>>;
 
 PartitionTree get_partition_treeM(SizeParityD spd, //
                                   const PartList &partitioners);

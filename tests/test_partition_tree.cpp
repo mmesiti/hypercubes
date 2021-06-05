@@ -6,8 +6,9 @@
 
 using namespace hypercubes::slow;
 using namespace hypercubes::slow::internals;
-using namespace hypercubes::slow::partitioners;
+// using namespace hypercubes::slow::partitioner_makers;
 namespace bdata = boost::unit_test::data;
+
 /**
  * Simple 1D test.
  * */
@@ -15,9 +16,9 @@ BOOST_AUTO_TEST_SUITE(test_partition_tree)
 
 BOOST_AUTO_TEST_CASE(test_1D_2lvl_simple) {
 
-  using partitioners::QOpen;
-  using partitioners::QPeriodic;
-  using partitioners::Site;
+  using partitioner_makers::QOpen;
+  using partitioner_makers::QPeriodic;
+  using partitioner_makers::Site;
 
   PartList ps{
       QPeriodic("MPI", 0, 2), //
@@ -31,8 +32,11 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_simple) {
   std::string comments0, comments1;
   {
     comments0 =
-        Q1DPeriodic(SizeParity{8, Parity::EVEN}, 0, "MPI", 2).comments();
-    comments1 = Q1DOpen(SizeParity{4, Parity::EVEN}, 0, "Vector", 2).comments();
+        partitioning::Q1DPeriodic(SizeParity{8, Parity::EVEN}, 0, "MPI", 2)
+            .comments();
+    comments1 =
+        partitioning::Q1DOpen(SizeParity{4, Parity::EVEN}, 0, "Vector", 2)
+            .comments();
   }
 
   BOOST_TEST(t->n->comments() == comments0);
@@ -41,9 +45,9 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_simple) {
 
 BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 
-  using partitioners::QOpen;
-  using partitioners::QPeriodic;
-  using partitioners::Site;
+  using partitioner_makers::QOpen;
+  using partitioner_makers::QPeriodic;
+  using partitioner_makers::Site;
 
   PartList ps{
       QPeriodic("MPI", 0, 4), //
@@ -62,11 +66,15 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 
   {
     comments0 =
-        Q1DPeriodic(SizeParity{42, Parity::EVEN}, 0, "MPI", 4).comments();
+        partitioning::Q1DPeriodic(SizeParity{42, Parity::EVEN}, 0, "MPI", 4)
+            .comments();
     comments1 = vector<std::string>{
-        Q1DOpen(SizeParity{9, Parity::ODD}, 0, "Vector", 2).comments(),
-        Q1DOpen(SizeParity{11, Parity::EVEN}, 0, "Vector", 2).comments(),
-        Q1DOpen(SizeParity{11, Parity::ODD}, 0, "Vector", 2).comments()};
+        partitioning::Q1DOpen(SizeParity{9, Parity::ODD}, 0, "Vector", 2)
+            .comments(),
+        partitioning::Q1DOpen(SizeParity{11, Parity::EVEN}, 0, "Vector", 2)
+            .comments(),
+        partitioning::Q1DOpen(SizeParity{11, Parity::ODD}, 0, "Vector", 2)
+            .comments()};
   }
   std::string prefix = "   ";
   std::string exprepr = std::string("+MPI") + "\n" +          //
@@ -82,7 +90,7 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 }
 
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_simple) {
-  using partitioners::Site;
+  using namespace partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN},  //
                  {42, Parity::EVEN}}; //
   PartitionTree t = get_partition_tree(sp, PartList{
@@ -107,13 +115,14 @@ int get_idx_from_ghost(GhostResult gr) { return gr.idx; }
 
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 
+  using namespace partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
                                            QOpen("Vector", 0, 2),  //
                                            Plain("Remainder", 0),
-                                           partitioners::Site(),
+                                           Site(),
                                        });
 
   Coordinates xs{22};
@@ -135,6 +144,7 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 
+  using namespace partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
@@ -142,7 +152,7 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
                                            QOpen("Vector", 0, 2),  //
                                            HBB("Halo", 0, 1),      //
                                            Plain("Remainder", 0),
-                                           partitioners::Site(),
+                                           Site(),
                                        });
 
   Coordinates xs{22};
@@ -165,6 +175,7 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 
 BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
                      bdata::xrange(0, 41), i) {
+  using namespace partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
@@ -172,7 +183,7 @@ BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
                                            QOpen("Vector", 0, 2),  //
                                            HBB("Halo", 0, 1),      //
                                            Plain("Remainder", 0),  //
-                                           partitioners::Site(),   //
+                                           Site(),                 //
                                        });
 
   Coordinates xs{i};
@@ -183,6 +194,7 @@ BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
 }
 
 BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
+  using namespace partitioner_makers;
   vector<std::pair<Indices, Sizes>> in_out{{{0}, {11}},      //
                                            {{1}, {11}},      //
                                            {{2}, {11}},      //
@@ -203,7 +215,7 @@ BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
                                            QOpen("Vector", 0, 2),  //
                                            HBB("Halo", 0, 1),      //
                                            Plain("Remainder", 0),  //
-                                           partitioners::Site(),   //
+                                           Site(),                 //
                                        });
 
   for (auto &idx_size : in_out) {
@@ -215,6 +227,7 @@ BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
 }
 
 BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
+  using namespace partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
@@ -222,7 +235,7 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
                                            QOpen("Vector", 0, 2),  //
                                            HBB("Halo", 0, 1),      //
                                            Plain("Remainder", 0),
-                                           partitioners::Site(),
+                                           Site(),
                                        });
   // expmtreens: expected max tree no sites
   TreeP<int> expmtreens = mt(4, {mt(2, {mt(5, {mt(1, {}),     //
@@ -275,15 +288,16 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
 }
 
 BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
+  using namespace partitioner_makers;
   SizeParityD sp{{11, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
-                                           QOpen("Vector", 0, 2),          //
-                                           HBB("Halo", 0, 1),              //
-                                           partitioners::EO("EO", {true}), //
-                                           Plain("Remainder", 1),          //
-                                           Plain("Remainder", 0),          //
-                                           partitioners::Site(),
+                                           QOpen("Vector", 0, 2), //
+                                           HBB("Halo", 0, 1),     //
+                                           EO("EO", {true}),      //
+                                           Plain("Remainder", 1), //
+                                           Plain("Remainder", 0), //
+                                           Site(),
                                        });
 
   TreeP<int> a;
@@ -339,6 +353,7 @@ BOOST_DATA_TEST_CASE(test_validate_idx, //
                          {{1, 0, 2, 4}, {false}}  //
                      }),
                      idx_valid) {
+  using namespace partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
@@ -346,7 +361,7 @@ BOOST_DATA_TEST_CASE(test_validate_idx, //
                                            QOpen("Vector", 0, 2),  //
                                            HBB("Halo", 0, 1),      //
                                            Plain("Remainder", 0),  //
-                                           partitioners::Site(),   //
+                                           Site(),                 //
                                        });
 
   Indices idx = idx_valid.first;
@@ -357,16 +372,17 @@ BOOST_DATA_TEST_CASE(test_validate_idx, //
 }
 
 BOOST_AUTO_TEST_CASE(test_validate_idx_weo) {
+  using namespace partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
-                                           QPeriodic("MPI", 0, 4),         //
-                                           QOpen("Vector", 0, 2),          //
-                                           HBB("Halo", 0, 1),              //
-                                           partitioners::EO("EO", {true}), //
-                                           Plain("Remainder-extra", 1),    //
-                                           Plain("Remainder", 0),          //
-                                           partitioners::Site(),           //
+                                           QPeriodic("MPI", 0, 4),      //
+                                           QOpen("Vector", 0, 2),       //
+                                           HBB("Halo", 0, 1),           //
+                                           EO("EO", {true}),            //
+                                           Plain("Remainder-extra", 1), //
+                                           Plain("Remainder", 0),       //
+                                           Site(),                      //
                                        });
 
   std::vector<std::pair<Indices, bool>> in_out{
@@ -393,6 +409,7 @@ BOOST_AUTO_TEST_CASE(test_validate_idx_weo) {
 }
 
 BOOST_AUTO_TEST_CASE(test_partition_limits_1D) {
+  using namespace partitioner_makers;
   vector<std::pair<Indices, std::pair<int, int>>> in_out{{{0}, {0, 16}},     //
                                                          {{1}, {16, 32}},    //
                                                          {{0, 0}, {0, 8}},   //
@@ -404,7 +421,7 @@ BOOST_AUTO_TEST_CASE(test_partition_limits_1D) {
       QPeriodic("MPI1", 0, 2), //
       QOpen("VECTOR1", 0, 2),  //
       Plain("Plain", 0),       //
-      partitioners::Site(),    //
+      Site(),                  //
   };
 
   SizeParityD sp{{32, Parity::EVEN}};
@@ -421,6 +438,7 @@ BOOST_AUTO_TEST_CASE(test_partition_limits_1D) {
 }
 
 BOOST_AUTO_TEST_CASE(test_partition_limits_2D) {
+  using namespace partitioner_makers;
   using PairVector = std::vector<std::pair<int, int>>;
   vector<std::pair<Indices, PairVector>> in_out{
       {{0}, {{0, 21}, {0, 42}}},               //
@@ -441,7 +459,7 @@ BOOST_AUTO_TEST_CASE(test_partition_limits_2D) {
       HBB("HBB Y", Y, 1),       //
       Plain("Leaf X", X),       //
       Plain("Leaf Y", Y),       //
-      partitioners::Site(),     //
+      Site(),                   //
   };
   SizeParityD sp{{42, Parity::EVEN}, {42, Parity::EVEN}};
 

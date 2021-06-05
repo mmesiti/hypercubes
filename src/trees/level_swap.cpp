@@ -9,8 +9,7 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-std::vector<std::string>
-get_partitioners_names(const partitioners::PartList &partitioners) {
+std::vector<std::string> get_partitioners_names(const PartList &partitioners) {
   return vtransform(partitioners, [](auto p) { return p->get_name(); });
 }
 } // namespace internals

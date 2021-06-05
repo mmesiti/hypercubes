@@ -7,6 +7,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 class EO : public IPartitioning {
 public:
@@ -33,6 +34,7 @@ private:
   template <class T> void checkdim(const vector<T> &) const;
   auto key() const { return std::make_tuple(spd, cbflags, name); }
 };
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 

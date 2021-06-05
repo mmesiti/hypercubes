@@ -6,6 +6,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 class IPartitioning {
 public:
@@ -22,6 +23,7 @@ public:
   virtual int dimensionality() const = 0;
 };
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 

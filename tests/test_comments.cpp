@@ -9,7 +9,7 @@
 #include "utils/tuple_printer.hpp"
 
 using namespace hypercubes::slow;
-namespace bdata = boost::unit_test::data;
+using namespace hypercubes::slow::partitioning;
 
 BOOST_AUTO_TEST_SUITE(test_comments)
 

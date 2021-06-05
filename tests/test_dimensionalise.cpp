@@ -8,6 +8,7 @@
 #include "utils/utils.hpp"
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::partitioning;
 namespace bdata = boost::unit_test::data;
 
 #define QSIZE 42

@@ -7,6 +7,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 // P1D is a Partitioning1D class
 template <class P1D> class Dimensionalise : public IPartitioning {
@@ -59,6 +60,7 @@ private:
   }
 };
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 

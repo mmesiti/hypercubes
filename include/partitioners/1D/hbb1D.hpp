@@ -4,6 +4,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 class HBB1D : public Partitioning1D {
 public:
@@ -21,6 +22,7 @@ private:
   }
 };
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
 

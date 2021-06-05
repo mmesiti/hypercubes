@@ -4,6 +4,7 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
 
 Site::Site(const SizeParityD &sp_) : dimension(sp_.size()) {}
 
@@ -34,5 +35,6 @@ vector<IndexResultD> Site::coord_to_idxs(const Coordinates &coord) const {
 };
 int Site::dimensionality() const { return dimension; }
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes

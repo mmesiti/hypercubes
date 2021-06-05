@@ -3,6 +3,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
+
 Plain1D::Plain1D(SizeParity sp, int dimension_, std::string name_)
     : Partitioning1D(sp, dimension_, name_) {
   for (int i = 0; i <= sp.size; ++i)
@@ -27,5 +29,6 @@ std::vector<IndexResult> Plain1D::coord_to_idxs(int relative_x) const {
     return std::vector<IndexResult>();
 };
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes

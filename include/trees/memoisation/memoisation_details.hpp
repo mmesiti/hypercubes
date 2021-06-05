@@ -110,8 +110,8 @@ public:
 } // namespace prune_tree
 
 namespace get_partition_tree {
-using partitioners::PartList;
-using PartitionTree = TreeP<std::shared_ptr<IPartitioning>>;
+// using partitioners::PartList;
+using PartitionTree = TreeP<std::shared_ptr<partitioning::IPartitioning>>;
 PartitionTree
 base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
      SizeParityD spd,                                                  //

@@ -4,6 +4,7 @@
 #include "partitioners/1D/q1D.hpp"
 
 using namespace hypercubes::slow;
+using namespace hypercubes::slow::partitioning;
 namespace bdata = boost::unit_test::data;
 
 template <class Q1Dtype> struct Q1DFixture {

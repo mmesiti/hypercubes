@@ -9,6 +9,7 @@
 
 using namespace hypercubes::slow;
 namespace bdata = boost::unit_test::data;
+using partitioning::EO;
 
 struct EO5 {
 

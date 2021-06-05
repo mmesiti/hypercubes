@@ -1,10 +1,13 @@
 #include "selectors/partition_predicates.hpp"
+#include "partitioners/partitioners.hpp"
+#include <memory>
 namespace hypercubes {
 namespace slow {
+bool is_hbb(IPartRP p) {
+  return bool(std::dynamic_pointer_cast<partitioners::HBB>(p));
+};
+
 BoolM only_NmD_halos(PartList partitioners, Indices idxs, int D) {
-  auto is_hbb = [](auto p) {
-    return p->get_name().find("Halo") != std::string::npos;
-  };
 
   int hbb_dimension = std::count_if(partitioners.begin(), //
                                     partitioners.end(),   //
@@ -68,5 +71,31 @@ BoolM no_bulk_borders(PartList partitioners, Indices idx) {
   BoolM in_bb = only_NmD_halos(partitioners, idx, 0);
   return in_halo1D and not in_bb;
 }
+
+PartitionPredicate get_hbb_slice_predicate(PartList partitioners, int direction,
+                                           int hbb_idx) {
+
+  return [partitioners, direction, hbb_idx](Indices idx) -> BoolM {
+    return hbb_slice(partitioners, idx, direction, hbb_idx);
+  };
+}
+
+BoolM hbb_slice(PartList partitioners, Indices idxs, int direction,
+                int hbb_idx) {
+  for (int i = 0; i < idxs.size(); ++i) {
+    if (is_hbb(partitioners[i]) and
+        std::dynamic_pointer_cast<partitioners::HBB>(partitioners[i])
+                ->get_dimension() == direction) {
+
+      if (idxs[i] == hbb_idx)
+        return BoolM::T;
+      else
+        return BoolM::F;
+    }
+  }
+
+  return BoolM::M;
+}
+
 } // namespace slow
 } // namespace hypercubes

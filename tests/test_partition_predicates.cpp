@@ -114,6 +114,40 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_right, Part4DF) {
   }
 }
 
+BOOST_FIXTURE_TEST_CASE(test_hbb_slice, Part4DF) {
+  auto data = rilist(0, 4, 4, 4);
+  auto data_it = data.begin();
+  for (int xx = 0; xx < 1000; ++xx) {
+    int dir = xx % 4;
+    int slice = xx / 4;
+    auto HBB_idxs = *data_it;
+    ++data_it;
+
+    Indices idx{
+        0,  //
+        1,  //
+        1,  //
+        0,  //# End of MPI
+        1,  //
+        2,  //
+        1,  //
+        1,  //# End of Vector
+        -1, //
+        -1, //
+        -1, //
+        -1, // # End of halos
+    };
+
+    std::copy(HBB_idxs.begin(), //
+              HBB_idxs.end(),   //
+              idx.begin() + 8);
+
+    auto predicate = get_hbb_slice_predicate(partitioners, dir, slice);
+    int dir_index = 8 + dir;
+    BOOST_TEST(to_bool(predicate(idx)) == (idx[dir_index] == slice));
+  }
+}
+
 BOOST_DATA_TEST_CASE_F(Part1D42, test_no_border_bulk_no, bdata::xrange(42), i) {
 
   Indices idx = get_real_indices(t, Coordinates{i});

@@ -4,6 +4,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
+
 HBB1D::HBB1D(SizeParity sp, int dimension_, std::string name_, int halo_)
     : Partitioning1D(sp, dimension_, name_), halo(halo_) {
   assert(halo != 0);
@@ -22,5 +24,6 @@ std::vector<IndexResult> HBB1D::coord_to_idxs(int relative_x) const {
     }
   return std::vector<IndexResult>();
 }
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes

@@ -12,6 +12,8 @@ using namespace hypercubes::slow;
 using namespace hypercubes::slow::internals;
 using namespace hypercubes::slow::partitioners;
 
+namespace pm = partitioner_makers;
+
 struct Simple1D {
   PartList partitioners;
   SizeParityD spd;
@@ -20,9 +22,9 @@ struct Simple1D {
   TreeP<std::pair<int, int>> sizetree;
 
   Simple1D()
-      : partitioners{QPeriodic("MPI1", 0, 2),     //
-                     Plain("Plain1", 0),          //
-                     partitioners::Site()},       //
+      : partitioners{pm::QPeriodic("MPI1", 0, 2), //
+                     pm::Plain("Plain1", 0),      //
+                     pm::Site()},                 //
         spd{{32, Parity::EVEN}},                  //
         t(get_partition_tree(spd, partitioners)), //
         nalloc_children_tree(
@@ -43,10 +45,10 @@ struct LessSimple1D {
   LessSimple1D()
       :
         partitioners{
-            QPeriodic("MPI1", 0, 2), //
-            QOpen("Vector1", 0, 2),  //
-            Plain("Plain1", 0),      //
-            partitioners::Site(),
+            pm::QPeriodic("MPI1", 0, 2), //
+            pm::QOpen("Vector1", 0, 2),  //
+            pm::Plain("Plain1", 0),      //
+            pm::Site(),
         },                                  //
         spd{{32, Parity::EVEN}},            //
         t(get_partition_tree(spd, partitioners)), //
@@ -101,13 +103,13 @@ BOOST_FIXTURE_TEST_CASE(test_all_allocated_lesssimple_size, LessSimple1D) {
   BOOST_TEST(*truncate_tree(sizetree, site_level) == *exptree);
 }
 BOOST_AUTO_TEST_CASE(test_all_allocated) {
-  PartList partitioners{QPeriodic("MPIX", 0, 4),        //
-                        QOpen("VectorX", 0, 2),         //
-                        HBB("HalosX", 0, 1),            //
-                        partitioners::EO("EO", {true}), //
-                        Plain("PlainExtra", 1),         //
-                        Plain("PlainX", 0),             //
-                        partitioners::Site()};
+  PartList partitioners{pm::QPeriodic("MPIX", 0, 4), //
+                        pm::QOpen("VectorX", 0, 2),  //
+                        pm::HBB("HalosX", 0, 1),     //
+                        pm::EO("EO", {true}),        //
+                        pm::Plain("PlainExtra", 1),  //
+                        pm::Plain("PlainX", 0),      //
+                        pm::Site()};
   SizeParityD spd{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(spd, partitioners);
 
@@ -119,13 +121,13 @@ BOOST_AUTO_TEST_CASE(test_all_allocated) {
   BOOST_TEST(sizetree->n.second == exp_size);
 }
 BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
-  PartList partitioners{QPeriodic("MPIX", 0, 4),        //
-                        QOpen("VectorX", 0, 2),         //
-                        HBB("HalosX", 0, 1),            //
-                        partitioners::EO("EO", {true}), //
-                        Plain("PlainExtra", 1),         //
-                        Plain("PlainX", 0),             //
-                        partitioners::Site()};
+  PartList partitioners{pm::QPeriodic("MPIX", 0, 4), //
+                        pm::QOpen("VectorX", 0, 2),  //
+                        pm::HBB("HalosX", 0, 1),     //
+                        pm::EO("EO", {true}),        //
+                        pm::Plain("PlainExtra", 1),  //
+                        pm::Plain("PlainX", 0),      //
+                        pm::Site()};
   SizeParityD spd{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(spd, partitioners);
 
@@ -202,12 +204,12 @@ BOOST_AUTO_TEST_CASE(test_no_zerosize) {
   enum { X, EXTRA };
   auto t = get_partition_tree({{42, Parity::EVEN}}, //
                               {
-                                  QPeriodic("MPI X", X, 4),       //
-                                  QOpen("VECTOR X", X, 2),        //
-                                  HBB("halos X", X, 1),           //
-                                  partitioners::EO("EO", {true}), //
-                                  Plain("EO-flattened", EXTRA),   //
-                                  partitioners::Site(),           //
+                                  pm::QPeriodic("MPI X", X, 4),     //
+                                  pm::QOpen("VECTOR X", X, 2),      //
+                                  pm::HBB("halos X", X, 1),         //
+                                  pm::EO("EO", {true}),             //
+                                  pm::Plain("EO-flattened", EXTRA), //
+                                  pm::Site(),                       //
                               });
 
   auto size_tree =

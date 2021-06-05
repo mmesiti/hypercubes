@@ -21,7 +21,6 @@
 namespace hypercubes {
 namespace slow {
 
-using partitioners::PartList;
 using PartitionPredicate = std::function<BoolM(Indices)>;
 
 BoolM only_NmD_halos(PartList partitioners, Indices idxs, int D);
@@ -34,6 +33,10 @@ PartitionPredicate get_mpi_rank_predicate(PartList partitioners,
                                           vector<int> MPI_ranks);
 
 BoolM no_bulk_borders(PartList partitioners, Indices idx);
+
+PartitionPredicate get_hbb_slice_predicate(PartList partitioners, int direction,
+                                           int hbb_idx);
+BoolM hbb_slice(PartList partitioners, Indices idx, int direction, int hbb_idx);
 
 } // namespace slow
 } // namespace hypercubes

@@ -107,21 +107,21 @@ BOOST_AUTO_TEST_CASE(test_prune_tree) {
 
 BOOST_AUTO_TEST_CASE(test_get_partition_tree_via_maxidx) {
 
-  using namespace hypercubes::slow::partitioners;
+  using namespace hypercubes::slow::partitioner_makers;
   SizeParityD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
                                            QOpen("Vector", 0, 2),  //
                                            Plain("Remainder", 0),
-                                           partitioners::Site(),
+                                           Site(),
                                        });
   PartitionTree tM = get_partition_treeM(sp, //
                                          PartList{
                                              QPeriodic("MPI", 0, 4), //
                                              QOpen("Vector", 0, 2),  //
                                              Plain("Remainder", 0),
-                                             partitioners::Site(),
+                                             Site(),
                                          });
   auto tmax = get_max_idx_tree(t);
   auto tmaxM = get_max_idx_treeM(tM);

@@ -8,6 +8,8 @@
 
 namespace hypercubes {
 namespace slow {
+namespace partitioning {
+
 int Partitioning1D::start(int idx) const { return limits[idx]; }
 int Partitioning1D::end(int idx) const { return limits[idx + 1]; }
 
@@ -55,5 +57,6 @@ int Partitioning1D::idx_to_child_kind(int idx) const {
 }
 std::string Partitioning1D::get_name() const { return name; }
 
+} // namespace partitioning
 } // namespace slow
 } // namespace hypercubes
