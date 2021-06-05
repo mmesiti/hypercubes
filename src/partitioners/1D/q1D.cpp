@@ -72,12 +72,10 @@ Q1DPeriodic::Q1DPeriodic(SizeParity sp, int dimension_, std::string name_,
 Q1DOpen::Q1DOpen(SizeParity sp, int dimension_, std::string name_, int nparts_)
     : Q1DBase(sp, dimension_, name_, nparts_){};
 
-Q1DBase::BoundaryCondition Q1DPeriodic::bc() const {
-  return Q1DBase::BoundaryCondition::PERIODIC;
+BoundaryCondition Q1DPeriodic::bc() const {
+  return BoundaryCondition::PERIODIC;
 }
-Q1DBase::BoundaryCondition Q1DOpen::bc() const {
-  return Q1DBase::BoundaryCondition::OPEN;
-}
+BoundaryCondition Q1DOpen::bc() const { return BoundaryCondition::OPEN; }
 
 std::tuple<int, int> Q1DOpen::idx_limits(int relative_x) const {
   int idx_true = relative_x / quotient;
@@ -98,15 +96,13 @@ std::tuple<int, int> Q1DPeriodic::idx_limits(int relative_x) const {
 } // namespace hypercubes
 
 namespace std {
-ostream &
-operator<<(ostream &os,
-           hypercubes::slow::partitioning::Q1DBase::BoundaryCondition bc) {
+ostream &operator<<(ostream &os, hypercubes::slow::BoundaryCondition bc) {
 
   switch (bc) {
-  case hypercubes::slow::partitioning::Q1DBase::BoundaryCondition::OPEN:
+  case hypercubes::slow::BoundaryCondition::OPEN:
     os << "OPEN";
     break;
-  case hypercubes::slow::partitioning::Q1DBase::BoundaryCondition::PERIODIC:
+  case hypercubes::slow::BoundaryCondition::PERIODIC:
     os << "PERIODIC";
     break;
   }

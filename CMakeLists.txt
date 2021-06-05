@@ -79,6 +79,12 @@ target_link_libraries(size_tree_iterator geometry partition_tree_allocations)
 
 add_library(level_swap src/trees/level_swap.cpp)
 
+# API
+add_library(memory_layout src/api/memory_layout.cpp)
+target_link_libraries(memory_layout geometry
+                                    partitioners)
+
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 add_custom_target(coverage
      COMMAND lcov --capture

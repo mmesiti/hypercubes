@@ -15,6 +15,7 @@ struct IndexResult {
 };
 
 enum Parity { EVEN, ODD, NONE };
+enum BoundaryCondition { PERIODIC, OPEN };
 
 struct SizeParity {
   int size;
@@ -42,6 +43,20 @@ using SizeParitiesD = vector<vector<SizeParity>>;
 bool operator<(SizeParity p1, SizeParity p2);
 bool operator==(SizeParity p1, SizeParity p2);
 bool operator==(IndexResult i1, IndexResult i2);
+
+Coordinates up(Coordinates coords, //
+               int dir);
+Coordinates down(Coordinates coords, //
+                 int dir);
+Coordinates up(Coordinates coords,            //
+               Sizes sizes,                   //
+               vector<BoundaryCondition> bcs, //
+               int dir);
+Coordinates down(Coordinates coords,            //
+                 Sizes sizes,                   //
+                 vector<BoundaryCondition> bds, //
+                 int dir);
+
 } // namespace slow
 } // namespace hypercubes
 namespace std {

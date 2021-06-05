@@ -85,7 +85,11 @@ target_link_libraries(test_level_swap boost_test_helper
 add_executable(test_memoisation test_memoisation.cpp)
 target_link_libraries(test_memoisation boost_test_helper
                                        partition_tree)
-                                    
+
+add_executable(test_geometry test_geometry.cpp)
+target_link_libraries(test_geometry boost_test_helper
+                                    geometry)                                     
+                                     
 # Adding compile options for coverage for some tests.
 # This is needed because some code exists only as template.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -110,8 +114,10 @@ endif()
 ###########
 
 add_subdirectory(1D)
+add_subdirectory(api)
 enable_testing()
 # Ordered by duration, asc
+add_test(geometry test_geometry -r confirm)
 add_test(memoisation test_memoisation)
 add_test(comments test_comments -r confirm)
 add_test(tree test_tree -r confirm)

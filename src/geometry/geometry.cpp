@@ -14,6 +14,56 @@ bool operator==(IndexResult i1, IndexResult i2) {
          i1.cached_flag == i2.cached_flag;
 }
 
+Coordinates up(Coordinates coords, //
+               int dir) {
+  Coordinates res(coords);
+  res[dir]++;
+  return res;
+}
+Coordinates down(Coordinates coords, //
+                 int dir) {
+  Coordinates res(coords);
+  res[dir]--;
+  return res;
+}
+Coordinates up(Coordinates coords,            //
+               Sizes sizes,                   //
+               vector<BoundaryCondition> bcs, //
+               int dir) {
+
+  Coordinates res(coords);
+  res[dir]++;
+  switch (bcs[dir]) {
+  case BoundaryCondition::OPEN:
+    if (res[dir] > sizes[dir] - 1)
+      return Coordinates{};
+  case BoundaryCondition::PERIODIC:
+    while (res[dir] > sizes[dir] - 1)
+      res[dir] -= sizes[dir];
+    return res;
+  default:
+    return res;
+  }
+}
+Coordinates down(Coordinates coords,            //
+                 Sizes sizes,                   //
+                 vector<BoundaryCondition> bcs, //
+                 int dir) {
+  Coordinates res(coords);
+  res[dir]--;
+  switch (bcs[dir]) {
+  case BoundaryCondition::OPEN:
+    if (res[dir] < 0)
+      return Coordinates{};
+  case BoundaryCondition::PERIODIC:
+    while (res[dir] < 0)
+      res[dir] += sizes[dir];
+    return res;
+  default:
+    return res;
+  }
+}
+
 } // namespace slow
 } // namespace hypercubes
 

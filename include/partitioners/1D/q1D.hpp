@@ -10,7 +10,6 @@ namespace partitioning {
 
 class Q1DBase : public Partitioning1D {
 public:
-  enum BoundaryCondition { PERIODIC, OPEN };
   Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_);
   int idx_to_coord(int idx, int offset) const;
   int max_idx_value() const;
@@ -51,9 +50,7 @@ private:
 } // namespace hypercubes
 
 namespace std {
-ostream &
-operator<<(ostream &os,
-           hypercubes::slow::partitioning::Q1DBase::BoundaryCondition bc);
+ostream &operator<<(ostream &os, hypercubes::slow::BoundaryCondition bc);
 }
 
 #endif // Q_H_
