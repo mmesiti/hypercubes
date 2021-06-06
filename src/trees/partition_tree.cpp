@@ -149,11 +149,11 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
   return truncate_tree(res_with_leaves, get_max_depth(res_with_leaves) - 1);
 }
 
-vector<std::tuple<int, Indices>>
+vector<std::pair<int, Indices>>
 get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices) {
   int max_depth = get_max_depth(tree_indices);
   auto idxs = get_all_paths(tree_indices);
-  using ResType = vector<std::tuple<int, Indices>>;
+  using ResType = vector<std::pair<int, Indices>>;
   decltype(idxs) relevant_idxs;
   // selecting indices that have the correct length
   std::copy_if(idxs.begin(), idxs.end(), std::back_inserter(relevant_idxs),
@@ -169,7 +169,7 @@ get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices) {
                                                            return id.idx;     //
                                                          }));
 
-                             return std::make_tuple(cached_count, i);
+                             return std::make_pair(cached_count, i);
                            });
 
   return res;

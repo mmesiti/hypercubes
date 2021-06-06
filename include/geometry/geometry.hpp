@@ -57,6 +57,7 @@ Coordinates down(Coordinates coords,            //
                  vector<BoundaryCondition> bds, //
                  int dir);
 
+SizeParityD add_parity(Sizes sizes, vector<int> nonspatial_dimensions);
 } // namespace slow
 } // namespace hypercubes
 namespace std {

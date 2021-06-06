@@ -1,13 +1,24 @@
 #include "api/memory_layout.hpp"
+#include "trees/partition_tree.hpp"
 
 using namespace hypercubes::slow;
 
-PartitionTree::PartitionTree(Sizes s, PartList partitioners){
+PartitionTree::PartitionTree(Sizes _sizes, PartList partitioners,
+                             vector<int> nonspatial_dimensions)
+    : sizes(_sizes), partitioners_list(partitioners),
+      partition_tree(internals::get_partition_treeM( //
+          add_parity(_sizes, nonspatial_dimensions), //
+          partitioners)){};
 
+Indices PartitionTree::get_indices(const Coordinates &coords) {
+  return internals::get_real_indices(partition_tree, coords);
 };
+vector<std::pair<int, Indices>>
+PartitionTree::get_indices_wg(const Coordinates &coords) {
 
-vector<Indices> PartitionTree::get_indices(const Coordinates &coords) {
-  return vector<Indices>();
+  auto indices_tree =
+      internals::get_indices_tree_with_ghosts(partition_tree, coords);
+  return internals::get_relevant_indices_flat(indices_tree);
 };
 
 Coordinates PartitionTree::get_coordinates(const Indices &idxs) {

@@ -44,7 +44,7 @@ TreeP<GhostResult> get_indices_tree_with_ghosts(const PartitionTree &t,
 /* Takes the output of get_indices_tree_with_ghosts
  *and returns a list of pairs "cached flag count - indices".
  * The "0" prefix from get_indices_tree_with_ghosts is removed. */
-vector<std::tuple<int, Indices>>
+vector<std::pair<int, Indices>>
 get_relevant_indices_flat(const TreeP<GhostResult> &tree_indices);
 
 Coordinates get_coord_from_idx(const PartitionTree &t, //

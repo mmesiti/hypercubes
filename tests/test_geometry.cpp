@@ -89,4 +89,21 @@ BOOST_AUTO_TEST_CASE(test_down_wsize_periodic_wrap) {
   BOOST_TEST(down(xs, sizes, bcs, 2) == (Coordinates{1, 2, 3, 3}));
 }
 
+BOOST_AUTO_TEST_CASE(test_add_parity) {
+
+  Sizes sizes{7, 7, 7, 7, 7, 7};
+  vector<int> nonspatial_dimensions{3, 4};
+
+  SizeParityD expected{
+      {7, Parity::EVEN}, //
+      {7, Parity::EVEN}, //
+      {7, Parity::EVEN}, //
+      {7, Parity::NONE}, //
+      {7, Parity::NONE}, //
+      {7, Parity::EVEN}, //
+  };
+
+  BOOST_TEST(add_parity(sizes, nonspatial_dimensions) == expected);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

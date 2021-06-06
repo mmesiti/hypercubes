@@ -1,4 +1,5 @@
 #include "geometry/geometry.hpp"
+#include <algorithm>
 
 namespace hypercubes {
 namespace slow {
@@ -62,6 +63,20 @@ Coordinates down(Coordinates coords,            //
   default:
     return res;
   }
+}
+
+SizeParityD add_parity(Sizes sizes, vector<int> nonspatial_dimensions) {
+
+  SizeParityD res;
+  for (int i = 0; i < sizes.size(); ++i)
+    res.push_back({sizes[i], (std::find(nonspatial_dimensions.begin(), //
+                                        nonspatial_dimensions.end(),   //
+                                        i) == nonspatial_dimensions.end())
+                                 ?
+
+                                 Parity::EVEN
+                                 : Parity::NONE});
+  return res;
 }
 
 } // namespace slow

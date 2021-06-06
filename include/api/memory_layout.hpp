@@ -9,13 +9,15 @@ namespace slow {
 
 class PartitionTree {
 private:
-  internals::PartitionTree partition_tree;
-  PartList partitioners_list;
   Sizes sizes;
+  PartList partitioners_list;
+  internals::PartitionTree partition_tree;
 
 public:
-  PartitionTree(Sizes, PartList);
-  vector<Indices> get_indices(const Coordinates &);
+  PartitionTree(Sizes, PartList, vector<int> nonspatial_indices);
+  Indices get_indices(const Coordinates &);
+  // TODO: change according to needs
+  vector<std::pair<int, Indices>> get_indices_wg(const Coordinates &);
   Coordinates get_coordinates(const Indices &);
 };
 
