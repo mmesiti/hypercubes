@@ -1,5 +1,5 @@
-#ifndef PARTITION_TREE_H_
-#define PARTITION_TREE_H_
+#ifndef PARTITION_TREE_ALLOCATIONS_H_
+#define PARTITION_TREE_ALLOCATIONS_H_
 #include "partition_tree.hpp"
 #include "selectors/partition_predicates.hpp"
 #include "tree_data_structure.hpp"

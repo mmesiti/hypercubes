@@ -10,16 +10,17 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
+template <class Value> using KVTreeP = TreeP<std::pair<int, Value>>;
+
 template <class Value>
-TreeP<std::pair<int, Value>> fix_key(const TreeP<std::pair<int, Value>> &t,
-                                     int new_key) {
+KVTreeP<Value> fix_key(const KVTreeP<Value> &t, int new_key) {
   return mt(std::make_pair(new_key, t->n.second), t->children);
 }
 
-template <class V>
-TreeP<std::pair<int, V>>                             //
-collapse_level(const TreeP<std::pair<int, V>> &tree, //
-               int level_to_collapse,                //
+template <class Value>
+KVTreeP<Value>                             //
+collapse_level(const KVTreeP<Value> &tree, //
+               int level_to_collapse,      //
                int child_to_replace) {
   auto solder_subtree_in = [](auto c, auto tree) {
     return fix_key(c, tree->n.first);
@@ -29,9 +30,10 @@ collapse_level(const TreeP<std::pair<int, V>> &tree, //
                          child_to_replace,  //
                          solder_subtree_in);
 }
+
 template <class Value>
-TreeP<std::pair<int, Value>> //
-bring_level_on_top(const TreeP<std::pair<int, Value>> &tree, int level) {
+KVTreeP<Value> //
+bring_level_on_top(const KVTreeP<Value> &tree, int level) {
   using Node = std::pair<int, Value>;
   using TreeP = TreeP<Node>;
   auto get_subtree_features = [](TreeP c) {
@@ -62,9 +64,8 @@ bring_level_on_top(const TreeP<std::pair<int, Value>> &tree, int level) {
 }
 
 template <class Value>
-TreeP<std::pair<int, Value>>
-swap_levels(const TreeP<std::pair<int, Value>> &tree,
-            const vector<int> &new_level_ordering) {
+KVTreeP<Value> swap_levels(const KVTreeP<Value> &tree,
+                           const vector<int> &new_level_ordering) {
   using Node = std::pair<int, Value>;
   auto fix_new_tree = [](const TreeP<Node> &new_tree, //
                          const TreeP<Node> &tree) {
@@ -77,7 +78,7 @@ swap_levels(const TreeP<std::pair<int, Value>> &tree,
 namespace memodetails {
 namespace number_children {
 
-template <class Value> using Out = TreeP<std::pair<int, Value>>;
+template <class Value> using Out = KVTreeP<Value>;
 
 template <class Value>
 Out<Value> base(                                          //
@@ -102,13 +103,13 @@ Out<Value> base(                                          //
 } // namespace number_children
 } // namespace memodetails
 template <class Value>
-TreeP<std::pair<int, Value>> number_childrenM(const TreeP<Value> &tree) {
+KVTreeP<Value> number_childrenM(const TreeP<Value> &tree) {
   using namespace memodetails::number_children;
   return Memo<Value>().memoised(tree);
 }
 
 template <class Value>
-TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree) {
+KVTreeP<Value> number_children(const TreeP<Value> &tree) {
   using namespace memodetails::number_children;
   return Memo<Value>().nomemo(tree);
 }
@@ -116,9 +117,10 @@ TreeP<std::pair<int, Value>> number_children(const TreeP<Value> &tree) {
 namespace memodetails {
 namespace prune_tree {
 
-template <class Value> using Tree = TreeP<std::pair<int, Value>>;
+template <class Value> using Tree = KVTreeP<Value>;
 using Predicate = std::function<bool(vector<int>)>;
 using Indices = vector<int>;
+
 template <class Value>
 Tree<Value> base_wp(
     std::function<Tree<Value>(const Tree<Value> &, const Indices &)> frec, //
@@ -138,18 +140,46 @@ Tree<Value> base_wp(
 } // namespace memodetails
 
 template <class Value>
-TreeP<std::pair<int, Value>>
-prune_treeM(const TreeP<std::pair<int, Value>> &t, //
-            std::function<bool(vector<int>)> predicate) {
+KVTreeP<Value> prune_treeM(const KVTreeP<Value> &t, //
+                           std::function<bool(vector<int>)> predicate) {
   using namespace memodetails::prune_tree;
   return Memo<Value>(predicate).memoised(t, {0});
 }
 template <class Value>
-TreeP<std::pair<int, Value>>
-prune_tree(const TreeP<std::pair<int, Value>> &t, //
-           std::function<bool(vector<int>)> predicate) {
+KVTreeP<Value> prune_tree(const KVTreeP<Value> &t, //
+                          std::function<bool(vector<int>)> predicate) {
   using namespace memodetails::prune_tree;
   return Memo<Value>(predicate).nomemo(t, {0});
+}
+
+namespace select_subtree_details {
+
+template <class Value>
+const KVTreeP<Value> select_key(const vector<KVTreeP<Value>> &children,
+                                int child_idx) {
+
+  auto child_iter = std::find_if(
+      children.begin(), //
+      children.end(),   //
+      [child_idx](auto child) { return child->n.first == child_idx; });
+
+  if (child_iter == children.end()) {
+    std::stringstream message;
+    message << "child_idx = " << child_idx //
+            << "not found in keys:"
+            << vtransform(children, [](auto c) { return c->n.first; }) //
+            << std::endl;
+    throw std::invalid_argument(message.str().c_str());
+  }
+  return *child_iter;
+}
+} // namespace select_subtree_details
+template <class Value, class Indices>
+const KVTreeP<Value> select_subtree_kv(const KVTreeP<Value> &tree,
+                                       const Indices &idxs) {
+
+  using namespace select_subtree_details;
+  return base<std::pair<int, Value>, Indices, select_key<Value>>(tree, idxs);
 }
 
 } // namespace internals

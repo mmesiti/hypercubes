@@ -264,8 +264,16 @@ TreeP<Node> _bring_level_on_top(const TreeP<Node> &tree,              //
 
   auto subtree_features = vtransform(subtrees, get_subtree_features);
   for (const auto &n_and_cs : subtree_features)
-    if (subtree_features[0] != n_and_cs)
-      throw std::invalid_argument("Not all subtrees are equivalent.");
+    if (subtree_features[0] != n_and_cs) {
+      std::stringstream message;
+      message << "Not all subtrees are equivalent:"
+          //<< std::endl
+          //<< subtree_features[0] << std::endl
+          //<< n_and_cs << std::endl
+          ;
+
+      throw std::invalid_argument(message.str().c_str());
+    }
   auto new_top = subtree_features[0].first;
   auto other_features = subtree_features[0].second;
   int nchildren_at_level = get_nchildren_from_other_features(other_features);
@@ -384,6 +392,41 @@ vector<Node> depth_first_flatten(const TreeP<Node> &tree) {
 
   _depth_first_flatten(tree, res, _depth_first_flatten);
   return res;
+}
+
+namespace select_subtree_details {
+
+template <class Node, class Indices,
+          const TreeP<Node> (*select)(const vector<TreeP<Node>> &, int)>
+const TreeP<Node> base(const TreeP<Node> &tree, const Indices &idxs) {
+
+  if (idxs.size() == 0)
+    return tree;
+  else
+    return base<Node, Indices, select>(select(tree->children, idxs[0]),
+                                       tail(idxs));
+}
+
+template <class Node>
+const TreeP<Node> select_idx(const vector<TreeP<Node>> &children,
+                             int child_idx) {
+  if (child_idx >= children.size()) {
+    std::stringstream message;
+    message << "child_idx = " << child_idx                      //
+            << "too large. children.size() " << children.size() //
+            << std::endl;
+    throw std::invalid_argument(message.str().c_str());
+  }
+  return children[child_idx];
+}
+
+} // namespace select_subtree_details
+
+template <class Node, class Indices>
+const TreeP<Node> select_subtree(const TreeP<Node> &tree, const Indices &idxs) {
+
+  using namespace select_subtree_details;
+  return base<Node, Indices, select_idx<Node>>(tree, idxs);
 }
 
 } // namespace internals

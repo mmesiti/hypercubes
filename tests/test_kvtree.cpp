@@ -2,6 +2,7 @@
 #include "trees/kvtree.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
+#include <stdexcept>
 
 using namespace hypercubes::slow::internals;
 BOOST_AUTO_TEST_SUITE(test_tree_kv)
@@ -103,4 +104,27 @@ BOOST_AUTO_TEST_CASE(test_prune_tree) {
   BOOST_TEST(*t == *expt);
 }
 
+BOOST_AUTO_TEST_CASE(test_select_subtree_kv) {
+  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
+  auto tfull =
+      mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
+                                                mt(mp(1, 6), {})})}), //
+                    mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
+                                                 mt(mp(1, 8), {})})})});
+  auto exp_selected = mt(mp(10, 3), {mt(mp(0, 7), {}), //
+                                     mt(mp(1, 8), {})});
+
+  auto selected = select_subtree_kv(tfull, vector<int>{1, 10});
+
+  BOOST_TEST(*selected == *exp_selected);
+}
+
+BOOST_AUTO_TEST_CASE(test_select_subtree_kv_throws) {
+  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
+  auto tree = mt(mp(10, 3), {mt(mp(0, 7), {}), //
+                             mt(mp(10, 8), {})});
+
+  BOOST_CHECK_THROW(select_subtree_kv(tree, vector<int>{1}), //
+                    std::invalid_argument);
+}
 BOOST_AUTO_TEST_SUITE_END()

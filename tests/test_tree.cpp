@@ -1,6 +1,8 @@
 
+#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <sstream>
+#include <stdexcept>
 
 #include "trees/tree.hpp"
 
@@ -343,4 +345,26 @@ BOOST_AUTO_TEST_CASE(test_filter_node) {
   BOOST_TEST(*t == *expt);
 }
 
+BOOST_AUTO_TEST_CASE(test_select_subtree) {
+
+  auto tfull = mt(3, {mt(2, {mt(3, {mt(0, {}),     //
+                                    mt(6, {})})}), //
+                      mt(1, {mt(2, {mt(0, {}),     //
+                                    mt(8, {})})})});
+
+  auto exptree = mt(2, {mt(0, {}), //
+                        mt(8, {})});
+  auto selected = select_subtree<int, vector<int>>(tfull, vector<int>{1, 0});
+
+  BOOST_TEST(*exptree == *selected);
+}
+
+BOOST_AUTO_TEST_CASE(test_select_subtree_throws) {
+
+  auto tree = mt(2, {mt(0, {}), //
+                     mt(8, {})});
+
+  BOOST_CHECK_THROW(select_subtree(tree, vector<int>{2}), //
+                    std::invalid_argument);
+}
 BOOST_AUTO_TEST_SUITE_END()

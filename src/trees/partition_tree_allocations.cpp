@@ -8,7 +8,10 @@ namespace slow {
 namespace internals {
 
 namespace get_nchildren_alloc_tree_detail {
-bool nonzero(std::pair<int, int> node) { return node.second > 0; };
+bool nonzero(std::pair<int, int> node) {
+  int alloc_children_count = node.second;
+  return alloc_children_count > 0;
+};
 
 } // namespace get_nchildren_alloc_tree_detail
 
