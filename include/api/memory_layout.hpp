@@ -65,6 +65,7 @@ public:
   Coordinates get_coordinates(const Indices &);
   friend NChildrenTree::NChildrenTree(const PartitionTree &pt,
                                       const PartitionPredicate &);
+  const internals::PartitionTree get_internal() const;
 };
 
 } // namespace slow

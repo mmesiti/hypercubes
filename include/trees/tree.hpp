@@ -87,6 +87,22 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
     return 1 + max;
   }
 }
+
+template <class Node> int get_min_depth(const TreeP<Node> &tree) {
+  if (tree->children.size() == 0)
+    return 1;
+  else {
+    auto c = tree->children.begin();
+    int min = get_min_depth(*c);
+    for (++c; c != tree->children.end(); ++c) {
+      int submin = get_min_depth(*c);
+      if (min > submin)
+        min = submin;
+    }
+    return 1 + min;
+  }
+}
+
 template <class Node>
 TreeP<Node> memodetails::truncate_tree::base(                  //
     std::function<TreeP<Node>(const TreeP<Node> &, int)> frec, //
@@ -263,17 +279,21 @@ TreeP<Node> _bring_level_on_top(const TreeP<Node> &tree,              //
    **/
 
   auto subtree_features = vtransform(subtrees, get_subtree_features);
-  for (const auto &n_and_cs : subtree_features)
+  for (int itree = 0; itree < subtree_features.size(); ++itree) {
+    auto n_and_cs = subtree_features[itree];
     if (subtree_features[0] != n_and_cs) {
       std::stringstream message;
-      message << "Not all subtrees are equivalent:"
-          //<< std::endl
-          //<< subtree_features[0] << std::endl
-          //<< n_and_cs << std::endl
-          ;
-
+      message << "Not all subtrees are equivalent:" << std::endl
+              << subtree_features[0]
+              << std::endl
+              //<< n_and_cs << std::endl;
+              << "different one is " << itree
+              << " out of total number of subtrees:" << subtrees.size()
+              << std::endl
+              << "level: " << level << std::endl;
       throw std::invalid_argument(message.str().c_str());
     }
+  }
   auto new_top = subtree_features[0].first;
   auto other_features = subtree_features[0].second;
   int nchildren_at_level = get_nchildren_from_other_features(other_features);

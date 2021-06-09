@@ -1,7 +1,6 @@
 #include "trees/partition_tree_allocations.hpp"
 #include "trees/kvtree.hpp"
 #include "utils/utils.hpp"
-#include <iostream>
 #include <memory>
 namespace hypercubes {
 namespace slow {
@@ -22,10 +21,12 @@ get_nchildren_alloc_tree(const PartitionTree &t,
   auto max_idx_tree = get_max_idx_treeM(t);
   auto max_idx_tree_kv = number_childrenM(max_idx_tree);
   auto max_idx_tree_pruned = prune_treeM(max_idx_tree_kv, predicate);
-  auto max_idx_tree_nozeros =
-      filternode<std::pair<int, int>, get_nchildren_alloc_tree_detail::nonzero>(
-          max_idx_tree_pruned);
-  return max_idx_tree_nozeros;
+  return max_idx_tree_pruned;
+  // auto max_idx_tree_nozeros =
+  //    filternode<std::pair<int, int>,
+  //    get_nchildren_alloc_tree_detail::nonzero>(
+  //        max_idx_tree_pruned);
+  // return max_idx_tree_nozeros;
 }
 TreeP<std::pair<int, int>>
 get_nchildren_alloc_tree(const PartitionTree &t, PartitionPredicate predicate) {

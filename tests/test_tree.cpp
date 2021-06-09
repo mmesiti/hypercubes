@@ -102,6 +102,26 @@ BOOST_AUTO_TEST_CASE(test_get_max_depth) {
   BOOST_TEST(expected_max_depth == get_max_depth(t));
 }
 
+BOOST_AUTO_TEST_CASE(test_get_min_depth_1) {
+
+  auto t = mt(1, {mt(2, {}),                     //
+                  mt(3, {mt(4, {}), mt(5, {})}), //
+                  mt(6, {mt(7, {mt(8, {})})})});
+
+  int expected_min_depth = 2;
+
+  BOOST_TEST(expected_min_depth == get_min_depth(t));
+}
+BOOST_AUTO_TEST_CASE(test_get_min_depth_2) {
+
+  auto t = mt(1, {mt(3, {mt(4, {}), mt(5, {})}), //
+                  mt(2, {}),                     //
+                  mt(6, {mt(7, {mt(8, {})})})});
+
+  int expected_min_depth = 2;
+
+  BOOST_TEST(expected_min_depth == get_min_depth(t));
+}
 BOOST_AUTO_TEST_CASE(test_truncate_tree) {
 
   auto t = mt(1, {

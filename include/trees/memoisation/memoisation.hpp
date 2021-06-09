@@ -24,6 +24,7 @@ public:
       auto out = f([this](Args... args) { return this->memoised(args...); }, //
                    input...);
       cache[input_key] = out;
+    } else {
     }
     return cache[input_key];
   }

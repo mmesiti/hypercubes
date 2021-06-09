@@ -28,6 +28,9 @@ Coordinates PartitionTree::get_coordinates(const Indices &idxs) {
   return internals::get_coord_from_idx(partition_tree, idxs);
 }
 
+const internals::PartitionTree PartitionTree::get_internal() const {
+  return partition_tree;
+}
 // NChildrenTree
 NChildrenTree::NChildrenTree(const PartitionTree &pt,
                              const PartitionPredicate &predicate)
@@ -38,10 +41,10 @@ NChildrenTree::NChildrenTree(const PartitionTree &pt,
 
 NChildrenTree
 NChildrenTree::permute(const vector<std::string> &permuted_level_names) const {
-  auto permuted_tree =
-      internals::swap_levels(nchildren_tree,                          //
-                             internals::find_permutation(level_names, //
-                                                         permuted_level_names));
+  auto permuted_tree = internals::swap_levels(
+      nchildren_tree,                                   //
+      internals::find_permutation(permuted_level_names, //
+                                  level_names));
 
   vector<std::string> _pmlcp = permuted_level_names;
   return NChildrenTree(std::move(permuted_tree), std::move(_pmlcp));
