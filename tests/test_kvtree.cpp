@@ -1,4 +1,4 @@
-
+#include "selectors/bool_maybe.hpp"
 #include "trees/kvtree.hpp"
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
@@ -94,8 +94,16 @@ BOOST_AUTO_TEST_CASE(test_prune_tree) {
                     mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
                                                  mt(mp(1, 8), {})})})});
 
-  auto predicate = [](vector<int> idxs) {
-    return idxs.size() < 1 or idxs[0] == 1;
+  auto predicate = [](hypercubes::slow::Indices idxs) {
+    using hypercubes::slow::BoolM;
+    if (idxs.size() > 0) {
+      if (idxs[0] != 1)
+        return BoolM::F;
+      else
+        return BoolM::T;
+    }
+
+    return BoolM::M;
   };
   auto expt = mt(mp(0, 1), {mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}), //
                                                          mt(mp(1, 8), {})})})});

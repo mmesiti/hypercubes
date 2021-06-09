@@ -28,9 +28,9 @@ struct Simple1D {
         spd{{32, Parity::EVEN}},                  //
         t(get_partition_tree(spd, partitioners)), //
         nalloc_children_tree(
-            get_nchildren_alloc_tree(t,                             //
-                                     [](auto x) { return true; })), //
-        sizetree(get_size_tree(nalloc_children_tree))               //
+            get_nchildren_alloc_tree(t,                                 //
+                                     [](auto x) { return BoolM::T; })), //
+        sizetree(get_size_tree(nalloc_children_tree))                   //
         {};
 };
 
@@ -54,7 +54,7 @@ struct LessSimple1D {
         t(get_partition_tree(spd, partitioners)), //
         nalloc_children_tree(
             get_nchildren_alloc_tree(t,                             //
-                                     [](auto x) { return true; })), //
+                                     [](auto x) { return BoolM::T; })), //
         sizetree(get_size_tree(nalloc_children_tree))               //
         {};
 };
@@ -113,8 +113,8 @@ BOOST_AUTO_TEST_CASE(test_all_allocated) {
   SizeParityD spd{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(spd, partitioners);
 
-  TreeP<std::pair<int, int>> sizetree =
-      get_size_tree(get_nchildren_alloc_tree(t, [](auto x) { return true; }));
+  TreeP<std::pair<int, int>> sizetree = get_size_tree(
+      get_nchildren_alloc_tree(t, [](auto x) { return BoolM::T; }));
 
   // halos for 4 MPI partition having 2 sub partitions
   int exp_size = 42 + 2 * 2 * 4;
@@ -212,8 +212,8 @@ BOOST_AUTO_TEST_CASE(test_no_zerosize) {
                                   pm::Site(),                       //
                               });
 
-  auto size_tree =
-      get_size_tree(get_nchildren_alloc_tree(t, [](auto _) { return true; }));
+  auto size_tree = get_size_tree(
+      get_nchildren_alloc_tree(t, [](auto _) { return BoolM::T; }));
 
   for (auto si : depth_first_flatten(size_tree)) {
     int size = si.second;

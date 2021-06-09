@@ -33,6 +33,13 @@ INTVEC_BOILERPLATE(Coordinates, coords);
 INTVEC_BOILERPLATE(Indices, idxs);
 #undef INTVEC_BOILERPLATE
 
+void Indices::push_back(int idx) { idxs.push_back(idx); }
+
+Indices append(Indices idxs, int idx) {
+  idxs.push_back(idx);
+  return idxs;
+}
+
 Indices append(int i, const Indices &idxs) {
   vector<int> res{i};
   std::copy(idxs.idxs.begin(), idxs.idxs.end(), std::back_inserter(res));

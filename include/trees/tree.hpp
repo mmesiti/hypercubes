@@ -74,13 +74,16 @@ vector<TreeP<Node>> get_flat_list_of_subtrees(const TreeP<Node> &tree,
   return res;
 }
 
-template <class Node> int get_max_depth(const TreeP<Node> &tree) {
+template <class Node>
+int memodetails::get_max_depth::base(
+    std::function<int(const TreeP<Node> &)> frec, //
+    const TreeP<Node> &tree) {
   if (tree->children.size() == 0)
     return 1;
   else {
     int max = 0;
     for (const auto &c : tree->children) {
-      int submax = get_max_depth(c);
+      int submax = frec(c);
       if (max < submax)
         max = submax;
     }
@@ -88,19 +91,32 @@ template <class Node> int get_max_depth(const TreeP<Node> &tree) {
   }
 }
 
-template <class Node> int get_min_depth(const TreeP<Node> &tree) {
+template <class Node> int get_max_depth(const TreeP<Node> &tree) {
+  using namespace memodetails::get_max_depth;
+  return Memo<Node>().memoised(tree);
+}
+
+template <class Node>
+int memodetails::get_min_depth::base(
+    std::function<int(const TreeP<Node> &)> frec, //
+    const TreeP<Node> &tree) {
   if (tree->children.size() == 0)
     return 1;
   else {
     auto c = tree->children.begin();
-    int min = get_min_depth(*c);
+    int min = frec(*c);
     for (++c; c != tree->children.end(); ++c) {
-      int submin = get_min_depth(*c);
+      int submin = frec(*c);
       if (min > submin)
         min = submin;
     }
     return 1 + min;
   }
+}
+
+template <class Node> int get_min_depth(const TreeP<Node> &tree) {
+  using namespace memodetails::get_min_depth;
+  return Memo<Node>().memoised(tree);
 }
 
 template <class Node>

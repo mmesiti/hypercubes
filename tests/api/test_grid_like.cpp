@@ -39,7 +39,6 @@ struct GridLikeBase {
             pm::Site()                                            // 14
         }),
         partition_tree(sizes, partitioners, nonspatial_dimensions) {
-
     std::cout << "Max and min depths: ";
     std::cout << internals::get_max_depth(partition_tree.get_internal());
     std::cout << " ";

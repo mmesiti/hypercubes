@@ -11,9 +11,6 @@ namespace internals {
 
 /// A <n_alloc_children, idx in full tree> conditionally-allocated tree
 TreeP<std::pair<int, int>>
-get_nchildren_alloc_tree(const PartitionTree &t,
-                         std::function<bool(Indices)> p);
-TreeP<std::pair<int, int>>
 get_nchildren_alloc_tree(const PartitionTree &t, PartitionPredicate predicate);
 
 /// A <tot alloc size of subtree, idx in full tree> conditionally-allocated tree

@@ -71,6 +71,7 @@ target_link_libraries(partition_predicates partitioners
 
 add_library(partition_tree_allocations src/trees/partition_tree_allocations.cpp)
 target_link_libraries(partition_tree_allocations partition_predicates
+                                                 int_vec_wrappers
                                                  partition_tree                                                  
                                                  partitioners)
 

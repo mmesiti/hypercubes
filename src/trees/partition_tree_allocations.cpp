@@ -15,26 +15,12 @@ bool nonzero(std::pair<int, int> node) {
 } // namespace get_nchildren_alloc_tree_detail
 
 TreeP<std::pair<int, int>>
-get_nchildren_alloc_tree(const PartitionTree &t,
-                         std::function<bool(Indices)> predicate) {
+get_nchildren_alloc_tree(const PartitionTree &t, PartitionPredicate predicate) {
 
   auto max_idx_tree = get_max_idx_treeM(t);
   auto max_idx_tree_kv = number_childrenM(max_idx_tree);
-  auto max_idx_tree_pruned = prune_treeM(max_idx_tree_kv, predicate);
+  auto max_idx_tree_pruned = prune_tree(max_idx_tree_kv, predicate);
   return max_idx_tree_pruned;
-  // auto max_idx_tree_nozeros =
-  //    filternode<std::pair<int, int>,
-  //    get_nchildren_alloc_tree_detail::nonzero>(
-  //        max_idx_tree_pruned);
-  // return max_idx_tree_nozeros;
-}
-TreeP<std::pair<int, int>>
-get_nchildren_alloc_tree(const PartitionTree &t, PartitionPredicate predicate) {
-
-  auto binarified_predicate = [&predicate](Indices idx) {
-    return to_bool(predicate(idx));
-  };
-  return get_nchildren_alloc_tree(t, binarified_predicate);
 }
 
 TreeP<std::pair<int, int>>

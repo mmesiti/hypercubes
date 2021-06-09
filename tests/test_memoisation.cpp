@@ -87,24 +87,6 @@ BOOST_AUTO_TEST_CASE(test_number_children) {
   BOOST_TEST(*tM == *t);
 }
 
-BOOST_AUTO_TEST_CASE(test_prune_tree) {
-
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
-  auto tfull =
-      mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
-                                                mt(mp(1, 6), {})})}), //
-                    mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
-                                                 mt(mp(1, 8), {})})})});
-
-  auto predicate = [](vector<int> idxs) {
-    return idxs.size() < 1 or idxs[0] == 1;
-  };
-
-  auto t = prune_tree(tfull, predicate);
-  auto tM = prune_treeM(tfull, predicate);
-  BOOST_TEST(*t == *tM);
-}
-
 BOOST_AUTO_TEST_CASE(test_get_partition_tree_via_maxidx) {
 
   using namespace hypercubes::slow::partitioner_makers;

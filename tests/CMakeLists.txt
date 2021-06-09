@@ -34,7 +34,10 @@ add_executable(test_tree test_tree.cpp)
 target_link_libraries(test_tree boost_test_helper -lgcov)
 
 add_executable(test_kvtree test_kvtree.cpp)
-target_link_libraries(test_kvtree boost_test_helper -lgcov)
+target_link_libraries(test_kvtree boost_test_helper
+                                  geometry
+                                  bool_maybe
+                                  -lgcov)
 
 add_executable(test_partitioners test_partitioners.cpp)
 target_link_libraries(test_partitioners partitioners

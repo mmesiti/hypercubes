@@ -79,36 +79,6 @@ public:
 
 } // namespace number_children
 
-namespace prune_tree {
-
-template <class Value> using Tree = TreeP<std::pair<int, Value>>;
-using Predicate = std::function<bool(vector<int>)>;
-using Indices = vector<int>;
-
-// forward declaration
-template <class Value>
-Tree<Value> base_wp(
-    std::function<Tree<Value>(const Tree<Value> &, const Indices &)> frec, //
-    const Tree<Value> &t,                                                  //
-    const Indices &top_idxs,                                               //
-    Predicate predicate);
-
-// boilerplate
-template <class Value>
-class Memo : public Memoiser<Tree<Value>, Tree<Value>, Indices> {
-public:
-  Memo(Predicate predicate)
-      : Memoiser<Tree<Value>, Tree<Value>, Indices>(
-            [&predicate](std::function<Tree<Value>(const Tree<Value> &, //
-                                                   const Indices &)>
-                             frec,             //
-                         const Tree<Value> &t, //
-                         const Indices &top_idxs) {
-              return base_wp<Value>(frec, t, top_idxs, predicate);
-            }){};
-};
-} // namespace prune_tree
-
 namespace get_partition_tree {
 // using partitioners::PartList;
 using PartitionTree = TreeP<std::shared_ptr<partitioning::IPartitioning>>;
@@ -124,6 +94,31 @@ public:
 
 } // namespace get_partition_tree
 
+namespace get_max_depth {
+
+template <class Node>
+int base(std::function<int(const TreeP<Node> &)> frec, //
+         const TreeP<Node> &tree);
+
+template <class Node> class Memo : public Memoiser<int, TreeP<Node>> {
+public:
+  Memo() : Memoiser<int, TreeP<Node>>(base<Node>) {}
+};
+
+} // namespace get_max_depth
+
+namespace get_min_depth {
+
+template <class Node>
+int base(std::function<int(const TreeP<Node> &)> frec, //
+         const TreeP<Node> &tree);
+
+template <class Node> class Memo : public Memoiser<int, TreeP<Node>> {
+public:
+  Memo() : Memoiser<int, TreeP<Node>>(base<Node>) {}
+};
+
+} // namespace get_min_depth
 } // namespace memodetails
 } // namespace internals
 } // namespace slow

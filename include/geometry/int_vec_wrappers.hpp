@@ -50,12 +50,13 @@ class Coordinates {
 class Indices {
   INTVEC_BOILERPLATE(Indices, idxs)
 
+  void push_back(int);
   friend Indices append(int, const Indices &);
   friend Indices tail(const Indices &);
 };
 #undef INTVEC_BOILERPLATE
 
-Indices append(const Indices &, int);
+Indices append(Indices, int);
 Indices append(int, const Indices &);
 Indices tail(const Indices &);
 

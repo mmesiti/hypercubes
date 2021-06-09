@@ -1,10 +1,12 @@
 #ifndef KVTREE_H_
 #define KVTREE_H_
 #include "memoisation/memoisation_details.hpp"
+#include "selectors/partition_predicates.hpp"
 #include "tree.hpp"
 #include "tree_data_structure.hpp"
 #include "utils/utils.hpp"
 #include <functional>
+#include <iostream> //DEBUG
 
 namespace hypercubes {
 namespace slow {
@@ -114,42 +116,35 @@ KVTreeP<Value> number_children(const TreeP<Value> &tree) {
   return Memo<Value>().nomemo(tree);
 }
 
-namespace memodetails {
-namespace prune_tree {
-
-template <class Value> using Tree = KVTreeP<Value>;
-using Predicate = std::function<bool(vector<int>)>;
-using Indices = vector<int>;
-
-template <class Value>
-Tree<Value> base_wp(
-    std::function<Tree<Value>(const Tree<Value> &, const Indices &)> frec, //
-    const Tree<Value> &t,                                                  //
-    const Indices &top_idxs,                                               //
-    Predicate predicate) {
-  vector<Tree<Value>> children;
-  for (int idx = 0; idx < t->children.size(); ++idx) {
-    Indices new_idxs = append(top_idxs, idx);
-    if (predicate(tail(new_idxs)))
-      children.push_back(frec(t->children[idx], new_idxs));
-  }
-  return mt(t->n, children);
-}
-
-} // namespace prune_tree
-} // namespace memodetails
-
-template <class Value>
-KVTreeP<Value> prune_treeM(const KVTreeP<Value> &t, //
-                           std::function<bool(vector<int>)> predicate) {
-  using namespace memodetails::prune_tree;
-  return Memo<Value>(predicate).memoised(t, {0});
-}
 template <class Value>
 KVTreeP<Value> prune_tree(const KVTreeP<Value> &t, //
-                          std::function<bool(vector<int>)> predicate) {
-  using namespace memodetails::prune_tree;
-  return Memo<Value>(predicate).nomemo(t, {0});
+                          const PartitionPredicate &predicate) {
+  using Tree = TreeP<std::pair<int, Value>>;
+
+  auto _prune_tree = [&predicate](const Tree &t,           //
+                                  const Indices &top_idxs, //
+                                  auto f) -> Tree {
+    vector<Tree> children;
+    for (int idx = 0; idx < t->children.size(); ++idx) {
+      Indices new_idxs = append(top_idxs, idx);
+      switch (predicate(tail(new_idxs))) {
+      case BoolM::T:
+        std::cout << "SURE YES!" << std::endl;
+        children.push_back(t->children[idx]);
+        break;
+      case BoolM::M:
+        std::cout << "...mmmmm" << std::endl;
+        children.push_back(f(t->children[idx], new_idxs, f));
+        break;
+      default:
+        std::cout << "SURE NO!" << std::endl;
+        break;
+      }
+    }
+    return mt(t->n, children);
+  };
+
+  return _prune_tree(t, {0}, _prune_tree);
 }
 
 namespace select_subtree_details {
