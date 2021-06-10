@@ -135,4 +135,20 @@ BOOST_AUTO_TEST_CASE(test_select_subtree_kv_throws) {
   BOOST_CHECK_THROW(select_subtree_kv(tree, vector<int>{1}), //
                     std::invalid_argument);
 }
+
+BOOST_AUTO_TEST_CASE(test_shift_tree) {
+  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
+  auto tree = mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
+                                                        mt(mp(1, 6), {})})}), //
+                            mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
+                                                         mt(mp(1, 8), {})})})});
+  auto tshift_exp =
+      mt(mp(0, 11), {mt(mp(0, 12), {mt(mp(0, 13), {mt(mp(0, 15), {}),     //
+                                                   mt(mp(1, 16), {})})}), //
+                     mt(mp(1, 14), {mt(mp(10, 13), {mt(mp(0, 17), {}),    //
+                                                    mt(mp(1, 18), {})})})});
+  auto tshift = shift_tree(tree, 10);
+  BOOST_TEST(*tshift == *tshift_exp);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

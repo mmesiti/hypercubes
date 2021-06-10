@@ -16,6 +16,8 @@ class OffsetTree {
 private:
   internals::KVTreeP<int> offset_tree;
 
+  OffsetTree(internals::KVTreeP<int> &&_nct);
+
 public:
   OffsetTree(const SizeTree &);
   int get_offset(const Indices &) const;
@@ -29,10 +31,14 @@ class SizeTree {
 private:
   internals::KVTreeP<int> size_tree;
 
+  SizeTree(internals::KVTreeP<int> &&_nct);
+
 public:
   SizeTree(const NChildrenTree &);
   friend OffsetTree::OffsetTree(const SizeTree &);
   SizeTree get_subtree(const Indices &idxs) const;
+  OffsetTree offset_tree() const;
+  int get_size(const Indices &idxs) const;
   const internals::KVTreeP<int> get_internal() const;
 };
 
@@ -46,9 +52,11 @@ private:
 public:
   NChildrenTree(const PartitionTree &pt, const PartitionPredicate &);
   NChildrenTree permute(const vector<std::string> &_permuted_level_names) const;
-  friend SizeTree::SizeTree(const NChildrenTree &);
   NChildrenTree get_subtree(const Indices &idxs) const;
+  int get_nchildren(const Indices &) const;
   const internals::KVTreeP<int> get_internal() const;
+  SizeTree size_tree() const;
+  friend SizeTree::SizeTree(const NChildrenTree &);
 };
 
 class PartitionTree {
@@ -65,6 +73,7 @@ public:
   Coordinates get_coordinates(const Indices &);
   friend NChildrenTree::NChildrenTree(const PartitionTree &pt,
                                       const PartitionPredicate &);
+  NChildrenTree nchildren_tree(const PartitionPredicate &) const;
   const internals::PartitionTree get_internal() const;
 };
 

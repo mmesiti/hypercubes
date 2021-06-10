@@ -87,6 +87,18 @@ BOOST_AUTO_TEST_CASE(test_number_children) {
   BOOST_TEST(*tM == *t);
 }
 
+BOOST_AUTO_TEST_CASE(test_shift_tree) {
+
+  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
+  auto tree = mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
+                                                        mt(mp(1, 6), {})})}), //
+                            mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
+                                                         mt(mp(1, 8), {})})})});
+  auto tM = shift_treeM(tree, 10);
+  auto t = shift_tree(tree, 10);
+  BOOST_TEST(*tM == *t);
+}
+
 BOOST_AUTO_TEST_CASE(test_get_partition_tree_via_maxidx) {
 
   using namespace hypercubes::slow::partitioner_makers;

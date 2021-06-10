@@ -119,6 +119,23 @@ public:
 };
 
 } // namespace get_min_depth
+
+namespace shift_tree {
+template <class Value> using KVTreeP = TreeP<std::pair<int, Value>>;
+
+template <class Value>
+KVTreeP<Value>
+base(std::function<KVTreeP<Value>(const KVTreeP<Value> &, Value)> frec, //
+     const KVTreeP<Value> &tree, Value shift);
+
+template <class Value>
+class Memo : public Memoiser<KVTreeP<Value>, KVTreeP<Value>, Value> {
+public:
+  Memo() : Memoiser<KVTreeP<Value>, KVTreeP<Value>, Value>(base<Value>) {}
+};
+
+} // namespace shift_tree
+
 } // namespace memodetails
 } // namespace internals
 } // namespace slow

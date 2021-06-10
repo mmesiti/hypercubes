@@ -6,7 +6,6 @@
 #include "tree_data_structure.hpp"
 #include "utils/utils.hpp"
 #include <functional>
-#include <iostream> //DEBUG
 
 namespace hypercubes {
 namespace slow {
@@ -129,15 +128,12 @@ KVTreeP<Value> prune_tree(const KVTreeP<Value> &t, //
       Indices new_idxs = append(top_idxs, idx);
       switch (predicate(tail(new_idxs))) {
       case BoolM::T:
-        std::cout << "SURE YES!" << std::endl;
         children.push_back(t->children[idx]);
         break;
       case BoolM::M:
-        std::cout << "...mmmmm" << std::endl;
         children.push_back(f(t->children[idx], new_idxs, f));
         break;
       default:
-        std::cout << "SURE NO!" << std::endl;
         break;
       }
     }
@@ -175,6 +171,41 @@ const KVTreeP<Value> select_subtree_kv(const KVTreeP<Value> &tree,
 
   using namespace select_subtree_details;
   return base<std::pair<int, Value>, Indices, select_key<Value>>(tree, idxs);
+}
+
+namespace memodetails {
+namespace shift_tree {
+
+template <class Value>
+KVTreeP<Value>
+base(std::function<KVTreeP<Value>(const KVTreeP<Value> &, Value)> frec, //
+     const KVTreeP<Value> &tree, Value shift) {
+
+  int key = tree->n.first;
+  Value val = tree->n.second;
+
+  vector<KVTreeP<Value>> children_results =
+      vtransform(tree->children,          //
+                 [&frec, shift](auto c) { //
+                   return frec(c, shift);
+                 }); //
+
+  return mt(std::make_pair(key, val + shift), children_results);
+}
+
+} // namespace shift_tree
+} // namespace memodetails
+
+template <class Value>
+KVTreeP<Value> shift_treeM(const KVTreeP<Value> &tree, Value shift) {
+  using namespace memodetails::shift_tree;
+  return Memo<Value>().memoised(tree, shift);
+}
+
+template <class Value>
+KVTreeP<Value> shift_tree(const KVTreeP<Value> &tree, Value shift) {
+  using namespace memodetails::shift_tree;
+  return Memo<Value>().nomemo(tree, shift);
 }
 
 } // namespace internals
