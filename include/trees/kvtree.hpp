@@ -12,6 +12,9 @@ namespace slow {
 namespace internals {
 
 template <class Value> using KVTreeP = TreeP<std::pair<int, Value>>;
+template <class A, class B> std::pair<A, B> mp(A a, B b) {
+  return std::make_pair(a, b);
+}
 
 template <class Value>
 KVTreeP<Value> fix_key(const KVTreeP<Value> &t, int new_key) {
@@ -206,6 +209,26 @@ template <class Value>
 KVTreeP<Value> shift_tree(const KVTreeP<Value> &tree, Value shift) {
   using namespace memodetails::shift_tree;
   return Memo<Value>().nomemo(tree, shift);
+}
+
+// NEEDS DEBUGGING
+template <class SortableValue>
+Indices search_in_sorted_tree(const KVTreeP<SortableValue> &tree,
+                              SortableValue x) {
+
+  Indices res;
+  auto _search = [](const KVTreeP<SortableValue> &tree, SortableValue x,
+                    Indices &r, auto frec) -> Indices {
+    auto children = tree->children;
+    auto c_itp = std::find_if(tree->children.begin(), //
+                              tree->children.end(),   //
+                              [x](auto c) { return c->n.second < x; });
+    auto c_it = c_itp - 1;
+    r.push_back((*c_it)->n.first);
+    return frec(*c_it, x, r, frec);
+  };
+
+  return _search(tree, x, res, _search);
 }
 
 } // namespace internals

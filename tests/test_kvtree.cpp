@@ -9,7 +9,6 @@ BOOST_AUTO_TEST_SUITE(test_tree_kv)
 
 BOOST_AUTO_TEST_CASE(test_collapse_level_kv) {
 
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto t = mt(mp(0, 1), {mt(mp(3, 2), {mt(mp(5, 3), {mt(mp(1, 4), {}),     //
                                                      mt(mp(2, 5), {})}),   //
                                        mt(mp(6, 6), {mt(mp(3, 7), {}),     //
@@ -32,7 +31,6 @@ BOOST_AUTO_TEST_CASE(test_collapse_level_kv) {
 }
 
 BOOST_AUTO_TEST_CASE(test_bring_level_on_top_kv) {
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto t = mt(mp(0, 1), {mt(mp(20, 2), {mt(mp(22, 3), {mt(mp(24, 4), {}), //
                                                        mt(mp(25, 5), {})})}),
                          mt(mp(21, 9), {mt(mp(23, 3), {mt(mp(24, 11), {}), //
@@ -51,7 +49,6 @@ BOOST_AUTO_TEST_CASE(test_bring_level_on_top_kv) {
 
 BOOST_AUTO_TEST_CASE(test_swap_levels_kv) {
 
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto t = mt(mp(0, 1), {mt(mp(10, 2), {mt(mp(12, 3), {mt(mp(14, 5), {}),     //
                                                        mt(mp(15, 6), {})})}), //
                          mt(mp(11, 4), {mt(mp(13, 3), {mt(mp(14, 7), {}),     //
@@ -75,7 +72,6 @@ BOOST_AUTO_TEST_CASE(test_number_children) {
                        mt(4, {mt(3, {mt(7, {}),     //
                                      mt(8, {})})})});
 
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto expt = mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
                                                         mt(mp(1, 6), {})})}), //
                             mt(mp(1, 4), {mt(mp(0, 3), {mt(mp(0, 7), {}),     //
@@ -87,7 +83,6 @@ BOOST_AUTO_TEST_CASE(test_number_children) {
 
 BOOST_AUTO_TEST_CASE(test_prune_tree) {
 
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto tfull =
       mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
                                                 mt(mp(1, 6), {})})}), //
@@ -113,7 +108,6 @@ BOOST_AUTO_TEST_CASE(test_prune_tree) {
 }
 
 BOOST_AUTO_TEST_CASE(test_select_subtree_kv) {
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto tfull =
       mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
                                                 mt(mp(1, 6), {})})}), //
@@ -128,7 +122,6 @@ BOOST_AUTO_TEST_CASE(test_select_subtree_kv) {
 }
 
 BOOST_AUTO_TEST_CASE(test_select_subtree_kv_throws) {
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto tree = mt(mp(10, 3), {mt(mp(0, 7), {}), //
                              mt(mp(10, 8), {})});
 
@@ -137,7 +130,6 @@ BOOST_AUTO_TEST_CASE(test_select_subtree_kv_throws) {
 }
 
 BOOST_AUTO_TEST_CASE(test_shift_tree) {
-  auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   auto tree = mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
                                                         mt(mp(1, 6), {})})}), //
                             mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
@@ -149,6 +141,19 @@ BOOST_AUTO_TEST_CASE(test_shift_tree) {
                                                     mt(mp(1, 18), {})})})});
   auto tshift = shift_tree(tree, 10);
   BOOST_TEST(*tshift == *tshift_exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_search_sorted) {
+
+  auto tree = mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {}),     //
+                                                        mt(mp(1, 1), {})})}), //
+                            mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}),    //
+                                                         mt(mp(1, 3), {})})})});
+
+  using hypercubes::slow::Indices;
+  Indices i = search_in_sorted_tree(tree, 2);
+  Indices exp_i{1, 10, 0};
+  BOOST_TEST(i == exp_i);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
