@@ -6,6 +6,7 @@
 #include "tree_data_structure.hpp"
 #include "utils/utils.hpp"
 #include <functional>
+#include <stdexcept>
 
 namespace hypercubes {
 namespace slow {
@@ -219,10 +220,25 @@ Indices search_in_sorted_tree(const KVTreeP<SortableValue> &tree,
   Indices res;
   auto _search = [](const KVTreeP<SortableValue> &tree, SortableValue x,
                     Indices &r, auto frec) -> Indices {
-    auto children = tree->children;
+    auto &children = tree->children;
+    if (children.size() == 0) {
+      if (tree->n.second == x)
+        return r;
+      else {
+        std::stringstream message;
+        message << "Not found: " << x << " != " << tree->n.second << std::endl;
+        throw std::invalid_argument(message.str().c_str());
+      }
+    }
     auto c_itp = std::find_if(tree->children.begin(), //
                               tree->children.end(),   //
-                              [x](auto c) { return c->n.second < x; });
+                              [x](auto c) { return c->n.second > x; });
+    if (c_itp == children.begin()) {
+      std::stringstream message;
+      message << "Not found: " << x << " < " << children[0]->n.second
+              << std::endl;
+      throw std::invalid_argument(message.str().c_str());
+    }
     auto c_it = c_itp - 1;
     r.push_back((*c_it)->n.first);
     return frec(*c_it, x, r, frec);

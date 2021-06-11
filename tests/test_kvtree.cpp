@@ -144,7 +144,6 @@ BOOST_AUTO_TEST_CASE(test_shift_tree) {
 }
 
 BOOST_AUTO_TEST_CASE(test_search_sorted) {
-
   auto tree = mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {}),     //
                                                         mt(mp(1, 1), {})})}), //
                             mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}),    //
@@ -155,5 +154,34 @@ BOOST_AUTO_TEST_CASE(test_search_sorted) {
   Indices exp_i{1, 10, 0};
   BOOST_TEST(i == exp_i);
 }
+BOOST_AUTO_TEST_CASE(test_search_sorted_before_throws) {
+  auto tree = mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {}),     //
+                                                        mt(mp(1, 1), {})})}), //
+                            mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}),    //
+                                                         mt(mp(1, 3), {})})})});
 
+  BOOST_CHECK_THROW(search_in_sorted_tree(tree, -1), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_search_sorted_not_found_throws) {
+  auto tree = mt(
+      mp(0, 0),
+      {mt(mp(0, 0),
+          {mt(mp(0, 0), {mt(mp(0, 0), {}),     //
+                         mt(mp(1, 1), {})})}), //
+                                               // Tree is malformed on purpose
+       mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}), //
+                                    mt(mp(1, 4), {})})})});
+
+  BOOST_CHECK_THROW(search_in_sorted_tree(tree, 3), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_search_sorted_after_throws) {
+  auto tree = mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 0), {}),     //
+                                                        mt(mp(1, 1), {})})}), //
+                            mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}),    //
+                                                         mt(mp(1, 3), {})})})});
+
+  BOOST_CHECK_THROW(search_in_sorted_tree(tree, 4), std::invalid_argument);
+}
 BOOST_AUTO_TEST_SUITE_END()

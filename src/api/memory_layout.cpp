@@ -123,4 +123,6 @@ OffsetTree OffsetTree::shift(int shift) const {
   auto shifted_tree = internals::shift_tree(offset_tree, shift);
   return OffsetTree(std::move(shifted_tree));
 }
-Indices OffsetTree::get_indices(int offset) const { return Indices(); }
+Indices OffsetTree::get_indices(int offset) const {
+  return internals::search_in_sorted_tree(offset_tree, offset);
+}

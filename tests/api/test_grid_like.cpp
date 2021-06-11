@@ -11,7 +11,7 @@
 
 using namespace hypercubes::slow;
 namespace pm = hypercubes::slow::partitioner_makers;
-
+// 4D - full
 struct GridLikeBase {
 
   enum { X, Y, Z, T, MATROW, MATCOL, EXTRA };
@@ -65,7 +65,7 @@ struct GridLikeOffset : public GridLikeSize {
   OffsetTree offset_tree;
   GridLikeOffset() : GridLikeSize(), offset_tree(size_tree){};
 };
-
+// 2D
 struct GridLikeBase2D {
 
   enum { X, Y, MATROW, EXTRA };
@@ -102,7 +102,12 @@ struct GridLike2DSize : public GridLike2DNChildren {
   SizeTree size_tree;
   GridLike2DSize() : GridLike2DNChildren(), size_tree(nchildren_tree){};
 };
+struct GridLike2DOffset : public GridLike2DSize {
+  OffsetTree offset_tree;
+  GridLike2DOffset() : GridLike2DSize(), offset_tree(size_tree){};
+};
 
+// 1D
 struct GridLikeBase1D {
 
   enum { X, MATROW, EXTRA };
@@ -411,4 +416,25 @@ BOOST_FIXTURE_TEST_CASE(test_offset_shift_subtree, GridLikeOffset) {
   BOOST_TEST(*(subtree_shifted.get_internal()) == *exp_e);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_offset_get_indices_roundtrip, GridLike2DOffset) {
+
+  Indices i{2, 1, 0, 1, 2, 2, 0, 2, 0};
+  int offset = offset_tree.get_offset(i);
+  Indices i_roundtrip = offset_tree.get_indices(offset);
+  BOOST_TEST(i == i_roundtrip);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_offset_get_indices_roundtrip_many,
+                        GridLike2DOffset) {
+  for (int offset = 0; offset < 2 *     // Vec X
+                                    2 * // Vec Y
+                                    8 * // X hbb ( 1+6+1 )
+                                    8 * // Y hbb ( 1+6+1 )
+                                    3;  // local dof
+       ++offset) {
+    Indices i = offset_tree.get_indices(offset);
+    int offset_roundtrip = offset_tree.get_offset(i);
+    BOOST_TEST(offset == offset_roundtrip);
+  };
+}
 BOOST_AUTO_TEST_SUITE_END()
