@@ -39,6 +39,7 @@ target_link_libraries(test_kvtree boost_test_helper
                                   bool_maybe
                                   -lgcov)
 
+                                
 add_executable(test_partitioners test_partitioners.cpp)
 target_link_libraries(test_partitioners partitioners
                                         boost_test_helper)
@@ -53,6 +54,13 @@ target_link_libraries(test_pt_full partition_tree
                                     boost_test_helper
                                     test_utils
                                     fixtures)
+
+add_executable(test_prune_tree test_prune_tree.cpp)
+target_link_libraries(test_prune_tree boost_test_helper
+                                      bool_maybe
+                                      partition_predicates
+                                      partition_tree_allocations
+                                      fixtures)
 
 add_executable(test_partition_predicates test_partition_predicates.cpp)
 target_link_libraries(test_partition_predicates fixtures #
@@ -124,7 +132,8 @@ add_test(geometry test_geometry -r confirm)
 add_test(memoisation test_memoisation)
 add_test(comments test_comments -r confirm)
 add_test(tree test_tree -r confirm)
-add_test(ktree test_kvtree -r confirm)
+add_test(prune_tree test_prune_tree -r confirm)
+add_test(kvtree test_kvtree -r confirm)
 add_test(partitioners test_partitioners -r confirm)
 add_test(size_tree_iterator test_size_tree_iterator -r confirm)
 add_test(bool_maybe test_bool_maybe -r confirm)

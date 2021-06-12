@@ -81,32 +81,6 @@ BOOST_AUTO_TEST_CASE(test_number_children) {
   BOOST_TEST(*expt == *t);
 }
 
-BOOST_AUTO_TEST_CASE(test_prune_tree) {
-
-  auto tfull =
-      mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //
-                                                mt(mp(1, 6), {})})}), //
-                    mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}),    //
-                                                 mt(mp(1, 8), {})})})});
-
-  auto predicate = [](hypercubes::slow::Indices idxs) {
-    using hypercubes::slow::BoolM;
-    if (idxs.size() > 0) {
-      if (idxs[0] != 1)
-        return BoolM::F;
-      else
-        return BoolM::T;
-    }
-
-    return BoolM::M;
-  };
-  auto expt = mt(mp(0, 1), {mt(mp(1, 4), {mt(mp(10, 3), {mt(mp(0, 7), {}), //
-                                                         mt(mp(1, 8), {})})})});
-
-  auto t = prune_tree(tfull, predicate);
-  BOOST_TEST(*t == *expt);
-}
-
 BOOST_AUTO_TEST_CASE(test_select_subtree_kv) {
   auto tfull =
       mt(mp(0, 1), {mt(mp(0, 2), {mt(mp(0, 3), {mt(mp(0, 5), {}),     //

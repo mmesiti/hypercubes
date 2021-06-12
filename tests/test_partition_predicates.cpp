@@ -39,13 +39,13 @@ BOOST_FIXTURE_TEST_CASE(test_only_bulk_and_borders, Part4DF) {
     idx.push_back(0);
     idx.push_back(0);
 
-    BOOST_CHECK(to_bool(get_NmD_halo_predicate(partitioners, 0)(idx)) ==
+    BOOST_CHECK(to_bool(getp(halos_up_to_NmD, partitioners, 0)(idx)) ==
                 expected);
   }
 }
 
 BOOST_FIXTURE_TEST_CASE(test_onlyNmD_halos_T, Part1D42) {
-  BOOST_TEST(only_NmD_halos(partitioners, Indices{0, 0, 1, 0, 0}, 0) ==
+  BOOST_TEST(halos_up_to_NmD(Indices{0, 0, 1, 0, 0}, partitioners, 0) ==
              BoolM::T);
 }
 
@@ -79,7 +79,7 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_wrong, Part4DF) {
               MPI_rank_idx.end(),   //
               idx.begin());
 
-    auto predicate = get_mpi_rank_predicate(partitioners, MPI_rank_selected);
+    auto predicate = getp(mpi_rank, partitioners, MPI_rank_selected);
     BOOST_CHECK(predicate(idx) == BoolM::F);
   }
 }
@@ -109,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE(test_mpi_selection_right, Part4DF) {
               MPI_rank_idx.end(),   //
               idx.begin());
 
-    auto predicate = get_mpi_rank_predicate(partitioners, MPI_rank_idx);
+    auto predicate = getp(mpi_rank, partitioners, MPI_rank_idx);
     BOOST_TEST(predicate(idx) == BoolM::T);
   }
 }
@@ -142,16 +142,74 @@ BOOST_FIXTURE_TEST_CASE(test_hbb_slice, Part4DF) {
               HBB_idxs.end(),   //
               idx.begin() + 8);
 
-    auto predicate = get_hbb_slice_predicate(partitioners, dir, slice);
+    auto predicate = getp(hbb_slice,partitioners, dir, slice);
     int dir_index = 8 + dir;
     BOOST_TEST(to_bool(predicate(idx)) == (idx[dir_index] == slice));
   }
 }
 
+BOOST_FIXTURE_TEST_CASE(test_hbb_slice_maybe, Part4DF) {
+  auto data = rilist(0, 4, 4, 4);
+  vector<int> HBB_idxs{2, 2, 3};
+
+  Indices idx{
+      0,  //
+      1,  //
+      1,  //
+      0,  //# End of MPI
+      1,  //
+      2,  //
+      1,  //
+      1,  //# End of Vector
+      -1, //
+      -1, //
+      -1, // one missing
+  };
+
+  std::copy(HBB_idxs.begin(), //
+            HBB_idxs.end(),   //
+            idx.begin() + 8);
+
+  // predicate on last direction - the one that is missing
+  auto predicate = getp(hbb_slice,partitioners, 3, 2);
+  BOOST_TEST(predicate(idx) == BoolM::M);
+}
 BOOST_DATA_TEST_CASE_F(Part1D42, test_no_border_bulk_no, bdata::xrange(42), i) {
 
   Indices idx = get_real_indices(t, Coordinates{i});
-  BOOST_TEST(no_bulk_borders(partitioners, idx) == BoolM::F);
+  BOOST_TEST(no_bulk_borders(idx, partitioners) == BoolM::F);
 }
 
+BOOST_DATA_TEST_CASE_F(Part1D42, test_not, bdata::xrange(42), i) {
+
+  Indices idx = get_real_indices(t, Coordinates{i});
+
+  PartitionPredicate mpi_selector = getp(mpi_rank, partitioners, {1});
+  PartitionPredicate not_in_rank = [this](Indices idxs) {
+    return not mpi_rank(idxs, partitioners, {1});
+  };
+
+  BOOST_TEST(not_in_rank(idx) == (not mpi_selector)(idx));
+}
+
+BOOST_DATA_TEST_CASE_F(Part1D42, test_or, bdata::xrange(42), i) {
+  Indices idx = get_real_indices(t, Coordinates{i});
+
+  PartitionPredicate mpi_selector = getp(mpi_rank, partitioners, {1});
+  PartitionPredicate border_selector = getp(halos_up_to_NmD, partitioners, 1);
+
+  BOOST_TEST((mpi_selector(i) or border_selector(i)) ==
+             (mpi_selector or border_selector)(i));
+}
+BOOST_DATA_TEST_CASE_F(Part1D42, test_and, bdata::xrange(42), i) {
+  Indices idx = get_real_indices(t, Coordinates{i});
+
+  PartitionPredicate mpi_selector01 =
+      getp(mpi_rank, partitioners, {0}) or getp(mpi_rank, partitioners, {1});
+
+  PartitionPredicate border_selector = getp(halos_up_to_NmD, partitioners, 1);
+
+  BOOST_TEST((mpi_selector01(i) and border_selector(i)) ==
+             (mpi_selector01 and border_selector)(i));
+}
 BOOST_AUTO_TEST_SUITE_END()

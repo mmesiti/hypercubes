@@ -31,9 +31,8 @@ GridLikeBase::GridLikeBase()
   std::cout << "\n";
 }
 GridLikeNChildren::GridLikeNChildren()
-    : GridLikeBase(),                                //
-      predicate(get_mpi_rank_predicate(partitioners, //
-                                       {2, 3, 1, 1})),
+    : GridLikeBase(), //
+      predicate(getp(mpi_rank, partitioners, {2, 3, 1, 1})),
       nchildren_tree(NChildrenTree(partition_tree).prune(predicate)){};
 
 GridLikeSize::GridLikeSize() : GridLikeNChildren(), size_tree(nchildren_tree){};

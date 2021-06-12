@@ -1,4 +1,5 @@
 #include "api/memory_layout.hpp"
+#include "selectors/prune_tree.hpp"
 #include "trees/kvtree.hpp"
 #include "trees/level_swap.hpp"
 #include "trees/partition_tree.hpp"

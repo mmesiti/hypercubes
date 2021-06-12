@@ -21,22 +21,27 @@
 namespace hypercubes {
 namespace slow {
 
+// base predicates
+
+BoolM halos_up_to_NmD(Indices idxs, PartList partitioners, int D);
+
+BoolM mpi_rank(Indices idxs, PartList partitioners, vector<int> cart_mpi_ranks);
+BoolM no_bulk_borders(Indices idxs, PartList partitioners);
+BoolM hbb_slice(Indices idxs, PartList partitioners, int direction,
+                int hbb_idx);
+
 using PartitionPredicate = std::function<BoolM(Indices)>;
+// Generic function that returns predicates
+template <class... Args>
+PartitionPredicate getp(BoolM (*predicate)(Indices, Args...), Args... args) {
+  return
+      [predicate, args...](Indices idxs) { return predicate(idxs, args...); };
+}
 
-BoolM only_NmD_halos(PartList partitioners, Indices idxs, int D);
-PartitionPredicate get_NmD_halo_predicate(PartList partitioners, int D);
-
-BoolM only_specific_mpi_rank(PartList partitioners, Indices idxs,
-                             vector<int> MPI_ranks);
-
-PartitionPredicate get_mpi_rank_predicate(PartList partitioners,
-                                          vector<int> MPI_ranks);
-
-BoolM no_bulk_borders(PartList partitioners, Indices idx);
-
-PartitionPredicate get_hbb_slice_predicate(PartList partitioners, int direction,
-                                           int hbb_idx);
-BoolM hbb_slice(PartList partitioners, Indices idx, int direction, int hbb_idx);
+// Ways to compose predicates.
+PartitionPredicate operator&&(PartitionPredicate, PartitionPredicate);
+PartitionPredicate operator||(PartitionPredicate, PartitionPredicate);
+PartitionPredicate operator!(PartitionPredicate);
 
 } // namespace slow
 } // namespace hypercubes

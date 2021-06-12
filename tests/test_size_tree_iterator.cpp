@@ -1,4 +1,5 @@
 #include "fixtures.hpp"
+#include "selectors/prune_tree.hpp"
 #include "test_utils.hpp"
 #include "trees/kvtree.hpp"
 #include "trees/partition_tree.hpp"
@@ -49,8 +50,8 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
 
   auto size_tree =
       get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
-                               [&](Indices idx) -> BoolM {
-                                 return no_bulk_borders(partitioners, idx);
+                               [&](Indices idxs) -> BoolM {
+                                 return no_bulk_borders(idxs, partitioners);
                                }));
   auto no_sites = truncate_tree(size_tree,                     //
                                 get_max_depth(size_tree) - 1); //
@@ -69,8 +70,8 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
 BOOST_FIXTURE_TEST_CASE(test_offset_iterator_match, Part1D42) {
   auto size_tree =
       get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
-                               [&](Indices idx) -> BoolM {
-                                 return no_bulk_borders(partitioners, idx);
+                               [&](Indices idxs) -> BoolM {
+                                 return no_bulk_borders(idxs, partitioners);
                                }));
   auto no_sites = truncate_tree(size_tree,                     //
                                 get_max_depth(size_tree) - 1); //
@@ -89,8 +90,8 @@ BOOST_FIXTURE_TEST_CASE(test_offset_iterator_match, Part1D42) {
 BOOST_FIXTURE_TEST_CASE(test_offset_indices_roundtrip, Part1D42) {
   auto size_tree =
       get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
-                               [&](Indices idx) -> BoolM {
-                                 return no_bulk_borders(partitioners, idx);
+                               [&](Indices idxs) -> BoolM {
+                                 return no_bulk_borders(idxs, partitioners);
                                }));
   auto no_sites = truncate_tree(size_tree,                     //
                                 get_max_depth(size_tree) - 1); //
