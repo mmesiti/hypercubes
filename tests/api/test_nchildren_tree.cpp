@@ -52,7 +52,7 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_tree_get_subtree, GridLikeNChildren) {
 }
 BOOST_FIXTURE_TEST_CASE(test_nchildren_dot, GridLike1DNChildren) {
 
-  auto nchildren_tree_2 = partition_tree.nchildren_tree(predicate);
+  auto nchildren_tree_2 = partition_tree.nchildren_tree().prune(predicate);
   BOOST_TEST(*nchildren_tree_2.get_internal() ==
              *nchildren_tree.get_internal());
 }

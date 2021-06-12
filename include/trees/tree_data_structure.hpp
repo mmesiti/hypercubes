@@ -12,7 +12,7 @@ using std::shared_ptr;
 using std::vector;
 
 template <class> struct Tree;
-template <class Node> using TreeP = shared_ptr<Tree<Node>>;
+template <class Node> using TreeP = shared_ptr<const Tree<Node>>;
 
 template <class Node> struct Tree {
   Node n;

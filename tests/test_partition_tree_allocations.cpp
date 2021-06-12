@@ -2,6 +2,7 @@
 #include "partitioners/partitioners.hpp"
 #include "selectors/partition_predicates.hpp"
 #include "test_utils.hpp"
+#include "trees/kvtree.hpp"
 #include "trees/partition_tree.hpp"
 #include "trees/partition_tree_allocations.hpp"
 #include "trees/tree.hpp"
@@ -22,15 +23,14 @@ struct Simple1D {
   TreeP<std::pair<int, int>> sizetree;
 
   Simple1D()
-      : partitioners{pm::QPeriodic("MPI1", 0, 2), //
-                     pm::Plain("Plain1", 0),      //
-                     pm::Site()},                 //
-        spd{{32, Parity::EVEN}},                  //
-        t(get_partition_tree(spd, partitioners)), //
-        nalloc_children_tree(
-            get_nchildren_alloc_tree(t,                                 //
-                                     [](auto x) { return BoolM::T; })), //
-        sizetree(get_size_tree(nalloc_children_tree))                   //
+      : partitioners{pm::QPeriodic("MPI1", 0, 2),                          //
+                     pm::Plain("Plain1", 0),                               //
+                     pm::Site()},                                          //
+        spd{{32, Parity::EVEN}},                                           //
+        t(get_partition_tree(spd, partitioners)),                          //
+        nalloc_children_tree(prune_tree(get_nchildren_alloc_tree(t),       //
+                                        [](auto x) { return BoolM::T; })), //
+        sizetree(get_size_tree(nalloc_children_tree))                      //
         {};
 };
 
@@ -53,7 +53,7 @@ struct LessSimple1D {
         spd{{32, Parity::EVEN}},            //
         t(get_partition_tree(spd, partitioners)), //
         nalloc_children_tree(
-            get_nchildren_alloc_tree(t,                             //
+            prune_tree(get_nchildren_alloc_tree(t),                             //
                                      [](auto x) { return BoolM::T; })), //
         sizetree(get_size_tree(nalloc_children_tree))               //
         {};
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(test_all_allocated) {
   PartitionTree t = get_partition_tree(spd, partitioners);
 
   TreeP<std::pair<int, int>> sizetree = get_size_tree(
-      get_nchildren_alloc_tree(t, [](auto x) { return BoolM::T; }));
+      prune_tree(get_nchildren_alloc_tree(t), [](auto x) { return BoolM::T; }));
 
   // halos for 4 MPI partition having 2 sub partitions
   int exp_size = 42 + 2 * 2 * 4;
@@ -131,8 +131,8 @@ BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
   SizeParityD spd{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(spd, partitioners);
 
-  auto nct =
-      get_nchildren_alloc_tree(t, get_NmD_halo_predicate(partitioners, 0));
+  auto nct = prune_tree(get_nchildren_alloc_tree(t),
+                        get_NmD_halo_predicate(partitioners, 0));
   TreeP<std::pair<int, int>> sizetree = get_size_tree(nct);
 
   // no copies
@@ -149,7 +149,7 @@ BOOST_FIXTURE_TEST_CASE(test_4D_mpirank, Part4DF) {
   };
 
   TreeP<std::pair<int, int>> sizetree =
-      get_size_tree(get_nchildren_alloc_tree(t, predicate));
+      get_size_tree(prune_tree(get_nchildren_alloc_tree(t), predicate));
   int exp_size = 9 * 9 * 9 * 9;
   BOOST_TEST(sizetree->n.second == exp_size);
 }
@@ -164,7 +164,7 @@ BOOST_FIXTURE_TEST_CASE(test_4D_mpirank_3Dhalo, Part4DF) {
   };
 
   TreeP<std::pair<int, int>> sizetree =
-      get_size_tree(get_nchildren_alloc_tree(t, predicate));
+      get_size_tree(prune_tree(get_nchildren_alloc_tree(t), predicate));
   int exp_size = 9 * 9 * 9 * 9 + // bulk volume
                  9 * 9 * 9 *     // single surface
                      4 *         // dimensions
@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(test_no_zerosize) {
                               });
 
   auto size_tree = get_size_tree(
-      get_nchildren_alloc_tree(t, [](auto _) { return BoolM::T; }));
+      prune_tree(get_nchildren_alloc_tree(t), [](auto _) { return BoolM::T; }));
 
   for (auto si : depth_first_flatten(size_tree)) {
     int size = si.second;

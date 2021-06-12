@@ -6,25 +6,14 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-namespace get_nchildren_alloc_tree_detail {
-bool nonzero(std::pair<int, int> node) {
-  int alloc_children_count = node.second;
-  return alloc_children_count > 0;
-};
-
-} // namespace get_nchildren_alloc_tree_detail
-
-TreeP<std::pair<int, int>>
-get_nchildren_alloc_tree(const PartitionTree &t, PartitionPredicate predicate) {
+KVTreeP<int> get_nchildren_alloc_tree(const PartitionTree &t) {
 
   auto max_idx_tree = get_max_idx_treeM(t);
   auto max_idx_tree_kv = number_childrenM(max_idx_tree);
-  auto max_idx_tree_pruned = prune_tree(max_idx_tree_kv, predicate);
-  return max_idx_tree_pruned;
+  return max_idx_tree_kv;
 }
 
-TreeP<std::pair<int, int>>
-get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
+KVTreeP<int> get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
 
   using InOutType = TreeP<std::pair<int, int>>;
 
@@ -57,8 +46,7 @@ get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
   return _get_size_tree(max_idx_tree, _get_size_tree);
 }
 
-TreeP<std::pair<int, int>>
-get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {
+KVTreeP<int> get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {
   using SizeTree = TreeP<std::pair<int, int>>;
   using ResType = TreeP<std::pair<int, int>>;
 

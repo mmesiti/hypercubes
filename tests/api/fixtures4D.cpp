@@ -34,8 +34,7 @@ GridLikeNChildren::GridLikeNChildren()
     : GridLikeBase(),                                //
       predicate(get_mpi_rank_predicate(partitioners, //
                                        {2, 3, 1, 1})),
-      nchildren_tree(partition_tree, //
-                     predicate){};
+      nchildren_tree(NChildrenTree(partition_tree).prune(predicate)){};
 
 GridLikeSize::GridLikeSize() : GridLikeNChildren(), size_tree(nchildren_tree){};
 GridLikeOffset::GridLikeOffset() : GridLikeSize(), offset_tree(size_tree){};

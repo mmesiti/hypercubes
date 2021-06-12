@@ -43,10 +43,10 @@ struct GridLikeBase {
 struct GridLikeNChildren : public GridLikeBase {
   NChildrenTree nchildren_tree;
   GridLikeNChildren()
-      : GridLikeBase(),                                     //
-        nchildren_tree(partition_tree,                      //
-                       get_mpi_rank_predicate(partitioners, //
-                                              {0, 0, 0, 0})){};
+      : GridLikeBase(), //
+        nchildren_tree(NChildrenTree(partition_tree)
+                           .prune(get_mpi_rank_predicate(partitioners, //
+                                                         {0, 0, 0, 0}))){};
 };
 
 int main() { GridLikeNChildren test; }

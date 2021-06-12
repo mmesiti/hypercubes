@@ -11,6 +11,7 @@ namespace slow {
 class PartitionTree;
 class NChildrenTree;
 class SizeTree;
+class OffsetTree;
 
 class OffsetTree {
 private:
@@ -50,7 +51,9 @@ private:
   NChildrenTree(internals::KVTreeP<int> &&_nct, vector<std::string> &&_ln);
 
 public:
-  NChildrenTree(const PartitionTree &pt, const PartitionPredicate &);
+  NChildrenTree(const PartitionTree &pt);
+  NChildrenTree prune(const PartitionPredicate &);
+
   NChildrenTree permute(const vector<std::string> &_permuted_level_names) const;
   NChildrenTree get_subtree(const Indices &idxs) const;
   int get_nchildren(const Indices &) const;
@@ -71,9 +74,8 @@ public:
   // TODO: change according to needs
   vector<std::pair<int, Indices>> get_indices_wg(const Coordinates &);
   Coordinates get_coordinates(const Indices &);
-  friend NChildrenTree::NChildrenTree(const PartitionTree &pt,
-                                      const PartitionPredicate &);
-  NChildrenTree nchildren_tree(const PartitionPredicate &) const;
+  friend NChildrenTree::NChildrenTree(const PartitionTree &pt);
+  NChildrenTree nchildren_tree() const;
   const internals::PartitionTree get_internal() const;
 };
 

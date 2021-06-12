@@ -5,6 +5,10 @@
 #include "trees/partition_tree_allocations.hpp"
 #include "trees/tree.hpp"
 
+/******************
+ * PARTITION TREE *
+ ******************/
+
 using namespace hypercubes::slow;
 PartitionTree::PartitionTree(Sizes _sizes, PartList partitioners,
                              vector<int> nonspatial_dimensions)
@@ -32,18 +36,24 @@ const internals::PartitionTree PartitionTree::get_internal() const {
   return partition_tree;
 }
 
-NChildrenTree
-PartitionTree::nchildren_tree(const PartitionPredicate &predicate) const {
-  return NChildrenTree(*this, predicate);
+NChildrenTree PartitionTree::nchildren_tree() const {
+  return NChildrenTree(*this);
 }
 
-// NChildrenTree
-NChildrenTree::NChildrenTree(const PartitionTree &pt,
-                             const PartitionPredicate &predicate)
-    : nchildren_tree(internals::get_nchildren_alloc_tree(pt.partition_tree, //
-                                                         predicate)),
+/******************
+ * NCHILDREN TREE *
+ ******************/
+
+NChildrenTree::NChildrenTree(const PartitionTree &pt)
+    : nchildren_tree(internals::get_nchildren_alloc_tree(pt.partition_tree)),
       level_names(internals::get_partitioners_names(pt.partitioners_list)) //
 {}
+
+NChildrenTree NChildrenTree::prune(const PartitionPredicate &predicate) {
+  auto pruned_tree = internals::prune_tree(nchildren_tree, predicate);
+  auto pruned_level_names = level_names;
+  return NChildrenTree(std::move(pruned_tree), std::move(pruned_level_names));
+}
 
 NChildrenTree
 NChildrenTree::permute(const vector<std::string> &permuted_level_names) const {

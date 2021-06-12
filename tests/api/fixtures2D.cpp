@@ -1,4 +1,5 @@
 #include "fixtures2D.hpp"
+#include "api/memory_layout.hpp"
 
 namespace hypercubes {
 namespace slow {
@@ -22,8 +23,7 @@ GridLikeBase2D::GridLikeBase2D()
 GridLike2DNChildren::GridLike2DNChildren()
     : GridLikeBase2D(), //
       predicate(get_mpi_rank_predicate(partitioners, {2, 1})),
-      nchildren_tree(partition_tree, //
-                     predicate){};
+      nchildren_tree(NChildrenTree(partition_tree).prune(predicate)){};
 GridLike2DSize::GridLike2DSize()
     : GridLike2DNChildren(), size_tree(nchildren_tree){};
 GridLike2DOffset::GridLike2DOffset()

@@ -1,5 +1,6 @@
 #include "fixtures.hpp"
 #include "test_utils.hpp"
+#include "trees/kvtree.hpp"
 #include "trees/partition_tree.hpp"
 #include "trees/partition_tree_allocations.hpp"
 #include "trees/size_tree_iterator.hpp"
@@ -46,8 +47,8 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
 
   int isite = 0;
 
-  auto size_tree = get_size_tree(
-      get_nchildren_alloc_tree(t, //
+  auto size_tree =
+      get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
                                [&](Indices idx) -> BoolM {
                                  return no_bulk_borders(partitioners, idx);
                                }));
@@ -66,8 +67,8 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_offset_iterator_match, Part1D42) {
-  auto size_tree = get_size_tree(
-      get_nchildren_alloc_tree(t, //
+  auto size_tree =
+      get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
                                [&](Indices idx) -> BoolM {
                                  return no_bulk_borders(partitioners, idx);
                                }));
@@ -86,8 +87,8 @@ BOOST_FIXTURE_TEST_CASE(test_offset_iterator_match, Part1D42) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_offset_indices_roundtrip, Part1D42) {
-  auto size_tree = get_size_tree(
-      get_nchildren_alloc_tree(t, //
+  auto size_tree =
+      get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
                                [&](Indices idx) -> BoolM {
                                  return no_bulk_borders(partitioners, idx);
                                }));

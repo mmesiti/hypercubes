@@ -3,6 +3,7 @@
 namespace hypercubes {
 namespace slow {
 
+namespace pm = hypercubes::slow::partitioner_makers;
 GridLikeBase1D::GridLikeBase1D()
 
     : sizes({48, 3}), partitioners({
@@ -19,8 +20,8 @@ GridLikeBase1D::GridLikeBase1D()
 GridLike1DNChildren::GridLike1DNChildren()
     : GridLikeBase1D(), //
       predicate(get_mpi_rank_predicate(partitioners, {2})),
-      nchildren_tree(partition_tree, //
-                     predicate){};
+      nchildren_tree(NChildrenTree(partition_tree).prune(predicate)) //
+      {};
 
 GridLike1DSize::GridLike1DSize()
     : GridLike1DNChildren(), size_tree(nchildren_tree){};

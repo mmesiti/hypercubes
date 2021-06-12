@@ -11,7 +11,6 @@
 namespace hypercubes {
 namespace slow {
 
-namespace pm = hypercubes::slow::partitioner_makers;
 struct GridLikeBase1D {
   enum { X, MATROW, EXTRA };
   vector<int> nonspatial_dimensions{MATROW};
