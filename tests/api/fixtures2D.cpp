@@ -22,7 +22,7 @@ GridLikeBase2D::GridLikeBase2D()
 
 GridLike2DNChildren::GridLike2DNChildren()
     : GridLikeBase2D(), //
-      predicate(getp(mpi_rank, partitioners, {2, 1})),
+      predicate(getp(selectors::mpi_rank, partitioners, {2, 1})),
       nchildren_tree(NChildrenTree(partition_tree).prune(predicate)){};
 GridLike2DSize::GridLike2DSize()
     : GridLike2DNChildren(), size_tree(nchildren_tree){};

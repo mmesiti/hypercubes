@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
   PartitionTree t = get_partition_tree(spd, partitioners);
 
   auto nct = prune_tree(get_nchildren_alloc_tree(t),
-                        getp(halos_up_to_NmD, partitioners, 0));
+                        getp(selectors::halos_upto_NmD, partitioners, 0));
   TreeP<std::pair<int, int>> sizetree = get_size_tree(nct);
 
   // no copies
@@ -144,9 +144,9 @@ BOOST_FIXTURE_TEST_CASE(test_4D_mpirank, Part4DF) {
 
   auto predicate = [&](Indices idxs) {
     vector<int> MPI_rank{3, 3, 3, 3};
-    return getp(mpi_rank,partitioners, //
-                                  MPI_rank)(idxs) and
-           getp(halos_up_to_NmD, partitioners, 0)(idxs);
+    return getp(selectors::mpi_rank, partitioners, //
+                MPI_rank)(idxs) and
+           getp(selectors::halos_upto_NmD, partitioners, 0)(idxs);
   };
 
   TreeP<std::pair<int, int>> sizetree =
@@ -159,9 +159,9 @@ BOOST_FIXTURE_TEST_CASE(test_4D_mpirank_3Dhalo, Part4DF) {
 
   auto predicate = [&](Indices idxs) {
     vector<int> MPI_rank{3, 3, 3, 3};
-    return getp(mpi_rank,partitioners, //
-                                  MPI_rank)(idxs) and
-           getp(halos_up_to_NmD, partitioners, 1)(idxs);
+    return getp(selectors::mpi_rank, partitioners, //
+                MPI_rank)(idxs) and
+           getp(selectors::halos_upto_NmD, partitioners, 1)(idxs);
   };
 
   TreeP<std::pair<int, int>> sizetree =

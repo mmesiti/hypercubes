@@ -45,7 +45,7 @@ struct GridLikeNChildren : public GridLikeBase {
   GridLikeNChildren()
       : GridLikeBase(), //
         nchildren_tree(NChildrenTree(partition_tree)
-                           .prune(getp(mpi_rank, partitioners, //
+                           .prune(getp(selectors::mpi_rank, partitioners, //
                                        {0, 0, 0, 0}))){};
 };
 

@@ -32,7 +32,7 @@ GridLikeBase::GridLikeBase()
 }
 GridLikeNChildren::GridLikeNChildren()
     : GridLikeBase(), //
-      predicate(getp(mpi_rank, partitioners, {2, 3, 1, 1})),
+      predicate(getp(selectors::mpi_rank, partitioners, {2, 3, 1, 1})),
       nchildren_tree(NChildrenTree(partition_tree).prune(predicate)){};
 
 GridLikeSize::GridLikeSize() : GridLikeNChildren(), size_tree(nchildren_tree){};

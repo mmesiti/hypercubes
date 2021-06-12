@@ -19,7 +19,7 @@ GridLikeBase1D::GridLikeBase1D()
 
 GridLike1DNChildren::GridLike1DNChildren()
     : GridLikeBase1D(), //
-      predicate(getp(mpi_rank, partitioners, {2})),
+      predicate(getp(selectors::mpi_rank, partitioners, {2})),
       nchildren_tree(NChildrenTree(partition_tree).prune(predicate)) //
       {};
 

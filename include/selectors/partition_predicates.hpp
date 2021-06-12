@@ -23,13 +23,15 @@ namespace slow {
 
 // base predicates
 
-BoolM halos_up_to_NmD(Indices idxs, PartList partitioners, int D);
+namespace selectors {
 
+BoolM halos_upto_NmD(Indices idxs, PartList partitioners, int D);
 BoolM mpi_rank(Indices idxs, PartList partitioners, vector<int> cart_mpi_ranks);
 BoolM no_bulk_borders(Indices idxs, PartList partitioners);
 BoolM hbb_slice(Indices idxs, PartList partitioners, int direction,
                 int hbb_idx);
 
+} // namespace selectors
 using PartitionPredicate = std::function<BoolM(Indices)>;
 // Generic function that returns predicates
 template <class... Args>

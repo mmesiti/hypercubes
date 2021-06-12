@@ -4,6 +4,8 @@
 namespace hypercubes {
 namespace slow {
 
+namespace selectors {
+
 namespace predicates_detail {
 
 bool is_hbb(IPartRP p) {
@@ -11,7 +13,7 @@ bool is_hbb(IPartRP p) {
 };
 } // namespace predicates_detail
 // base predicates
-BoolM halos_up_to_NmD(Indices idxs, PartList partitioners, int D) {
+BoolM halos_upto_NmD(Indices idxs, PartList partitioners, int D) {
 
   using predicates_detail::is_hbb;
   int hbb_dimension = std::count_if(partitioners.begin(), //
@@ -58,8 +60,8 @@ BoolM mpi_rank(Indices idxs, PartList partitioners,
   return BoolM::M;
 }
 BoolM no_bulk_borders(Indices idxs, PartList partitioners) {
-  BoolM in_halo1D = halos_up_to_NmD(idxs, partitioners, 1);
-  BoolM in_bb = halos_up_to_NmD(idxs, partitioners, 0);
+  BoolM in_halo1D = halos_upto_NmD(idxs, partitioners, 1);
+  BoolM in_bb = halos_upto_NmD(idxs, partitioners, 0);
   return in_halo1D and not in_bb;
 }
 BoolM hbb_slice(Indices idxs, PartList partitioners, int direction,
@@ -79,6 +81,7 @@ BoolM hbb_slice(Indices idxs, PartList partitioners, int direction,
 
   return BoolM::M;
 }
+} // namespace selectors
 
 // Ways to compose predicates.
 PartitionPredicate operator!(PartitionPredicate p) {
