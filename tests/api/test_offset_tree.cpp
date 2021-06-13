@@ -96,4 +96,8 @@ BOOST_FIXTURE_TEST_CASE(test_offset_get_indices_roundtrip_many,
     BOOST_TEST(offset == offset_roundtrip);
   };
 }
+BOOST_FIXTURE_TEST_CASE(test_get_subtree_level_names, GridLike1DOffset) {
+  BOOST_TEST(offset_tree.get_subtree({2, 0, 2}).get_level_names() ==
+             vector<std::string>({"EO", "Local-matrow", "Extra", "Site"}));
+}
 BOOST_AUTO_TEST_SUITE_END()

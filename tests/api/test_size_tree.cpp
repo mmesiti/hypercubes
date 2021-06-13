@@ -51,4 +51,15 @@ BOOST_FIXTURE_TEST_CASE(test_get_size, GridLike2DSize) {
                     8 *                        // 1+6+1 , hbb 2
                     3);                        // local dof
 }
+BOOST_FIXTURE_TEST_CASE(test_get_partitioners_name, GridLike1DSize) {
+  auto level_names = size_tree.get_level_names();
+  BOOST_TEST(level_names ==
+             vector<std::string>({"MPI X", "Vector X", "Halo X", "EO",
+                                  "Local-matrow", "Extra", "Site"}));
+}
+BOOST_FIXTURE_TEST_CASE(test_get_subtree_level_names, GridLike1DSize) {
+  BOOST_TEST(size_tree.get_subtree({2, 0, 2}).get_level_names() ==
+             vector<std::string>({"EO", "Local-matrow", "Extra", "Site"}));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

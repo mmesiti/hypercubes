@@ -36,5 +36,11 @@ BOOST_FIXTURE_TEST_CASE(test_grid_like_get_coordinates, GridLikeBase) {
 
   BOOST_TEST(xs == partition_tree.get_coordinates(idxs));
 }
+BOOST_FIXTURE_TEST_CASE(test_get_partitioners_name, GridLikeBase1D) {
+
+  BOOST_TEST(partition_tree.get_level_names() ==
+             vector<std::string>({"MPI X", "Vector X", "Halo X", "EO",
+                                  "Local-matrow", "Extra", "Site"}));
+}
 
 BOOST_AUTO_TEST_SUITE_END()

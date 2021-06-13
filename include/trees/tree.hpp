@@ -1,5 +1,6 @@
 #ifndef TREE_H_
 #define TREE_H_
+#include "exceptions/exceptions.hpp"
 #include "memoisation/memoisation.hpp"
 #include "memoisation/memoisation_details.hpp"
 #include "tree_data_structure.hpp"
@@ -307,7 +308,7 @@ TreeP<Node> _bring_level_on_top(const TreeP<Node> &tree,              //
               << " out of total number of subtrees:" << subtrees.size()
               << std::endl
               << "level: " << level << std::endl;
-      throw std::invalid_argument(message.str().c_str());
+      throw TreeLevelPermutationError(message.str().c_str());
     }
   }
   auto new_top = subtree_features[0].first;

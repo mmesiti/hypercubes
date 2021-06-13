@@ -1,3 +1,6 @@
+#ifndef LEVEL_SWAP_H
+#define LEVEL_SWAP_H
+
 #include "partitioners/partitioners.hpp"
 #include "utils/utils.hpp"
 #include <algorithm>
@@ -39,3 +42,4 @@ std::vector<std::string> get_partitioners_names(const PartList &partitioners);
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes
+#endif

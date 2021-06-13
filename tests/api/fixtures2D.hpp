@@ -22,6 +22,7 @@ struct GridLikeBase2D {
 };
 struct GridLike2DNChildren : public GridLikeBase2D {
   PartitionPredicate predicate;
+  NChildrenTree nchildren_tree_unfiltered;
   NChildrenTree nchildren_tree;
   GridLike2DNChildren();
 };

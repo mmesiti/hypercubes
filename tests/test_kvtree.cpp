@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(test_select_subtree_kv_throws) {
                              mt(mp(10, 8), {})});
 
   BOOST_CHECK_THROW(select_subtree_kv(tree, vector<int>{1}), //
-                    std::invalid_argument);
+                    KeyNotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(test_shift_tree) {
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(test_search_sorted_before_throws) {
                             mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}),    //
                                                          mt(mp(1, 3), {})})})});
 
-  BOOST_CHECK_THROW(search_in_sorted_tree(tree, -1), std::invalid_argument);
+  BOOST_CHECK_THROW(search_in_sorted_tree(tree, -1), KeyNotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(test_search_sorted_not_found_throws) {
@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(test_search_sorted_not_found_throws) {
        mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}), //
                                     mt(mp(1, 4), {})})})});
 
-  BOOST_CHECK_THROW(search_in_sorted_tree(tree, 3), std::invalid_argument);
+  BOOST_CHECK_THROW(search_in_sorted_tree(tree, 3), KeyNotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(test_search_sorted_after_throws) {
@@ -156,6 +156,6 @@ BOOST_AUTO_TEST_CASE(test_search_sorted_after_throws) {
                             mt(mp(1, 2), {mt(mp(10, 2), {mt(mp(0, 2), {}),    //
                                                          mt(mp(1, 3), {})})})});
 
-  BOOST_CHECK_THROW(search_in_sorted_tree(tree, 4), std::invalid_argument);
+  BOOST_CHECK_THROW(search_in_sorted_tree(tree, 4), KeyNotFoundError);
 }
 BOOST_AUTO_TEST_SUITE_END()

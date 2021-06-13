@@ -11,6 +11,11 @@ template <class Container> Container tail(const Container &idxs) {
   return new_idxs;
 }
 
+template <class Container> Container tail(const Container &idxs, int start) {
+  Container new_idxs;
+  std::copy(idxs.begin() + start, idxs.end(), std::back_inserter(new_idxs));
+  return new_idxs;
+}
 template <class I> std::vector<I> append(std::vector<I> idxs, I idx) {
   idxs.push_back(idx);
   return idxs;

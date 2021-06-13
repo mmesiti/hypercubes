@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE(test_bring_level_on_top_wrong_nodes) {
                      mt(9, {mt(0, {mt(11, {}), //
                                    mt(12, {})})}),
                  });
-  BOOST_CHECK_THROW(bring_level_on_top(t, 2), std::invalid_argument);
+  BOOST_CHECK_THROW(bring_level_on_top(t, 2), TreeLevelPermutationError);
 }
 
 BOOST_AUTO_TEST_CASE(test_bring_level_on_top_wrong_children) {

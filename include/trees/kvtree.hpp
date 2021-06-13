@@ -1,12 +1,12 @@
 #ifndef KVTREE_H_
 #define KVTREE_H_
+#include "exceptions/exceptions.hpp"
 #include "memoisation/memoisation_details.hpp"
 #include "selectors/partition_predicates.hpp"
 #include "tree.hpp"
 #include "tree_data_structure.hpp"
 #include "utils/utils.hpp"
 #include <functional>
-#include <stdexcept>
 
 namespace hypercubes {
 namespace slow {
@@ -136,7 +136,7 @@ const KVTreeP<Value> select_key(const vector<KVTreeP<Value>> &children,
             << "not found in keys:"
             << vtransform(children, [](auto c) { return c->n.first; }) //
             << std::endl;
-    throw std::invalid_argument(message.str().c_str());
+    throw KeyNotFoundError(message.str().c_str());
   }
   return *child_iter;
 }
@@ -199,7 +199,7 @@ Indices search_in_sorted_tree(const KVTreeP<SortableValue> &tree,
       else {
         std::stringstream message;
         message << "Not found: " << x << " != " << tree->n.second << std::endl;
-        throw std::invalid_argument(message.str().c_str());
+        throw KeyNotFoundError(message.str().c_str());
       }
     }
     auto c_itp = std::find_if(tree->children.begin(), //
@@ -209,7 +209,7 @@ Indices search_in_sorted_tree(const KVTreeP<SortableValue> &tree,
       std::stringstream message;
       message << "Not found: " << x << " < " << children[0]->n.second
               << std::endl;
-      throw std::invalid_argument(message.str().c_str());
+      throw KeyNotFoundError(message.str().c_str());
     }
     auto c_it = c_itp - 1;
     r.push_back((*c_it)->n.first);

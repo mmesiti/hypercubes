@@ -5,6 +5,8 @@
 #include "trees/kvtree.hpp"
 #include "trees/partition_tree.hpp"
 
+#include "trees/level_swap.hpp" // TODO: move elsewhere
+#include <iostream>             //DEBUG
 namespace hypercubes {
 namespace slow {
 
@@ -15,14 +17,19 @@ class OffsetTree;
 
 class OffsetTree {
 private:
+  vector<std::string> level_names;
   internals::KVTreeP<int> offset_tree;
 
-  OffsetTree(internals::KVTreeP<int> &&_nct);
+  OffsetTree(internals::KVTreeP<int> &&_nct,
+             vector<std::string> &&_level_names);
 
 public:
   OffsetTree(const SizeTree &);
+  vector<std::string> get_level_names() const;
+  // Careful: indices are assumed to be ordered properly.
   int get_offset(const Indices &) const;
   Indices get_indices(int) const;
+  // Careful: indices are assumed to be ordered properly.
   OffsetTree get_subtree(const Indices &idxs) const;
   OffsetTree shift(int shift) const;
   const internals::KVTreeP<int> get_internal() const;
@@ -30,17 +37,21 @@ public:
 
 class SizeTree {
 private:
+  vector<std::string> level_names;
   internals::KVTreeP<int> size_tree;
 
-  SizeTree(internals::KVTreeP<int> &&_nct);
+  SizeTree(internals::KVTreeP<int> &&_nct, vector<std::string> &&_level_names);
 
 public:
   SizeTree(const NChildrenTree &);
-  friend OffsetTree::OffsetTree(const SizeTree &);
+  vector<std::string> get_level_names() const;
+  // Careful: indices are assumed to be ordered properly.
   SizeTree get_subtree(const Indices &idxs) const;
-  OffsetTree offset_tree() const;
+  // Careful: indices are assumed to be ordered properly.
   int get_size(const Indices &idxs) const;
   const internals::KVTreeP<int> get_internal() const;
+  OffsetTree offset_tree() const;
+  friend OffsetTree::OffsetTree(const SizeTree &);
 };
 
 class NChildrenTree {
@@ -52,11 +63,13 @@ private:
 
 public:
   NChildrenTree(const PartitionTree &pt);
-  NChildrenTree prune(const PartitionPredicate &);
-
+  vector<std::string> get_level_names() const;
   NChildrenTree permute(const vector<std::string> &_permuted_level_names) const;
-  NChildrenTree get_subtree(const Indices &idxs) const;
+  NChildrenTree prune(const PartitionPredicate &) const;
+  // Careful: indices are assumed to be ordered properly.
   int get_nchildren(const Indices &) const;
+  // Careful: indices are assumed to be ordered properly.
+  NChildrenTree get_subtree(const Indices &idxs) const;
   const internals::KVTreeP<int> get_internal() const;
   SizeTree size_tree() const;
   friend SizeTree::SizeTree(const NChildrenTree &);
@@ -70,14 +83,39 @@ private:
 
 public:
   PartitionTree(Sizes, PartList, vector<int> nonspatial_indices);
-  Indices get_indices(const Coordinates &);
+  vector<std::string> get_level_names() const;
+  Indices get_indices(const Coordinates &) const;
   // TODO: change according to needs
-  vector<std::pair<int, Indices>> get_indices_wg(const Coordinates &);
-  Coordinates get_coordinates(const Indices &);
+  vector<std::pair<int, Indices>> get_indices_wg(const Coordinates &) const;
+  // Careful: indices are assumed to be ordered properly.
+  Coordinates get_coordinates(const Indices &) const;
   friend NChildrenTree::NChildrenTree(const PartitionTree &pt);
   NChildrenTree nchildren_tree() const;
   const internals::PartitionTree get_internal() const;
 };
+
+// TODO: move elsewhere
+template <class TreeIn, class TreeOut> class TreeLevelMatcher {
+
+private:
+  vector<int> map;
+
+public:
+  TreeLevelMatcher(TreeIn in, TreeOut out)
+      : map(internals::find_permutation(in.get_level_names(),
+                                        out.get_level_names())) {}
+  template <class Container> Container operator()(Container in) {
+    Container out(in.size());
+    for (int i = 0; i < in.size(); ++i)
+      out[map[i]] = in[i];
+    return out;
+  }
+};
+
+template <class TreeIn, class TreeB>
+TreeLevelMatcher<TreeIn, TreeB> get_level_matcher(TreeIn in, TreeB out) {
+  return TreeLevelMatcher<TreeIn, TreeB>(in, out);
+}
 
 } // namespace slow
 } // namespace hypercubes

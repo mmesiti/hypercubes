@@ -33,10 +33,18 @@ target_link_libraries(test_api_size_tree facade allD_fixtures)
 add_executable(test_api_offset_tree test_offset_tree.cpp)
 target_link_libraries(test_api_offset_tree facade allD_fixtures)
 
+add_executable(test_alignment test_alignment.cpp)
+target_link_libraries(test_alignment facade)
+
+add_executable(test_tree_level_matcher test_tree_level_matcher.cpp)
+target_link_libraries(test_tree_level_matcher facade fixtures2D)
+
 set(CMAKE_CXX_STANDARDS 14)
 
 enable_testing()
+add_test(tree_level_matcher test_tree_level_matcher -r confirm)
 add_test(api_size_tree test_api_size_tree -r confirm)
 add_test(api_partition_tree test_api_partition_tree -r confirm)
 add_test(api_offset_tree test_api_offset_tree -r confirm)
 add_test(api_nchildren_tree test_api_nchildren_tree -r confirm)
+add_test(alignment test_alignment -r confirm)

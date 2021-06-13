@@ -141,4 +141,15 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_permute, GridLikeNChildren) {
   BOOST_TEST(permuted_tree.get_nchildren(Indices{2, 3, 1, 1, 0, 2, 2, //
                                                  1, 1, 2, 2}) == 9 * 9 / 2 + 1);
 }
+BOOST_FIXTURE_TEST_CASE(test_get_partitioners_name, GridLike1DNChildren) {
+
+  BOOST_TEST(nchildren_tree.get_level_names() ==
+             vector<std::string>({"MPI X", "Vector X", "Halo X", "EO",
+                                  "Local-matrow", "Extra", "Site"}));
+}
+BOOST_FIXTURE_TEST_CASE(test_get_subtree_names, GridLike1DNChildren) {
+  BOOST_TEST(nchildren_tree.get_subtree({2, 0, 2}).get_level_names() ==
+             vector<std::string>({"EO", "Local-matrow", "Extra", "Site"}));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

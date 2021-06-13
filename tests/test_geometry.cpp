@@ -1,4 +1,5 @@
 #include "geometry/geometry.hpp"
+#include "utils/utils.hpp"
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow;
