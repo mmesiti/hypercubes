@@ -39,6 +39,9 @@ target_link_libraries(test_alignment facade)
 add_executable(test_tree_level_matcher test_tree_level_matcher.cpp)
 target_link_libraries(test_tree_level_matcher facade fixtures2D)
 
+add_executable(test_int_typed test_int_typed.cpp)
+target_link_libraries(test_int_typed facade)
+
 set(CMAKE_CXX_STANDARDS 14)
 
 enable_testing()

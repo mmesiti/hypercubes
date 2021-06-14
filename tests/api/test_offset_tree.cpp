@@ -17,17 +17,17 @@ BOOST_FIXTURE_TEST_CASE(test_offset_dot, GridLike1DOffset) {
 }
 BOOST_FIXTURE_TEST_CASE(test_offset_tree_get_subtree, GridLikeOffset) {
 
-  OffsetTree subtree_eo = offset_tree.get_subtree(Indices{
+  OffsetTree<1> subtree_eo = offset_tree.get_subtree<1>(IndicesN<0>({
       2, 3, 1, 1, // MPI
                   // coordinates: 24,36,11,11
       0, 1,       // Vector
                   // coordinates: 24,42,11,11
       1, 1, 1, 1, // HBB
                   // coordinates: 24,42,11,11
-  });
+  }));
   // site is EVEN
-  OffsetTree subtree_e = subtree_eo.get_subtree(Indices{0});
-  int main_offset = subtree_e.get_offset({});
+  OffsetTree<2> subtree_e = subtree_eo.get_subtree<2>(IndicesN<1>{0});
+  int main_offset = subtree_e.get_offset(IndicesN<2>({}));
   int mo = main_offset;
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   using internals::mt;
@@ -45,21 +45,22 @@ BOOST_FIXTURE_TEST_CASE(test_offset_tree_get_subtree, GridLikeOffset) {
 
   BOOST_TEST(*(subtree_e.get_internal()) == *exp_e);
   // there are no odd sites
-  BOOST_CHECK_THROW(subtree_eo.get_subtree(Indices{1}), std::invalid_argument);
+  BOOST_CHECK_THROW(subtree_eo.get_subtree<1>(IndicesN<1>{1}),
+                    std::invalid_argument);
 }
 BOOST_FIXTURE_TEST_CASE(test_offset_shift_subtree, GridLikeOffset) {
 
-  OffsetTree subtree_eo = offset_tree.get_subtree(Indices{
+  OffsetTree<1> subtree_eo = offset_tree.get_subtree<1>(IndicesN<0>({
       2, 3, 1, 1, // MPI
                   // coordinates: 24,36,11,11
       0, 1,       // Vector
                   // coordinates: 24,42,11,11
       1, 1, 1, 1, // HBB
                   // coordinates: 24,42,11,11
-  });
+  }));
   // site is EVEN
-  OffsetTree subtree_e = subtree_eo.get_subtree(Indices{0});
-  int main_offset = subtree_e.get_offset({});
+  OffsetTree<2> subtree_e = subtree_eo.get_subtree<2>(IndicesN<0>{0});
+  int main_offset = subtree_e.get_offset(IndicesN<2>({}));
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   using internals::mt;
   auto exp_e = mt(mp(0, 0), // site is even
@@ -78,7 +79,7 @@ BOOST_FIXTURE_TEST_CASE(test_offset_shift_subtree, GridLikeOffset) {
 }
 BOOST_FIXTURE_TEST_CASE(test_offset_get_indices_roundtrip, GridLike2DOffset) {
 
-  Indices i{2, 1, 0, 1, 2, 2, 0, 2, 0};
+  IndicesN<0> i({2, 1, 0, 1, 2, 2, 0, 2, 0});
   int offset = offset_tree.get_offset(i);
   Indices i_roundtrip = offset_tree.get_indices(offset);
   BOOST_TEST(i == i_roundtrip);
@@ -91,13 +92,14 @@ BOOST_FIXTURE_TEST_CASE(test_offset_get_indices_roundtrip_many,
                                     8 * // Y hbb ( 1+6+1 )
                                     3;  // local dof
        ++offset) {
-    Indices i = offset_tree.get_indices(offset);
+    auto i = offset_tree.get_indices(offset);
     int offset_roundtrip = offset_tree.get_offset(i);
     BOOST_TEST(offset == offset_roundtrip);
   };
 }
 BOOST_FIXTURE_TEST_CASE(test_get_subtree_level_names, GridLike1DOffset) {
-  BOOST_TEST(offset_tree.get_subtree({2, 0, 2}).get_level_names() ==
-             vector<std::string>({"EO", "Local-matrow", "Extra", "Site"}));
+  BOOST_TEST(
+      offset_tree.get_subtree<1>(IndicesN<0>({2, 0, 2})).get_level_names() ==
+      vector<std::string>({"EO", "Local-matrow", "Extra", "Site"}));
 }
 BOOST_AUTO_TEST_SUITE_END()

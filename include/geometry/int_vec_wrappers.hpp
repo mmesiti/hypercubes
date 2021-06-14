@@ -47,8 +47,12 @@ class Coordinates {
 // (not that different from coordinates, after all,
 // but in a space with a different dimensionality
 // and some other constraint)
+template <int N> class IndicesN;
+
 class Indices {
   INTVEC_BOILERPLATE(Indices, idxs)
+  // Boilerplate to avoid forwarding to vector constructor
+  template <int N> Indices(const IndicesN<N> &other) : idxs(other.idxs) {}
 
   void push_back(int);
   friend Indices append(int, const Indices &);

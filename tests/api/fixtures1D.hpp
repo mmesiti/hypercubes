@@ -16,22 +16,22 @@ struct GridLikeBase1D {
   vector<int> nonspatial_dimensions{MATROW};
   Sizes sizes;
   PartList partitioners;
-  PartitionTree partition_tree;
+  PartitionTree<0> partition_tree;
   GridLikeBase1D();
 };
 struct GridLike1DNChildren : public GridLikeBase1D {
   PartitionPredicate predicate;
-  NChildrenTree nchildren_tree_unfiltered;
-  NChildrenTree nchildren_tree;
+  NChildrenTree<0> nchildren_tree_unfiltered;
+  NChildrenTree<0> nchildren_tree;
   GridLike1DNChildren();
 };
 
 struct GridLike1DSize : public GridLike1DNChildren {
-  SizeTree size_tree;
+  SizeTree<0> size_tree;
   GridLike1DSize();
 };
 struct GridLike1DOffset : public GridLike1DSize {
-  OffsetTree offset_tree;
+  OffsetTree<0> offset_tree;
   GridLike1DOffset();
 };
 

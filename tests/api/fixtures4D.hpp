@@ -16,21 +16,21 @@ struct GridLikeBase {
   vector<int> nonspatial_dimensions{MATROW, MATCOL};
   Sizes sizes;
   PartList partitioners;
-  PartitionTree partition_tree;
+  PartitionTree<0> partition_tree;
 
   GridLikeBase();
 };
 struct GridLikeNChildren : public GridLikeBase {
   PartitionPredicate predicate;
-  NChildrenTree nchildren_tree;
+  NChildrenTree<0> nchildren_tree;
   GridLikeNChildren();
 };
 struct GridLikeSize : public GridLikeNChildren {
-  SizeTree size_tree;
+  SizeTree<0> size_tree;
   GridLikeSize();
 };
 struct GridLikeOffset : public GridLikeSize {
-  OffsetTree offset_tree;
+  OffsetTree<0> offset_tree;
   GridLikeOffset();
 };
 
