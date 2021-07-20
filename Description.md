@@ -64,7 +64,9 @@ surely further optimisations
 need to be applied to the code 
 that use, as a client, the memory layout library.
 
-
+The library has been developed
+using a test first development approach,
+and the code has a very high test coverage (>95%).
 
 
 
