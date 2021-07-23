@@ -5,12 +5,31 @@ to do hierarchical domain decomposition
 of hypercubic lattices
 and managing the memory layout.
 
-*Nothing clever or revolutionary here*.
+* Compilation and tests
+Prerequisites:
+For building:
+- CMake>=3.5
+For the tests:
+- Boost::Test (used 1.76)
+- lcov and genhtml for the coverage report.
 
-In this document the main ideas are discussed,
-the [[implementation.org][implementation]] is described separately.
+To build and run the tests:
+#+begin_src bash
+$ mkdir build
+$ cd build
+$ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. && \
+    make -j4 && ctest --test-dir ./tests --output-on-failure && \
+    make coverage
+#+end_src
+Using ~-DCMAKE_BUILD_TYPE=Release~
+can speed up considerably the tests,
+if needed.
 
-* Main Ideas
+* Memory layouts: N-dimensional arrays and trees
+In this section the main "raw" ideas are discussed,
+the [[Implementation][implementation]] is described separately.
+
+** Main Ideas
 Hypercubic lattices have
 "partitioning" symmetries
 that constrain the
@@ -54,7 +73,7 @@ the easier the code will be
 to write
 and to understand once it's written.
 
-* Definition of memory layout
+** Definition of memory layout for a N-dimensional array (not the full story)
 A memory layout for a lattice
 is a function that takes the coordinates
 
@@ -76,14 +95,10 @@ global dimensions
 L_0, ... , L_d
 #+end_src
 
-A memory layout function
-allows us to completely abstract
-the problem of finding lattice sites in memory.
-It can either be used on-line,
-or the results can be cached.
+In what follows, the dimensions of the lattice
+are assumed to be divisible by the desired factors.
 
-
-** Decomposition of dimensions in factors
+*** Decomposition of dimensions in factors
 
 We can decompose all the dimensions
 as a product of factors:
@@ -105,7 +120,7 @@ L_2 = 35 = 5 * 7
 #+end_src
 
 
-** Express coordinates using the decomposition factors
+*** Express coordinates using the decomposition factors
 
 We can re-express
 the individual components of the coordinates
@@ -117,65 +132,49 @@ in positional numeral systems.
 For the sake of argument,
 using the previous decomposition of L_0,
 let's assume:
-
 #+begin_src
 x_0 = 25 = 1 * 1 +
            0 * 1 * 2 +
            1 * 1 * 2 * 2
            1 * 1 * 2 * 2 * 4
 #+end_src
-
 The we can represent x_0 as follows:
-
 #+begin_src
-x_0 <--> (x_00,x_01,x_02,x_03)
-x_0 <--> (1,0,1,1)
+x_0 <--> (x_03,x_02,x_01,x_00)
+x_0 <--> (1,1,0,1)
 #+end_src
-
 using the /strides/
-
 #+begin_src
 s_00 = 1
 s_01 = 1 * 2
 s_02 = 1 * 2 * 2
 s_03 = 1 * 2 * 2 * 4
 #+end_src
-
-Where obviously
-
+where obviously
 #+begin_src
 s_i0 = 1
 s_ij = s_i(j-1) * F_i(j-1)
 #+end_src
-
+We are using the "C Array"-like indexing order here.
 Let's choose also x_1 and x_2
-
 #+begin_src
 x_1 = 14 = 2 * 1 +
            4 * 1 * 3
-#+end_src
-
-
-#+begin_src
 x_2 = 26 = 1 * 1 +
            5 * 1 * 5
 #+end_src
-
-
 We can then express the lattice point
-
 #+begin_src
-x = ( x_0, x_1, x_2 )
+x = ( x_2, x_1, x_0 )
 #+end_src
-
 as
 #+begin_src
-x = ((1, 0, 1, 1),
-     (2, 4),
-     (1, 5))
+x = ((1, 1, 0, 1),
+     (4, 2),
+     (5, 1))
 #+end_src
 
-** Lexicographic memory layout
+*** Lexicographic memory layout
 
 A possible memory layout is the following:
 
@@ -189,19 +188,21 @@ idx = x_0 * 1 +
 which can be expressed as the list
 
 #+begin_src
-[L_0,L_1,L_2,L_3]
+[L_3,L_2,L_1,L_0]
 #+end_src
 
 We can define the memory layout
 to be the function f such that
 
 #+begin_src
-idx = f([L_0,L_1,L_2,L_3],[x_0,x_1,x_2,x_3])
+idx = f([L_3,L_2,L_1,L_0],
+        [x_3,x_2,x_1,x_0])
 #+end_src
 
 Where ~0 <= x_d < L_d~.
-
-Another completely equivalend memory layout is
+We can factorise each dimension as described above
+and obtain another completely equivalend memory layout,
+such as
 
 #+begin_src
 idx = x_00*1 +             // From L_0
@@ -221,85 +222,27 @@ idx = x_00*1 +             // From L_0
 Which can be expressed as
 
 #+begin_src
-idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
-        [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
+idx = f([F_21, F_20, F_11, F_10, F_03, F_02, F_01, F_00],
+        [x_21, x_20, x_11, x_10, x_03, x_02, x_01, x_00])
 #+end_src
 Where ~0 <= x_ab < F_ab~.
 
+*** Index Permutations
+
+We can permute the lists of ~x_ab~ and ~F_ab~
+to obtain other memory layouts functions
 Some statements:
 
-1. /if we apply the same permutation
+1. /If we apply the same permutation
     to the list of Fs
     and to the list of xs,
     we get a valid memory layout/.
-2. /permuting the lists as described
+2. /Permuting the lists as described
     can be seen as a tensor index transposition/.
-3. /the memory layout functions
+3. /The memory layout functions
     can be made modular/.
 
-** Truncated and reduced memory layouts
-
-I decide to use these two adjectives
-for two complementary concepts:
-
-*** Truncated memory layout
-
-Be ~f~ being the full memory layout
-#+begin_src
-idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
-        [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
-#+end_src
-and equal to the "0-truncated" memory layout,
-then the 5-truncated memory layout is
-#+begin_src
-idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
-        [   0,    0,    0, x_03, x_10, x_11, x_20, x_21])
-#+end_src
-since it does not depend on x_00, x_01 and x_02 any more,
-we can compute it as
-#+begin_src
-idx = f([F_00* F_01* F_02, F_03, F_10, F_11, F_20, F_21],
-        [               0, x_03, x_10, x_11, x_20, x_21]) .
-#+end_src
-The value of ~idx~ computed in this way
-represents the start of a full partition being indexed,
-as opposed to a general point.
-
-*** Reduced memory layout (for homogeneous partitioning)
-Be ~f~ being the full memory layout
-#+begin_src
-idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
-        [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
-#+end_src
-and equal to the "0-reduced" memory layout,
-the 5-reduced memory layout is
-#+begin_src
-idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
-        [x_00, x_01, x_02,    0,    0,    0,    0,    0])
-#+end_src
-
-In the case of inhomogeneous partitioning,
-F_00, F_01, and F_02 would actually depend
-on x_03 and the other "slow" variables,
-
-
-
-** Truncated and reduced memory layouts
-
-If the partitioning is homogeneous, then
-the full memory layout is just the sum
-of the N-truncated memory layout
-and the N-reduced memory layout.
-#+begin_src
-f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
-  [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21]) =
-f([F_00* F_01* F_02, F_03, F_10, F_11, F_20, F_21],
-  [               0, x_03, x_10, x_11, x_20, x_21]) +
-f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
-  [x_00, x_01, x_02,    0,    0,    0,    0,    0])
-#+end_src
-
-* Breaking the symmetry - From ND-array to tree
+** Breaking the symmetry - From ND-array to tree
 
 There are a number of features
 that are needed in order
@@ -312,37 +255,57 @@ to make a memory layout useful:
   i.e., having some partitions
   that are smaller than others.
 
-Homogeneous hierarchical partitioning
-produces hypercubic arrays,
-which
-(as we discussed)
-are trivial to transpose
-and should be preferred.
+For an N-dimensional array,
+a transposition (intended as a permutation of the indices)
+is a common memory layout transformation.
+
+Applying the same transformations to a tree
+might be more complicated or impossible,
+depending on the implementation of the tree.
+
+*** Discussion of possible data structures
+
+The multidimensional array
+(à la Fortran)
+would be the simplest data structure
+to deal with,
+but as discussed, it might not have
+the required flexibility.
+
+A tree structure would be general enough,
+but many of the nodes on the same level
+will be equal, to some extent.
+
+A structure that makes use of that symmetry
+is a directed acyclic graph
+where the nodes are collected in levels,
+and the arcs are the parent-child relations between them.
+When a node ~N~ has multiple parents,
+that means that those parents
+have subtrees that are equal
+and are represented
+by the single root node ~N~
+and its subtree.
+
+The parent-child of each parent node
+can be arranged
+in an ordered list or in a dictionary.
+In both cases, each parent-child relationship
+is associated to an integer.
+
+**** Transposition
+
+A "homogeneous" hierarchical partitioning
+that produces hypercubic arrays
+(which, as we discussed, are trivial to transpose)
+should be preferred.
 
 Inhomogeneous partitioning produces instead
 /ragged/ arrays,
-which are non trivial to transpose,
+which can be harder to transpose
 and are better represented as trees.
 
-The most general structure
-would be a directed acyclic graph
-where the nodes are the levels,
-and the arcs the dependences between them.
-By dependence,
-I mean the fact that the range for an index
-at a certain level depends ~b~ on
-the values of the indices at another other level
-~a~, or potentially on more than one leve.
-
-
-The implementation could decide
-not to transpose the arrays.
-In case this is needed,
-a possible technique
-to transpose such array is
-padding and masking.
-
-** EO ordering
+*** EO ordering
 Each portion of a lattice
 can be divided into even and odd sites.
 If the global lattice extents
@@ -350,37 +313,31 @@ are even in the dimensions
 in which the boundary conditions are periodic,
 then the lattice is a bipartite graph.
 
-** Halos, Borders, and bulk
+*** Halos, Borders, and bulk
 Splitting each portion of a lattice
 into halos, borders and bulk
 obviously requires
 a more complex memory layout,
 because it breaks the partitioning symmetry.
 
-The situation is:
-- For Local data
-  Each direction can be split into 3 pieces:
-  - Border-,
-  - Bulk,
-  - Border+
-- For Cached Remote data
-  - Halo-
-  - Halo+
-The size of Borders and Halos can be zero.
+Each direction can be split into 5 pieces:
+- For Local data:
+  - Border- (index 1);
+  - Bulk (index 2);
+  - Border+ (index 3).
+- For Cached Remote data:
+  - Halo- (index 0);
+  - Halo+ (index 4).
 
 We can recover the symmetry
 at a higher level,
 by splitting each 1D portion in 5 pieces.
-We have then at least an elegant & simple way
-to refer to each portion.
+We have then at least an elegant
+and simple way to refer to each portion.
 This can be done at each level in the decomposition.
-
-*How this plays with the hierarchical aspect
-still requires some investigation/ideas*.
 
 Notice that this requires having up to 5^D portions,
 and this might be impractical.
-
 We can, though, allocate only
 the ones that we are interested in
 by defining them all and then
@@ -388,31 +345,18 @@ filtering out the ones we do not want,
 according to different requirements,
 e.g.:
 - having size > 0
-- having at least nd_min sides > 1
+- having at least ~nd_min~ sides > halo_size
+  (for example, if we need to exchange only
+  nearest neighbor information,
+  ~nd_min~ should be D-1).
 
-For each level in the decomposition,
-or for each stride,
-we have a halo thickness h.
+*** Memory layouts transformations
 
-Example:
+Other memory layouts can be derived from
+a memory layout defined in a tree structure.
+We can use two adjectives for two complementary concepts:
 
-#+begin_src
-For L_0 = 2 * 2 * 4 * 2,
-#+end_src
-
-We can have
-
-#+begin_src
-s_00 = 1 , h_00 = 0
-s_01 = 2 , h_01 = 0
-s_02 = 4 , h_02 = 1
-s_03 = 16, h_03 = 1
-#+end_src
-
-Notice that if i<j, h_ki <= h_kj.
-
-
-** Inhomogeneous partitioning
+*** Inhomogeneous partitioning
 
 Requiring the dimension of the lattice
 to have certain factors can be too restrictive.
@@ -420,3 +364,745 @@ In HiRep it is possible to have inhomogeneous MPI partitioning,
 and it should be possible to replicate this
 in a hierarchical way.
 
+
+
+* Implementation
+
+*NOTE 1*: In this notes, aspects that might be changed
+will be not be described
+(for example, the directory structure).
+
+** Important: shared pointers and objects
+To use inheritance from interfaces,
+in C++ one needs to use pointers.
+To this aim,
+shared Pointers are used throughout the code.
+In the following notes,
+we might refer to objects
+or shared pointers to those objects
+interchangeably.
+
+** Partitioning of the lattice - an example
+
+In this section a 2D example
+(taken from the test suite with some modifications)
+is discussed.
+The way a lattice is partitioned
+is expressed by creating a list of ~IPartitioner~ objects,
+which represent steps
+in a hierarchical partition of the lattice:
+
+#+begin_src C++
+namespace pm = hypercubes::slow::partitioner_makers;
+
+/* ... */
+
+enum { X, Y, LOCAL, EXTRA };
+
+PartList partitioners{// Split X in 4, with periodic BC
+                      pm::QPeriodic("MPI X", X, 4),
+                      // Same with y
+                      pm::QPeriodic("MPI Y", Y, 4),
+                      // Further subdivide along X for virtual nodes
+                      pm::QOpen("Vector X", X, 2),
+                      // ... and along Y, for virtual nodes
+                      pm::QOpen("Vector Y", Y, 2),
+                      // Each portion now is split in border and bulk
+                      // along the X axis
+                      pm::HBB("Halo X", X, 1),
+                      // and along the Y axis
+                      pm::HBB("Halo Y", Y, 1),
+                      // Each portion is now split in even-odd sites
+                      pm::EO("EO", {true, true, false}),
+                      // ... But all the above does not apply
+                      // to the local degree of freedom,
+                      // so we don't split that.
+                      pm::Plain("Local-matrow", LOCAL),
+                      // We don't split either
+                      // the extra dimension created by EO
+                      pm::Plain("Extra", EXTRA),
+                      // Leaf of the tree
+                      pm::Site()};
+#+end_src
+
+To each partitioner in the list,
+a new level of the partition tree is associated,
+and to each level an integer is associated
+(except for the ~Site()~ partitioning,
+which represent a leaf in the tree).
+
+Here, the ~IPartitioner~ objects
+are created by a "partitioner maker",
+which is just a function that wraps some boilerplate code
+aroung the constructor of the ~IPartitioner~ object.
+
+The ~IPartitioner~ objects have a ~get~ method
+that takes in input a "lattice partition" (see later)
+and returns an ~IPartitioning~ object
+(they are, in a sense, function objects).
+Each ~IPartitioning~ object then has/yields
+a list of lattice partitions resulting from the partitioning.
+Each of these new sub-lattices
+is passed to the next ~IPartitioner~ object in the list,
+thus generating a tree of partitions.
+
+In this tree,
+many of the subtrees will be equivalent.
+Through the use of memoisation
+and shared pointers,
+we can avoid the exponential explosion
+in memory and time
+that would make this approach
+completely impractical.
+There will be thus a shared pointer
+for each /equivalence class/ of subtrees.
+Note that the position of the partitions
+that each copy of the subtree represent
+will be different,
+but this information is not stored directly
+and can be reconstructed when needed.
+
+*** Partitioners, Partitioning, partitioner_makers
+The code uses quite a lot of indirection
+to avoid repetition as much as possible.
+This can make it harder to navigate.
+
+The relationship between "partitioner maker",
+~IPartitioner~ and ~IPartitioning~
+can be described as follows:
+- a "partitioner maker" is just a function
+  that is a thin wrapper around ~std::make_shared~
+  that returns a shared pointer to an ~IPartitioner~ object
+  (to make the code in the example above
+  more straightforward);
+- an ~IPartitioner~ object is
+  a "generator" for an ~IPartitioning~ object,
+  that contains all the necessary data
+  (e.g, the type of partitioning and the parameters needed)
+  /except/ the geometric information
+  (e.g., the sizes)
+  of the lattice partition to further subdivide,
+  which is fed to the ~IPartitioner~ object
+  to generate a concrete ~IPartitioning~ object.
+ When possible, *the same name is used*
+ for the partitioner,
+ for the partitioning
+ and for the partitioner maker,
+ using the namespaces ~partitioners~,
+ ~partitioning~ and ~partitioner_makers~ to disambiguate.
+
+Different partitioners in the list
+will split the lattice
+according to different strategies
+in different dimensions.
+The partitioners implemented so far
+can, e.g.:
+- split the lattice in a given direction,
+  in uneven ways if necessary;
+- create halos/borders of any size
+  in a given lattice direction;
+- divide the subpartition between even and odd sites.
+
+
+*** The different kind of trees
+The ~PartitionTree~ constructor
+takes the dimension of the N-dimensional array
+(has spatial and local indices),
+the list of partitioners,
+and a list of indices of the array
+that have no spatial meaning:
+#+begin_src C++
+auto partition_tree =
+    PartitionTree({48, 48, 3},  // Sizes of the data structures
+                  partitioners, // the partitioners list
+                  {LOCAL});     // List of non-spatial indices:
+                                // index in position 2 is non spatial.
+#+end_src
+and generates a tree of ~IPartitioning~ object as discussed.
+
+The ~PartitionTree~ can then be converted into a ~NChildrenTree~,
+which just contains the information
+about how many children a given node has:
+#+begin_src C++
+auto nchildren_tree = partition_tree.nchildren_tree()
+#+end_src
+On this type of tree some operation can be performed,
+including:
+- permutation of levels (when possible);
+- pruning/selection of subtrees.
+For example,
+#+begin_src C++
+auto pruned_and_permuted =
+    nchildren_tree
+        // Selecting only the part of the data structure
+        // on the rank having MPI_X = 0 and MPI_Y = 0
+        .prune(getp(selectors::mpi_rank, partitioners, {0, 0})) //
+        .permute({// We keep the MPI domain decomposition at the top
+                  "MPI X", "MPI Y",
+                  // We now want all the even site first,
+                  // then the odd ones
+                  "EO",
+                  // then each component of the local vector
+                  // will be separate
+                  "Local",
+                  // Now, the halo-border-bulk decomposition
+                  "Halo X", "Halo Y",
+                  // Here
+                  "Extra",
+                  // Finally we have sites the virtual nodes
+                  // close to each other
+                  "Vector X", "Vector Y", "Site"}) //
+#+end_src
+
+Out of a ~NChildrenTree~
+it is possible to obtain a ~SizeTree~,
+which stores in its nodes
+the total amount of "leaves"
+contained in the relative subtree
+(which is proportional
+to the amount of memory needed
+to allocate the part of the data structure
+relative to the subtree):
+#+begin_src C++
+auto size_tree = pruned_and_permuted.size_tree();
+#+end_src
+Finally, out of a ~SizeTree~
+it is possible to obtain an ~OffsetTree~,
+which can be used to map each leaf
+in the allocated part
+of the data structure
+to a position in memory:
+#+begin_src C++
+auto offset_tree = size_tree.offset_tree();
+#+end_src
+
+It is possible, in principle,
+to use a concise expression in case intermediate results
+are not needed:
+
+#+begin_src C++
+  enum { X, Y, LOCAL, EXTRA };
+  auto offset_tree =
+      PartitionTree({48, 48, 3},
+                    {pm::QPeriodic("MPI X", X, 4),      // 0
+                     pm::QPeriodic("MPI Y", Y, 4),      // 1
+                     pm::QOpen("Vector X", X, 2),       // 2
+                     pm::QOpen("Vector Y", Y, 2),       // 3
+                     pm::HBB("Halo X", X, 1),           // 4
+                     pm::HBB("Halo Y", Y, 1),           // 5
+                     pm::EO("EO", {true, true, false}), // 6
+                     pm::Plain("Local", LOCAL),         // 7
+                     pm::Plain("Extra", EXTRA),         // 8
+                     pm::Site()},                       // 9          ,
+                    {LOCAL})
+          .nchildren_tree()                                       //
+          .prune(getp(selectors::mpi_rank, partitioners, {0, 0})) //
+          .permute({"MPI X",                                      //
+                    "MPI Y",                                      //
+                    "EO",                                         //
+                    "Local",                                      //
+                    "Halo X",                                     //
+                    "Halo Y",                                     //
+                    "Extra",                                      //
+                    "Vector X",                                   //
+                    "Vector Y",                                   //
+                    "Site"})                                      //
+          .size_tree()
+          .offset_tree();
+#+end_src
+
+The ~PartitionTree~ object can be used
+to obtain the ~Indices~ relative to a particular element
+of the data structure, using the ~get_indices_wg~ method
+(which returns all the ~Indices~ values
+that point at a given element
+or at its copies):
+
+#+begin_src C++
+// Selecting a random coordinate
+// (pointing at an element in the original 3D array,
+// which belongs to the selection)
+Coordinates coords{2, 1, 1};
+auto all_neigh_idxs = partition_tree.get_indices_wg(coords);
+// taking the first of the indices
+auto idx = all_neigh_idxs[0].second;
+
+// NOTE: the indices must be permuted as needed!
+auto po_matcher = get_level_matcher(partition_tree, offset_tree);
+
+int offset = offset_tree.get_offset(po_matcher(idx))
+#+end_src
+
+Using the other methods of ~OffsetTree~ and ~PartitionTree~
+it is possible to do the reverse transformation,
+from ~offset~ to the specific coordinate.
+
+** Partitions
+A partition represents, in the simplest case,
+an N-dimensional block of the lattice
+(or of a tensor).
+It is defined as a list of "geometric parameters" structures,
+named ~SizeParityD~,
+which at the moment are lists of ~(size, parity)~ pairs,
+one per dimension.
+
+*NOTE*: Additional information could be added
+to the geometric parameter structures
+(which should then be called differently
+from ~SizeParityD~),
+for example something related to
+where in memory that partition should be allocated
+(e.g., on a GPU or on a CPU)
+and how that partition is meant to be split further
+(this can be implemented
+when there is need to run efficiently
+on heterogeneous machines).
+
+** Geometric Partitionings
+There are partitionings that are intrinsically mono-dimensional,
+i.e., they can work only in 1D,
+and partitionings that need
+to work on multiple dimensions
+at the same time.
+
+A geometric partitioning
+is represented by an ~IPartitioning~ object
+in the partition tree,
+which has a number
+of deeply connected responsibilities.
+Most importantly:
+- Partition a sublattice in smaller parts,
+  to be passed to the next partitioner;
+- Recover the geometric information
+  of a sub partition
+  given the value of its index:
+  its size,
+  its coordinate,
+  its equivalence class;
+- Recover the index of the subpartition
+  given the coordinates;
+- Print debug information.
+*NOTE*: This design might be changed to be made more SOLID.
+
+An extensible library of partitionings is provided.
+
+*** One-dimensional partitionings
+A small number of 1D partitioners is provided.
+A base class - ~Partitioning1D~ is provided.
+While 1D partitioners take only 1D lattice partitions,
+they can be made useful
+via the ~Dimensionalise~ template class,
+which acts roughly as a decorator,
+and encapsulate all the boilerplate code
+needed for this.
+**** *Q - Quotient*
+This partitioner splits a 1-D partition
+in a specified number of sub-partitions.
+The sizes of the sub-partitions are going to be
+all equal to the *quotient* of the division,
+except possibly the last, which will always be
+smaller than or equal to the others.
+
+*Example*: Total size = 42, number of partitions = 4.
+This will lead to 3 partitions of 11 sites
+and 1 partition of 9 sites.
+
+The ~Q~ partitioner will return
+a specified number of subpartitions,
+which can be grouped in 1,2 or 3 equivalence classes
+that can differ in size and parity.
+
+**NOTE**: it is required that
+#+begin_src
+ceiling(size/nparts)*(nparts-1) < size
+#+end_src
+otherwise it will not be geometrically possible
+to produce the partitions.
+
+The ~Q~ partitioning exists in two flavours,
+~QPeriodic~ and ~QOpen~,
+which differ in the way the "ghosts sites"
+are looked up
+(see the [[HBB - Halo, Border, Bulk][HBB]] section for this).
+
+*NOTE*: It could be desirable
+to implement other versions of ~Q~
+with a slightly different partitioning logic,
+which, e.g., would for example tend to produce
+subpartitions with an even size.
+
+**** HBB - Halo, Border, Bulk
+This partitioner splits a 1-D partition into
+3 partitions - the start, the middle, and the end.
+The start and the end have a given size.
+In addition to these 3 partitions,
+two other "halo" partitions are added.
+
+The ~HBB~ partitioning has always 5 children,
+belonging to 1,2 or 3 equivalence classes
+(the halo in the negative direction,
+the border in the negative direction,
+the bulk,
+the border in the positive direction
+and the halo in the positive direction).
+
+**** Plain
+This assumes no *geometrical* sub-partitioning is going to happen.
+It has a number of children equal to its extent.
+
+*** Dimensionalised Partitioners
+A 1-D partitioner can be "Dimensionalised"
+(i.e., be made able to accept n-dimensional lattice partitions)
+via a decorator (in Python)
+of a template specialisation in C++.
+The ~Dimensionalise~ template class.
+
+*** EO Partitioning
+The even-odd sub-partitioning
+of a n-dimensional lattice partition
+can have a very complicated structure.
+Notice that out of N dimensions
+only a subset could be involved in the "checkerboarding",
+as for example
+not all the dimensions of the lattice
+may represent physical directions.
+The ~EO~ partitioner
+takes as input a ~N~-dimensional partition
+and returns ~N+1~-dimensional partition classes
+(one or two of them)
+where the checkerboarded dimensions are collapsed to size 1.
+This is because, given the meaning of the ~EO~ partitioner,
+it makes no sense to partition further.
+The extent of the new partitions
+(classes) in the additional dimension
+is equal to the amount of even or odd sites.
+
+*** "Site" partitioning
+The Site partitioning
+is a mostly trivial class
+used to represent the leaves
+in the partition tree.
+These objects are just placeholders
+that need to be there to make sure
+that the second-last level
+has the right number of children.
+
+** Types of Trees
+At each step in the partitioning process,
+a partition class is divided into
+1 or more partition classes,
+thus building a tree.
+
+A Tree type is represented as a recursive type,
+e.g.,:
+#+begin_src C++
+template <typename Node>
+using Tree = std::tuple<Node, std::vector<std::shared_ptr<Node>>>;
+#+end_src
+These are the kinds of trees used at the moment:
+- trees of integers, where the node is just an integer.
+- Key-Value pair trees, where the node is a pair;
+- trees of ~IPartitioning~ objects.
+
+These are wrapped into classes
+that make the intent more clear,
+and can be used more safely in "client code".
+In particular, [[~NChildrenTree~]], [[~SizeTree~]] and [[~OffsetTree~]]
+are all represented internally by a Key-Value pair tree,
+but have radically different meaning.
+
+*** ~PartitionTree~
+Each ~N~-dimensional portion of the lattice
+that is produced during the partition process
+will have a number of children
+equal to the number of geometric partitions
+(see [[Geometric Partitionings]]).
+The tree will have as many levels as partitioners,
+plus one level for the leaves.
+
+The children will be split in a number of partition classes.
+All the children in a partition class
+are represented by a pointer to the same object.
+
+This object can be used
+to convert geometric coordinates
+to ~Indices~.
+**** Partition class tree.
+An alternative representation of partition trees
+is possible, but not necessary since we can alias the nodes.
+*** ~NChildrenTree~
+A tree that contains,
+in each node,
+the number of allocated children.
+(see [[*Partition Predicates]]).
+Produced out of a [[*~PartitionTree~]]
+and a partition predicate.
+*** ~SizeTree~
+A tree that contains,
+in each node,
+the allocated size
+of the relative subtree.
+Trivially produced from a [[*~NChildrenTree~]].
+Notice that subtrees of size 0 are not included.
+*** ~OffsetTree~
+A tree that contains,
+in each node,
+the distance from the start of the allocation
+where the content of the relative subtree starts.
+Produced from a [[*~SizeTree~]]
+with a "scan" procedure.
+This object can be used to convert
+an ~Indices~ object
+to an offset,
+which represents a position in memory
+The ~Indices~ object
+will be obtained, most likely,
+through a ~PartitionTree~ object
+from a ~Coordinates~,
+*and then permuted*
+according to the permutation performed
+on the levels of the ~NChildrenTree~.
+
+** Tree level swap
+In order to descibe Grid like setups
+with virtual nodes,
+the levels in the tree must be swappable.
+This is also necessary
+to allocate SoA memory layouts
+and hybrid SoA / AoSoA memory layouts,
+or to separate even and odd sites in an allocation.
+This can be done on a [[~NChildrenTree~]].
+
+** Partition Predicates
+Out of a full [[~PartitionTree~]]
+one usually wants to allocate
+only a part of it.
+Examples:
+- one might want to allocate some structures
+  only on even sites;
+- in each MPI process,
+  only the local lattice
+  and the halos need to be allocated;
+- in most cases one does not need
+  all the ~5^D~ partitions
+  that come from
+  a multi-dimensional group
+  of [[HBB - Halo, Border, Bulk][HBB]] partitioners.
+A limited number of partition predicates is implemented,
+but they can be composed.
+*** Ternary logic and partition predicates
+A partitioner is a function
+that takes an ~Indices~ object
+and returns a ~BoolM~ object,
+where ~BoolM~ is a logic type
+that contains also a "maybe" value,
+for ternary logic (see [[https://en.wikipedia.org/wiki/Three-valued_logic][wikipedia]]).
+
+Partitioners can be combined
+(using extended versions of ~and~, ~or~ and ~not~)
+to express any selection.
+
+*The reason why* ternary logic is needed
+is that the partition predicates
+need to be written in a way
+so that they can work on ~Indices~ object
+that are shorter than needed
+to tell exactly whether a partition
+is included or not.
+In such cases, the partition predicates
+must return a "maybe" value.
+Eventually, when deciding
+whether or not a partition
+needs to be allocated,
+then the "maybe" value
+must be cast to a boolean,
+usually ~true~
+for the benefit of the doubt.
+
+
+
+* Confessions
+This is a section that describes
+the kind of problems I faced
+what I would do differently in hindsight,
+or what I could have tried
+but did not because I did not get the idea in time.
+
+** Language choice
+I Started with C++ and drowned in types with templates:
+too much power that I used to shoot myself in the foot.
+Also, I tried as much as possible
+to use fixed size ~std::array~
+in the code.
+The typical problem I faced
+was assuming that something was known at compile time,
+but later it turned out that assumption was wrong.
+I understood that I did not know
+how to use templates wisely,
+so I decided to cure myself
+writing a whole prototype in Python.
+Later I got back to C++,
+with a much relaxed approach to types,
+using ~std::vector~ almost everywhere
+instead of ~std::array~.
+A hipster approach
+would have been to use Haskell,
+which would have been a good fit
+for the algorithms,
+but interfacing it with a C/C++ code
+could have been cumbersome.
+
+** Tree data structures and representing hierarchical partitioning
+*** "concrete" vs "equivalence class" partitions
+At the beginning I was fluctuating
+between preferring the "concrete" partition approach
+and preferring the "equivalence classes".
+
+The "concrete" partition approach
+was potentially easier,
+but would lead to an exponential explosion of memory and time.
+
+It took me a while to come up
+with the idea of using shared pointers
+to avoid duplication,
+"reusing" nodes in the tree
+(this required memoisation)
+
+*** vector, maps, vector of pairs or vectors with NULLs
+
+The first idea to implement the node-children relationship
+was was to store the pointers to the children in a vector.
+This works fine
+if the children are related
+to an index that varies in a contiguous range.
+This is not always the case:
+for some values of the index,
+the child node does not exist.
+So I thought about using a ~std::map~
+instead of a ~std::vector~,
+but this would need a big change
+in the algorithms involved.
+An easier approach was to use a ~std::vector~
+of ~std::pair~ of the kind ~(index, *node)~.
+The difference here is that the edge cases
+regarding the root and the leaves
+need to be treated differently.
+
+Another approach that could have been used
+is having a vector of pointers to nodes,
+with ~NULL~ values in the missing positions.
+This could be slightly inefficient in some cases,
+but is a very simple option.
+In order to write tests,
+it may also be tedious
+to write a lot of ~NULL~ values
+(and it could reduce readability).
+*** The "Site()" partitioning
+A lot of the methods
+defined in the ~Site~ IPartitioning class
+are actually never used.
+Perhaps,
+one should use a more standard
+Composite pattern
+or another level in the class hierarchy,
+so that ~Site~ is not derived from ~IPartitioning~?
+Also, ~Site~ might not be the best name,
+since it represents a lattice site
+only when there are no "local" degrees of freedom.
+
+*** Using boost::graph?
+Would it have been better to use ~Boost::Graph~ instead?
+Would it be too complex?
+
+** Memoisation
+There might be better ways
+to implement memoisation
+in a generic way.
+I have not managed to get rid
+of some boilerplate code, unfortunately.
+This might be due
+to my limited understanding
+of the template technology.
+
+** E-O partitioning
+The rules around even-odd partitioning
+seem to be quite complicated
+and there might be a better way
+to express it.
+
+** Do we really need ternary logic?
+Possibly not, but I found it was the simplest way to implement what I needed.
+In particular,
+to make sure that subpartitions are allocated,
+I needed the ~not Maybe~ to be still ~Maybe~,
+which is not possible if ~Maybe == True~.
+
+** NChildrenTree
+The 'value' in the key-value pair
+of ~NChildrenTree~ is never used in actual code.
+** Unused code and ideas
+Some of the code has been written with some ideas in mind
+that eventually did not work,
+or were replaced by better ideas.
+When a full use case is available,
+it should be possible to find out the unused code
+via the code coverage tool,
+and remove it and its tests,
+getting a leaner and more agile codebase.
+
+* Appendices
+** Additional concepts in memory layout transformations
+*TODO*: reverse order of lists (if this section survives)
+
+We can use two adjectives for two complementary concepts:
+*** Truncated memory layout
+Be ~f~ being the full memory layout
+#+begin_src python
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
+#+end_src
+and equal to the "0-truncated" memory layout,
+a 5-truncated memory layout is
+#+begin_src python
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [   0,    0,    0, x_03, x_10, x_11, x_20, x_21])
+#+end_src
+since it does not depend on x_00, x_01 and x_02 any more,
+we can compute it as
+#+begin_src python
+idx = ft([F_03, F_10, F_11, F_20, F_21],
+         [x_03, x_10, x_11, x_20, x_21]) + C .
+#+end_src
+The value of ~idx~ computed in this way
+represents the start of a full partition being indexed,
+as opposed to a general point.
+
+*** Reduced memory layout
+Be ~f~ being the full memory layout
+#+begin_src python
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21])
+#+end_src
+and equal to the "0-reduced" memory layout,
+the 5-reduced memory layout is
+#+begin_src python
+idx = f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+        [x_00, x_01, x_02,    0,    0,    0,    0,    0])
+#+end_src
+
+In the case of inhomogeneous partitioning,
+F_00, F_01, and F_02 would actually depend
+on x_03 and the other "slow" variables,
+
+(where all subtrees are equal)
+then the full memory layout is just the sum
+of the N-truncated memory layout
+and the N-reduced memory layout.
+#+begin_src python
+f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+  [x_00, x_01, x_02, x_03, x_10, x_11, x_20, x_21]) =
+f([F_00* F_01* F_02, F_03, F_10, F_11, F_20, F_21],
+  [               0, x_03, x_10, x_11, x_20, x_21]) +
+f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
+  [x_00, x_01, x_02,    0,    0,    0,    0,    0])
+#+end_src

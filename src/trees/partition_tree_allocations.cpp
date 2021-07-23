@@ -22,7 +22,7 @@ KVTreeP<int> get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
 
   auto _get_size_tree = [&getsize, &getidx](const InOutType &max_idx_tree,
                                             auto &f) -> InOutType {
-    auto max_alloc_and_idx = max_idx_tree->n;
+    auto max_alloc_and_idx = max_idx_tree->n; // TODO: this is not used!
     auto children = max_idx_tree->children;
     vector<InOutType> children_results;
     int nodesize = 0;

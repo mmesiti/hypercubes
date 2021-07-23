@@ -8,7 +8,7 @@ namespace pm = hypercubes::slow::partitioner_makers;
 
 BOOST_AUTO_TEST_SUITE(test_alignment)
 BOOST_AUTO_TEST_CASE(test_alignment_grid2D) {
-  enum { X, Y, MATROW, EXTRA };
+  enum { X, Y, LOCAL, EXTRA };
   PartList partitioners{pm::QPeriodic("MPI X", X, 4),      // 0
                         pm::QPeriodic("MPI Y", Y, 4),      // 1
                         pm::QOpen("Vector X", X, 2),       // 2
@@ -16,10 +16,10 @@ BOOST_AUTO_TEST_CASE(test_alignment_grid2D) {
                         pm::HBB("Halo X", X, 1),           // 4
                         pm::HBB("Halo Y", Y, 1),           // 5
                         pm::EO("EO", {true, true, false}), // 6
-                        pm::Plain("Local-matrow", MATROW), // 7
+                        pm::Plain("Local", LOCAL),         // 7
                         pm::Plain("Extra", EXTRA),         // 8
                         pm::Site()};                       // 9
-  auto partition_tree = PartitionTree({48, 48, 3}, partitioners, {MATROW});
+  auto partition_tree = PartitionTree({48, 48, 3}, partitioners, {LOCAL});
   const int virtual_node_level = 4;
 
   auto size_tree =
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(test_alignment_grid2D) {
           .permute({"MPI X",                                      //
                     "MPI Y",                                      //
                     "EO",                                         //
-                    "Local-matrow",                               //
+                    "Local",                                      //
                     "Halo X",                                     //
                     "Halo Y",                                     //
                     "Extra",                                      //

@@ -8,3 +8,6 @@ build
 compile_commands.json
 .cache
 playground
+README.pdf
+README.tex
+.auctex-auto/

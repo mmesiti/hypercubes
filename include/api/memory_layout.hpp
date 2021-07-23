@@ -3,10 +3,9 @@
 #include "geometry/geometry.hpp"
 #include "selectors/partition_predicates.hpp"
 #include "trees/kvtree.hpp"
+#include "trees/level_swap.hpp" // TODO: move elsewhere
 #include "trees/partition_tree.hpp"
 
-#include "trees/level_swap.hpp" // TODO: move elsewhere
-#include <iostream>             //DEBUG
 namespace hypercubes {
 namespace slow {
 

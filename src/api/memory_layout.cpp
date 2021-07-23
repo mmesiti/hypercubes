@@ -7,6 +7,7 @@
 #include "trees/partition_tree_allocations.hpp"
 #include "trees/tree.hpp"
 #include <stdexcept>
+#include <iostream> // DEBUG
 
 /******************
  * PARTITION TREE *
