@@ -12,6 +12,7 @@ namespace internals {
 template <class Value> using KVTreeP = TreeP<std::pair<int, Value>>;
 
 KVTreeP<int> get_nchildren_alloc_tree(const PartitionTree &t);
+KVTreeP<int> get_skeleton_tree(const PartitionTree &t);
 
 /// A <tot alloc size of subtree, idx in full tree> conditionally-allocated tree
 KVTreeP<int> get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree);

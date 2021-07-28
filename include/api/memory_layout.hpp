@@ -10,7 +10,7 @@ namespace hypercubes {
 namespace slow {
 
 class PartitionTree;
-class NChildrenTree;
+class SkeletonTree;
 class SizeTree;
 class OffsetTree;
 
@@ -42,7 +42,7 @@ private:
   SizeTree(internals::KVTreeP<int> &&_nct, vector<std::string> &&_level_names);
 
 public:
-  SizeTree(const NChildrenTree &);
+  SizeTree(const SkeletonTree &);
   vector<std::string> get_level_names() const;
   // Careful: indices are assumed to be ordered properly.
   SizeTree get_subtree(const Indices &idxs) const;
@@ -53,25 +53,25 @@ public:
   friend OffsetTree::OffsetTree(const SizeTree &);
 };
 
-class NChildrenTree {
+class SkeletonTree {
 private:
   vector<std::string> level_names;
-  internals::KVTreeP<int> nchildren_tree;
+  internals::KVTreeP<int> skeleton_tree;
 
-  NChildrenTree(internals::KVTreeP<int> &&_nct, vector<std::string> &&_ln);
+  SkeletonTree(internals::KVTreeP<int> &&_nct, vector<std::string> &&_ln);
 
 public:
-  NChildrenTree(const PartitionTree &pt);
+  SkeletonTree(const PartitionTree &pt);
   vector<std::string> get_level_names() const;
-  NChildrenTree permute(const vector<std::string> &_permuted_level_names) const;
-  NChildrenTree prune(const PartitionPredicate &) const;
+  SkeletonTree permute(const vector<std::string> &_permuted_level_names) const;
+  SkeletonTree prune(const PartitionPredicate &) const;
   // Careful: indices are assumed to be ordered properly.
   int get_nchildren(const Indices &) const;
   // Careful: indices are assumed to be ordered properly.
-  NChildrenTree get_subtree(const Indices &idxs) const;
+  SkeletonTree get_subtree(const Indices &idxs) const;
   const internals::KVTreeP<int> get_internal() const;
   SizeTree size_tree() const;
-  friend SizeTree::SizeTree(const NChildrenTree &);
+  friend SizeTree::SizeTree(const SkeletonTree &);
 };
 
 class PartitionTree {
@@ -88,8 +88,8 @@ public:
   vector<std::pair<int, Indices>> get_indices_wg(const Coordinates &) const;
   // Careful: indices are assumed to be ordered properly.
   Coordinates get_coordinates(const Indices &) const;
-  friend NChildrenTree::NChildrenTree(const PartitionTree &pt);
-  NChildrenTree nchildren_tree() const;
+  friend SkeletonTree::SkeletonTree(const PartitionTree &pt);
+  SkeletonTree skeleton_tree() const;
   const internals::PartitionTree get_internal() const;
 };
 

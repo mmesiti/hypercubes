@@ -44,7 +44,7 @@ BOOST_FIXTURE_TEST_CASE(test_and, Part1D42) {
   PartitionPredicate bb_selector =
       getp(selectors::halos_upto_NmD, partitioners, 0);
 
-  auto nchildren_tree = get_nchildren_alloc_tree(t);
+  auto nchildren_tree = get_skeleton_tree(t);
   auto nopruned = prune_tree(nchildren_tree, bb_selector);
   BOOST_TEST(*nchildren_tree != *nopruned);
 
@@ -66,7 +66,7 @@ BOOST_FIXTURE_TEST_CASE(test_commute, Part1D42) {
   PartitionPredicate bb_selector =
       getp(selectors::halos_upto_NmD, partitioners, 0);
 
-  auto nchildren_tree = get_nchildren_alloc_tree(t);
+  auto nchildren_tree = get_skeleton_tree(t);
   auto nopruned = prune_tree(nchildren_tree, bb_selector);
   BOOST_TEST(*nchildren_tree != *nopruned);
 

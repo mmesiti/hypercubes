@@ -1,4 +1,5 @@
 #include "fixtures4D.hpp"
+#include "api/memory_layout.hpp"
 #include <iostream>
 namespace hypercubes {
 namespace slow {
@@ -33,9 +34,9 @@ GridLikeBase::GridLikeBase()
 GridLikeNChildren::GridLikeNChildren()
     : GridLikeBase(), //
       predicate(getp(selectors::mpi_rank, partitioners, {2, 3, 1, 1})),
-      nchildren_tree(NChildrenTree(partition_tree).prune(predicate)){};
+      skeleton_tree(SkeletonTree(partition_tree).prune(predicate)){};
 
-GridLikeSize::GridLikeSize() : GridLikeNChildren(), size_tree(nchildren_tree){};
+GridLikeSize::GridLikeSize() : GridLikeNChildren(), size_tree(skeleton_tree){};
 GridLikeOffset::GridLikeOffset() : GridLikeSize(), offset_tree(size_tree){};
 } // namespace slow
 } // namespace hypercubes

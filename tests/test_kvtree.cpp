@@ -30,6 +30,49 @@ BOOST_AUTO_TEST_CASE(test_collapse_level_kv) {
   BOOST_TEST(*tcollapsed0_exp == *tcollapsed0);
 }
 
+BOOST_AUTO_TEST_CASE(test_collapse_level_robust_key_kv_all_there) {
+
+  auto t = mt(mp(0, 1), {mt(mp(3, 2), {mt(mp(5, 3), {mt(mp(1, 4), {}),     //
+                                                     mt(mp(2, 5), {})}),   //
+                                       mt(mp(6, 6), {mt(mp(3, 7), {}),     //
+                                                     mt(mp(4, 8), {})})}), //
+                         mt(mp(4, 9), {mt(mp(5, 10), {mt(mp(5, 11), {}),   //
+                                                      mt(mp(7, 12), {})}), //
+                                       mt(mp(8, 13), {mt(mp(8, 14), {}),   //
+                                                      mt(mp(9, 15), {})})})});
+
+  auto tcollapsed0_exp = mt(mp(0, 1), {mt(mp(3, 3), {mt(mp(1, 4), {}),   //
+                                                     mt(mp(2, 5), {})}), //
+                                       mt(mp(4, 10), {mt(mp(5, 11), {}), //
+                                                      mt(mp(7, 12), {})})});
+
+  auto tcollapsed0 = collapse_level_by_key_robust(t,                       //
+                                                  1 /*level to collapse*/, //
+                                                  5 /*child key to replace*/);
+
+  BOOST_TEST(*tcollapsed0_exp == *tcollapsed0);
+}
+BOOST_AUTO_TEST_CASE(test_collapse_level_robust_key_kv_missing) {
+
+  auto t = mt(mp(0, 1), {mt(mp(3, 2), {mt(mp(5, 3), {mt(mp(1, 4), {}),     //
+                                                     mt(mp(2, 5), {})}),   //
+                                       mt(mp(6, 6), {mt(mp(3, 7), {}),     //
+                                                     mt(mp(4, 8), {})})}), //
+                         mt(mp(4, 9), {mt(mp(6, 10), {mt(mp(5, 11), {}),   //
+                                                      mt(mp(7, 12), {})}), //
+                                       mt(mp(8, 13), {mt(mp(8, 14), {}),   //
+                                                      mt(mp(9, 15), {})})})});
+
+  auto tcollapsed0_exp = mt(mp(0, 1), {mt(mp(3, 3), {mt(mp(1, 4), {}), //
+                                                     mt(mp(2, 5), {})})});
+
+  auto tcollapsed0 = collapse_level_by_key_robust(t,                       //
+                                                  1 /*level to collapse*/, //
+                                                  5 /*child key to replace*/);
+
+  BOOST_TEST(*tcollapsed0_exp == *tcollapsed0);
+}
+
 BOOST_AUTO_TEST_CASE(test_bring_level_on_top_kv) {
   auto t = mt(mp(0, 1), {mt(mp(20, 2), {mt(mp(22, 3), {mt(mp(24, 4), {}), //
                                                        mt(mp(25, 5), {})})}),
@@ -43,6 +86,25 @@ BOOST_AUTO_TEST_CASE(test_bring_level_on_top_kv) {
                                    mt(mp(21, 9), {mt(mp(23, 12), {})})})});
 
   auto transf = bring_level_on_top(t, 2);
+
+  BOOST_TEST(*transf_expected == *transf);
+}
+
+BOOST_AUTO_TEST_CASE(test_bring_level_on_top_robust_kv) {
+  auto t = mt(mp(0, 1), {mt(mp(20, 2), {mt(mp(22, 3), {mt(mp(24, 4), {}), //
+                                                       mt(mp(25, 5), {})})}),
+                         mt(mp(21, 9), {mt(mp(23, 3), {mt(mp(24, 11), {}), //
+                                                       mt(mp(26, 12), {})})})});
+
+  auto transf_expected =
+      mt(mp(0, 3), {mt(mp(24, 1), {mt(mp(20, 2), {mt(mp(22, 4), {})}), //
+                                   mt(mp(21, 9), {mt(mp(23, 11), {})})}),
+                    mt(mp(25, 1), {mt(mp(20, 2), {mt(mp(22, 5), {})}), //
+                                   mt(mp(21, 9), {})}),                //
+                    mt(mp(26, 1), {mt(mp(20, 2), {}),                  //
+                                   mt(mp(21, 9), {mt(mp(23, 12), {})})})});
+
+  auto transf = bring_level_on_top_robust(t, 2);
 
   BOOST_TEST(*transf_expected == *transf);
 }

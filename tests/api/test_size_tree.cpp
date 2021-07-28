@@ -11,7 +11,7 @@ using namespace hypercubes::slow;
 BOOST_AUTO_TEST_SUITE(test_size_tree)
 // Size
 BOOST_FIXTURE_TEST_CASE(test_size_dot, GridLike1DSize) {
-  auto size_tree_2 = nchildren_tree.size_tree();
+  auto size_tree_2 = skeleton_tree.size_tree();
   BOOST_TEST(*size_tree_2.get_internal() == *size_tree.get_internal());
 }
 BOOST_FIXTURE_TEST_CASE(test_size_tree_get_subtree, GridLikeSize) {

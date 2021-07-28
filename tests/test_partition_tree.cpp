@@ -337,6 +337,52 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(test_get_skeleton) {
+  using namespace partitioner_makers;
+  SizeParityD sp{{11, Parity::EVEN}};
+  PartitionTree t = get_partition_tree(sp, //
+                                       PartList{
+                                           QOpen("Vector", 0, 2), //
+                                           HBB("Halo", 0, 1),     //
+                                           EO("EO", {true}),      //
+                                           Plain("Remainder", 1), //
+                                           Plain("Remainder", 0), //
+                                           Site(),
+                                       });
+
+  TreeP<int> a;
+  auto s = mt(1, {});
+  TreeP<int> exp_tree_structure =
+      mt(0, {mt(0, {mt(0, {mt(0, {}),             //
+                           mt(0, {mt(0, {s})})}), //
+                    mt(0, {mt(0, {mt(0, {s})}),   //
+                           mt(0, {})}),           //
+                    mt(0, {mt(0, {mt(0, {s}),     //
+                                  mt(0, {s})}),   //
+                           mt(0, {mt(0, {s}),     //
+                                  mt(0, {s})})}), //
+                    mt(0, {mt(0, {}),             //
+                           mt(0, {mt(0, {s})})}),
+                    mt(0, {mt(0, {mt(0, {s})}), //
+                           mt(0, {})})}),
+             mt(0, {mt(0, {mt(0, {}),             //
+                           mt(0, {mt(0, {s})})}), //
+                    mt(0, {mt(0, {mt(0, {s})}),   //
+                           mt(0, {})}),
+                    mt(0, {mt(0, {mt(0, {s})}),   //
+                           mt(0, {mt(0, {s}),     //
+                                  mt(0, {s})})}), //
+                    mt(0, {mt(0, {mt(0, {s})}),   //
+                           mt(0, {})}),           //
+                    mt(0, {mt(0, {}),             //
+                           mt(0, {mt(0, {s})})})})});
+  ;
+
+  TreeP<int> maxtree = get_skeleton(t);
+
+  BOOST_TEST(*exp_tree_structure ==
+             *truncate_tree(maxtree, get_max_depth(maxtree)));
+}
 BOOST_DATA_TEST_CASE(test_validate_idx, //
                      bdata::make(std::vector<std::pair<Indices, bool>>{
                          {{0, 0, 0, 0}, {true}},  //

@@ -23,10 +23,10 @@ GridLikeBase2D::GridLikeBase2D()
 GridLike2DNChildren::GridLike2DNChildren()
     : GridLikeBase2D(), //
       predicate(getp(selectors::mpi_rank, partitioners, {2, 1})),
-      nchildren_tree_unfiltered(partition_tree.nchildren_tree()),
-      nchildren_tree(nchildren_tree_unfiltered.prune(predicate)){};
+      skeleton_tree_unfiltered(partition_tree.skeleton_tree()),
+      skeleton_tree(skeleton_tree_unfiltered.prune(predicate)){};
 GridLike2DSize::GridLike2DSize()
-    : GridLike2DNChildren(), size_tree(nchildren_tree.size_tree()){};
+    : GridLike2DNChildren(), size_tree(skeleton_tree.size_tree()){};
 GridLike2DOffset::GridLike2DOffset()
     : GridLike2DSize(), offset_tree(size_tree.offset_tree()){};
 } // namespace slow

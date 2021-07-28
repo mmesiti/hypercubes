@@ -7,6 +7,7 @@
 #include "tree_data_structure.hpp"
 #include "utils/utils.hpp"
 #include <functional>
+#include <set>
 
 namespace hypercubes {
 namespace slow {
@@ -34,6 +35,43 @@ collapse_level(const KVTreeP<Value> &tree, //
                          level_to_collapse, //
                          child_to_replace,  //
                          solder_subtree_in);
+}
+
+// TODO: consider memoisation
+template <class Value>
+KVTreeP<Value>                                           //
+collapse_level_by_key_robust(const KVTreeP<Value> &tree, //
+                             int level_to_collapse,      //
+                             int child_key_to_replace) {
+  if (level_to_collapse == 0) {
+    auto c_it =
+        std::find_if(tree->children.begin(), //
+                     tree->children.end(),   //
+                     [child_key_to_replace](const KVTreeP<Value> &child) {
+                       return child->n.first == child_key_to_replace;
+                     });
+    if (c_it == tree->children.end())
+      return KVTreeP<Value>(); // TODO: CHECK - hopefully null pointer?
+    else
+      return fix_key(*c_it, tree->n.first);
+  } else {
+    vector<KVTreeP<Value>> children_and_holes = vtransform(
+        tree->children, //
+        [level_to_collapse, child_key_to_replace](const KVTreeP<Value> &c) {
+          return collapse_level_by_key_robust(c,                     //
+                                              level_to_collapse - 1, //
+                                              child_key_to_replace);
+        });
+
+    vector<KVTreeP<Value>> children;
+    children.reserve(tree->children.size());
+    // Select non-null only
+    std::copy_if(children_and_holes.begin(),   //
+                 children_and_holes.end(),     //
+                 std::back_inserter(children), //
+                 [](const KVTreeP<Value> &c) { return c != KVTreeP<Value>(); });
+    return mt(tree->n, children);
+  }
 }
 
 template <class Value>
@@ -69,6 +107,60 @@ bring_level_on_top(const KVTreeP<Value> &tree, int level) {
 }
 
 template <class Value>
+KVTreeP<Value> bring_level_on_top_robust(const KVTreeP<Value> &tree, //
+                                         int level) {
+
+  using TreeP = KVTreeP<Value>;
+  TreeP top_tree = truncate_tree(tree, level + 2);
+  vector<TreeP> subtrees = get_flat_list_of_subtrees(top_tree, level);
+  Value value = subtrees[0]->n.second;
+  // check that all the values are equal.
+  for (int itree = 0; itree < subtrees.size(); ++itree) {
+    if (subtrees[itree]->n.second != value) {
+      std::stringstream message;
+      message << "Not all subtrees are equivalent:" << std::endl
+              << value
+              << std::endl
+              //<< n_and_cs << std::endl;
+              << "different one is " << itree
+              << " out of total number of subtrees:" << subtrees.size()
+              << std::endl
+              << "level: " << level << std::endl;
+      throw TreeLevelPermutationError(message.str().c_str());
+    }
+  }
+
+  std::set<int> children_key_set;
+  {
+    auto all_children_key_sets =
+        vtransform(subtrees,            //
+                   [](const TreeP &t) { //
+                     auto keyvec =
+                         vtransform(t->children, //
+                                    [](const TreeP &c) { return c->n.first; });
+                     std::set<int> keyset;
+                     for (int key : keyvec)
+                       keyset.insert(key);
+                     return keyset;
+                   });
+
+    for (const auto &child_key_set : all_children_key_sets)
+      for (const auto &child_key : child_key_set)
+        children_key_set.insert(child_key);
+  }
+
+  vector<TreeP> new_subtrees;
+  for (int child_to_pick : children_key_set) {
+    TreeP new_subtree =
+        collapse_level_by_key_robust(tree, level, child_to_pick);
+    TreeP new_subtree_transformed = fix_key(new_subtree, child_to_pick);
+
+    new_subtrees.push_back(new_subtree_transformed);
+  }
+  return mt(mp(0, value), new_subtrees);
+}
+
+template <class Value>
 KVTreeP<Value> swap_levels(const KVTreeP<Value> &tree,
                            const vector<int> &new_level_ordering) {
   using Node = std::pair<int, Value>;
@@ -77,7 +169,8 @@ KVTreeP<Value> swap_levels(const KVTreeP<Value> &tree,
     return fix_key(new_tree, tree->n.first);
   };
 
-  return _swap_levels(tree, new_level_ordering, fix_new_tree);
+  return _swap_levels(tree, new_level_ordering, fix_new_tree,
+                      bring_level_on_top_robust<Value>);
 }
 
 namespace memodetails {
@@ -184,7 +277,6 @@ KVTreeP<Value> shift_tree(const KVTreeP<Value> &tree, Value shift) {
   return Memo<Value>().nomemo(tree, shift);
 }
 
-// NEEDS DEBUGGING
 template <class SortableValue>
 Indices search_in_sorted_tree(const KVTreeP<SortableValue> &tree,
                               SortableValue x) {

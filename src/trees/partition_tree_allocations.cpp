@@ -12,18 +12,21 @@ KVTreeP<int> get_nchildren_alloc_tree(const PartitionTree &t) {
   auto max_idx_tree_kv = number_childrenM(max_idx_tree);
   return max_idx_tree_kv;
 }
+KVTreeP<int> get_skeleton_tree(const PartitionTree &t) {
 
-KVTreeP<int> get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
+  auto max_idx_tree = get_skeletonM(t);
+  auto max_idx_tree_kv = number_childrenM(max_idx_tree);
+  return max_idx_tree_kv;
+}
+
+KVTreeP<int> get_size_tree(const TreeP<std::pair<int, int>> &skeleton_tree) {
 
   using InOutType = TreeP<std::pair<int, int>>;
 
-  auto getsize = [](InOutType t) { return t->n.second; };
-  auto getidx = [](InOutType t) { return t->n.first; };
-
-  auto _get_size_tree = [&getsize, &getidx](const InOutType &max_idx_tree,
-                                            auto &f) -> InOutType {
-    auto max_alloc_and_idx = max_idx_tree->n; // TODO: this is not used!
-    auto children = max_idx_tree->children;
+  auto _get_size_tree = [](const InOutType &skeleton_tree,
+                           auto &f) -> InOutType {
+    auto getsize = [](InOutType t) { return t->n.second; };
+    auto children = skeleton_tree->children;
     vector<InOutType> children_results;
     int nodesize = 0;
     if (children.size() != 0) {
@@ -36,14 +39,15 @@ KVTreeP<int> get_size_tree(const TreeP<std::pair<int, int>> &max_idx_tree) {
       for (const auto &c : children_results)
         nodesize += getsize(c);
     } else
-      nodesize = getsize(max_idx_tree);
+      nodesize = getsize(skeleton_tree);
 
-    auto subn = std::make_pair(getidx(max_idx_tree), //
+    auto idx = skeleton_tree->n.first;
+    auto subn = std::make_pair(idx, //
                                nodesize);
     return mt(subn, children_results);
   };
 
-  return _get_size_tree(max_idx_tree, _get_size_tree);
+  return _get_size_tree(skeleton_tree, _get_size_tree);
 }
 
 KVTreeP<int> get_offset_tree(const TreeP<std::pair<int, int>> &size_tree) {

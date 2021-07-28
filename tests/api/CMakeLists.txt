@@ -39,6 +39,9 @@ target_link_libraries(test_alignment facade)
 add_executable(test_tree_level_matcher test_tree_level_matcher.cpp)
 target_link_libraries(test_tree_level_matcher facade fixtures2D)
 
+add_executable(test_permutation_ragged test_permutation_ragged.cpp)
+target_link_libraries(test_permutation_ragged facade)
+
 set(CMAKE_CXX_STANDARDS 14)
 
 enable_testing()
@@ -48,3 +51,4 @@ add_test(api_partition_tree test_api_partition_tree -r confirm)
 add_test(api_offset_tree test_api_offset_tree -r confirm)
 add_test(api_nchildren_tree test_api_nchildren_tree -r confirm)
 add_test(alignment test_alignment -r confirm)
+add_test(permutation_ragged test_permutation_ragged -r confirm)

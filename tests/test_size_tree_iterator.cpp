@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
 
   int isite = 0;
 
-  auto size_tree = get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
+  auto size_tree = get_size_tree(prune_tree(get_skeleton_tree(t), //
                                             [&](Indices idxs) -> BoolM {
                                               return selectors::no_bulk_borders(
                                                   idxs, partitioners);
@@ -68,7 +68,7 @@ BOOST_FIXTURE_TEST_CASE(test_iterate_size_tree_with_holes, Part1D42) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_offset_iterator_match, Part1D42) {
-  auto size_tree = get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
+  auto size_tree = get_size_tree(prune_tree(get_skeleton_tree(t), //
                                             [&](Indices idxs) -> BoolM {
                                               return selectors::no_bulk_borders(
                                                   idxs, partitioners);
@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE(test_offset_iterator_match, Part1D42) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_offset_indices_roundtrip, Part1D42) {
-  auto size_tree = get_size_tree(prune_tree(get_nchildren_alloc_tree(t), //
+  auto size_tree = get_size_tree(prune_tree(get_skeleton_tree(t), //
                                             [&](Indices idxs) -> BoolM {
                                               return selectors::no_bulk_borders(
                                                   idxs, partitioners);

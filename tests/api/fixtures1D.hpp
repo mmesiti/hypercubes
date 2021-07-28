@@ -21,8 +21,8 @@ struct GridLikeBase1D {
 };
 struct GridLike1DNChildren : public GridLikeBase1D {
   PartitionPredicate predicate;
-  NChildrenTree nchildren_tree_unfiltered;
-  NChildrenTree nchildren_tree;
+  SkeletonTree skeleton_tree_unfiltered;
+  SkeletonTree skeleton_tree;
   GridLike1DNChildren();
 };
 

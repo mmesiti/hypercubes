@@ -55,6 +55,9 @@ Sizes get_sizes_from_idx(const PartitionTree &t, const Indices &idx);
 TreeP<int> get_max_idx_treeM(const PartitionTree &t);
 TreeP<int> get_max_idx_tree(const PartitionTree &t);
 
+TreeP<int> get_skeletonM(const PartitionTree &t);
+TreeP<int> get_skeleton(const PartitionTree &t);
+
 bool validate_idx(const PartitionTree &t, const Indices &idx);
 
 vector<std::pair<int, int>> get_partition_limits(const PartitionTree &t, //

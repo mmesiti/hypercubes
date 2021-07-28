@@ -16,6 +16,7 @@ public:
   virtual SizeParitiesD sub_sizeparity_info_list() const = 0;
   virtual int idx_to_child_kind(int idx) const = 0;
   virtual int max_idx_value() const = 0;
+  virtual bool is_leaf() const { return false; };
   virtual std::string get_name() const = 0;
   virtual std::string comments() const = 0;
   virtual vector<IndexResultD>

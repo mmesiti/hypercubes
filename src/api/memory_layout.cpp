@@ -6,8 +6,8 @@
 #include "trees/partition_tree.hpp"
 #include "trees/partition_tree_allocations.hpp"
 #include "trees/tree.hpp"
-#include <stdexcept>
 #include <iostream> // DEBUG
+#include <stdexcept>
 
 /******************
  * PARTITION TREE *
@@ -51,40 +51,40 @@ const internals::PartitionTree PartitionTree::get_internal() const {
   return partition_tree;
 }
 
-NChildrenTree PartitionTree::nchildren_tree() const {
-  return NChildrenTree(*this);
+SkeletonTree PartitionTree::skeleton_tree() const {
+  return SkeletonTree(*this);
 }
 
 /******************
- * NCHILDREN TREE *
+ * SKELETON TREE *
  ******************/
-NChildrenTree::NChildrenTree(internals::KVTreeP<int> &&_nct,
-                             vector<std::string> &&_ln)
-    : nchildren_tree(_nct), level_names(_ln) {}
+SkeletonTree::SkeletonTree(internals::KVTreeP<int> &&_nct,
+                           vector<std::string> &&_ln)
+    : skeleton_tree(_nct), level_names(_ln) {}
 
-vector<std::string> NChildrenTree::get_level_names() const {
+vector<std::string> SkeletonTree::get_level_names() const {
   return level_names;
 }
 
-NChildrenTree::NChildrenTree(const PartitionTree &pt)
-    : nchildren_tree(internals::get_nchildren_alloc_tree(pt.partition_tree)),
+SkeletonTree::SkeletonTree(const PartitionTree &pt)
+    : skeleton_tree(internals::get_skeleton_tree(pt.partition_tree)),
       level_names(internals::get_partitioners_names(pt.partitioners_list)) //
 {}
 
-NChildrenTree NChildrenTree::prune(const PartitionPredicate &predicate) const {
-  auto pruned_tree = internals::prune_tree(nchildren_tree, predicate);
+SkeletonTree SkeletonTree::prune(const PartitionPredicate &predicate) const {
+  auto pruned_tree = internals::prune_tree(skeleton_tree, predicate);
   auto pruned_level_names = level_names;
-  return NChildrenTree(std::move(pruned_tree), std::move(pruned_level_names));
+  return SkeletonTree(std::move(pruned_tree), std::move(pruned_level_names));
 }
-NChildrenTree
-NChildrenTree::permute(const vector<std::string> &permuted_level_names) const {
+SkeletonTree
+SkeletonTree::permute(const vector<std::string> &permuted_level_names) const {
   try {
 
     auto permuted_tree = internals::swap_levels(
-        nchildren_tree, //
+        skeleton_tree, //
         internals::find_permutation(permuted_level_names, level_names));
     vector<std::string> _pmlcp = permuted_level_names;
-    return NChildrenTree(std::move(permuted_tree), std::move(_pmlcp));
+    return SkeletonTree(std::move(permuted_tree), std::move(_pmlcp));
   } catch (const internals::KeyNotFoundError &e) {
     std::cout << "Error in swapping levels in the tree:" << std::endl;
     std::cout << level_names << std::endl;
@@ -93,10 +93,10 @@ NChildrenTree::permute(const vector<std::string> &permuted_level_names) const {
     throw std::invalid_argument(e.what());
   }
 }
-NChildrenTree NChildrenTree::get_subtree(const Indices &idxs) const {
+SkeletonTree SkeletonTree::get_subtree(const Indices &idxs) const {
   try {
-    auto subtree = internals::select_subtree_kv(nchildren_tree, idxs);
-    return NChildrenTree(std::move(subtree), tail(level_names, idxs.size()));
+    auto subtree = internals::select_subtree_kv(skeleton_tree, idxs);
+    return SkeletonTree(std::move(subtree), tail(level_names, idxs.size()));
   } catch (internals::KeyNotFoundError &e) {
     std::cout << "Indices invalid: " << std::endl;
     std::cout << idxs << std::endl;
@@ -104,9 +104,9 @@ NChildrenTree NChildrenTree::get_subtree(const Indices &idxs) const {
     throw std::invalid_argument(e.what());
   }
 }
-int NChildrenTree::get_nchildren(const Indices &idxs) const {
+int SkeletonTree::get_nchildren(const Indices &idxs) const {
   try {
-    return get_subtree(idxs).nchildren_tree->n.second;
+    return get_subtree(idxs).skeleton_tree->children.size();
   } catch (internals::KeyNotFoundError &e) {
     std::cout << "Indices invalid: " << std::endl;
     std::cout << idxs << std::endl;
@@ -115,11 +115,11 @@ int NChildrenTree::get_nchildren(const Indices &idxs) const {
   }
 }
 
-const internals::KVTreeP<int> NChildrenTree::get_internal() const {
-  return nchildren_tree;
+const internals::KVTreeP<int> SkeletonTree::get_internal() const {
+  return skeleton_tree;
 }
 
-SizeTree NChildrenTree::size_tree() const { return SizeTree(*this); }
+SizeTree SkeletonTree::size_tree() const { return SizeTree(*this); }
 
 /************
  * SizeTree *
@@ -128,8 +128,8 @@ SizeTree NChildrenTree::size_tree() const { return SizeTree(*this); }
 SizeTree::SizeTree(internals::KVTreeP<int> &&st, vector<std::string> &&ln)
     : size_tree(st), level_names(ln) {}
 vector<std::string> SizeTree::get_level_names() const { return level_names; }
-SizeTree::SizeTree(const NChildrenTree &nchildren_tree)
-    : size_tree(internals::get_size_tree(nchildren_tree.nchildren_tree)),
+SizeTree::SizeTree(const SkeletonTree &nchildren_tree)
+    : size_tree(internals::get_size_tree(nchildren_tree.skeleton_tree)),
       level_names(nchildren_tree.level_names) {}
 const internals::KVTreeP<int> SizeTree::get_internal() const {
   return size_tree;

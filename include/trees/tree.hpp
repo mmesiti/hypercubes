@@ -359,17 +359,17 @@ bring_level_on_top(const TreeP<Node> &tree, int level) {
                              create_top_node);
 }
 
-template <class Node, class F>
+template <class Node, class F1, class F2>
 TreeP<Node> _swap_levels(const TreeP<Node> &tree,
-                         const vector<int> &new_level_ordering,
-                         F fix_new_tree) {
+                         const vector<int> &new_level_ordering, F1 fix_new_tree,
+                         F2 bring_level_on_top_f) {
 
   using TreeP = TreeP<Node>;
   if (new_level_ordering.size() == 0)
     return tree;
 
   int next_level = new_level_ordering[0];
-  TreeP new_tree = bring_level_on_top(tree, next_level);
+  TreeP new_tree = bring_level_on_top_f(tree, next_level);
   TreeP new_tree_transformed = fix_new_tree(new_tree, tree);
 
   vector<int> sub_new_level_ordering = [](const vector<int> &level_ordering) {
@@ -387,8 +387,10 @@ TreeP<Node> _swap_levels(const TreeP<Node> &tree,
 
   vector<TreeP> new_children =
       vtransform(new_tree_transformed->children, //
-                 [&sub_new_level_ordering, &fix_new_tree](const TreeP &c) {
-                   return _swap_levels(c, sub_new_level_ordering, fix_new_tree);
+                 [&sub_new_level_ordering, &fix_new_tree,
+                  &bring_level_on_top_f](const TreeP &c) {
+                   return _swap_levels(c, sub_new_level_ordering, fix_new_tree,
+                                       bring_level_on_top_f);
                  });
   return mt(new_tree_transformed->n, new_children);
 }
@@ -399,7 +401,8 @@ swap_levels(const TreeP<Node> &tree, //
             const vector<int> &new_level_ordering) {
   auto no_changes = [](const TreeP<Node> &new_tree, //
                        const TreeP<Node> &parent_tree) { return new_tree; };
-  return _swap_levels(tree, new_level_ordering, no_changes);
+  return _swap_levels(tree, new_level_ordering, no_changes,
+                      bring_level_on_top<Node>);
 }
 
 template <class Node> vector<Node> first_nodes_list(const TreeP<Node> &tree) {

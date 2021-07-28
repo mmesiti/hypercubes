@@ -11,7 +11,7 @@ using namespace hypercubes::slow;
 BOOST_AUTO_TEST_SUITE(test_nchildren_tree)
 BOOST_FIXTURE_TEST_CASE(test_nchildren_tree_get_subtree, GridLikeNChildren) {
 
-  NChildrenTree subtree_eo = nchildren_tree.get_subtree(Indices{
+  SkeletonTree subtree_eo = skeleton_tree.get_subtree(Indices{
       2, 3, 1, 1, // MPI
                   // coordinates: 24,36,11,11
       0, 1,       // Vector
@@ -20,30 +20,30 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_tree_get_subtree, GridLikeNChildren) {
                   // coordinates: 24,42,11,11
   });
   // site is EVEN
-  NChildrenTree subtree_e = subtree_eo.get_subtree(Indices{0});
-  NChildrenTree subtree_o = subtree_eo.get_subtree(Indices{1});
+  SkeletonTree subtree_e = subtree_eo.get_subtree(Indices{0});
+  SkeletonTree subtree_o = subtree_eo.get_subtree(Indices{1});
   auto mp = [](auto a, auto b) { return std::make_pair(a, b); };
   using internals::mt;
-  auto exp_e = mt(mp(0, 3), // site is even
-                  {mt(mp(0, 3), {mt(mp(0, 1), {mt(mp(0, 1), {})}),   //
-                                 mt(mp(1, 1), {mt(mp(0, 1), {})}),   //
-                                 mt(mp(2, 1), {mt(mp(0, 1), {})})}), //
-                   mt(mp(1, 3), {mt(mp(0, 1), {mt(mp(0, 1), {})}),   //
-                                 mt(mp(1, 1), {mt(mp(0, 1), {})}),   //
-                                 mt(mp(2, 1), {mt(mp(0, 1), {})})}), //
-                   mt(mp(2, 3), {mt(mp(0, 1), {mt(mp(0, 1), {})}),   //
-                                 mt(mp(1, 1), {mt(mp(0, 1), {})}),   //
-                                 mt(mp(2, 1), {mt(mp(0, 1), {})})})});
+  auto exp_e = mt(mp(0, 0), // site is even
+                  {mt(mp(0, 0), {mt(mp(0, 0), {mt(mp(0, 1), {})}),   //
+                                 mt(mp(1, 0), {mt(mp(0, 1), {})}),   //
+                                 mt(mp(2, 0), {mt(mp(0, 1), {})})}), //
+                   mt(mp(1, 0), {mt(mp(0, 0), {mt(mp(0, 1), {})}),   //
+                                 mt(mp(1, 0), {mt(mp(0, 1), {})}),   //
+                                 mt(mp(2, 0), {mt(mp(0, 1), {})})}), //
+                   mt(mp(2, 0), {mt(mp(0, 0), {mt(mp(0, 1), {})}),   //
+                                 mt(mp(1, 0), {mt(mp(0, 1), {})}),   //
+                                 mt(mp(2, 0), {mt(mp(0, 1), {})})})});
 
   // there are no sites
-  auto exp_o = mt(mp(1, 3),                          // no odd sites
-                  {mt(mp(0, 3), {mt(mp(0, 0), {}),   //
+  auto exp_o = mt(mp(1, 0),                          // no odd sites
+                  {mt(mp(0, 0), {mt(mp(0, 0), {}),   //
                                  mt(mp(1, 0), {}),   //
                                  mt(mp(2, 0), {})}), //
-                   mt(mp(1, 3), {mt(mp(0, 0), {}),   //
+                   mt(mp(1, 0), {mt(mp(0, 0), {}),   //
                                  mt(mp(1, 0), {}),   //
                                  mt(mp(2, 0), {})}), //
-                   mt(mp(2, 3), {mt(mp(0, 0), {}),   //
+                   mt(mp(2, 0), {mt(mp(0, 0), {}),   //
                                  mt(mp(1, 0), {}),   //
                                  mt(mp(2, 0), {})})});
 
@@ -52,12 +52,11 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_tree_get_subtree, GridLikeNChildren) {
 }
 BOOST_FIXTURE_TEST_CASE(test_nchildren_dot, GridLike1DNChildren) {
 
-  auto nchildren_tree_2 = partition_tree.nchildren_tree().prune(predicate);
-  BOOST_TEST(*nchildren_tree_2.get_internal() ==
-             *nchildren_tree.get_internal());
+  auto nchildren_tree_2 = partition_tree.skeleton_tree().prune(predicate);
+  BOOST_TEST(*nchildren_tree_2.get_internal() == *skeleton_tree.get_internal());
 }
 BOOST_FIXTURE_TEST_CASE(test_get_nchildren, GridLike1DNChildren) {
-  BOOST_TEST(nchildren_tree.get_nchildren(Indices{2, 0}) == 5);
+  BOOST_TEST(skeleton_tree.get_nchildren(Indices{2, 0}) == 5);
 }
 BOOST_FIXTURE_TEST_CASE(test_nchildren_permute2D, GridLike2DNChildren) {
   vector<std::string> permuted_level_names{
@@ -72,7 +71,7 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_permute2D, GridLike2DNChildren) {
       "Vector Y",     // 8
       "Site",         // 9
   };
-  NChildrenTree permuted_tree = nchildren_tree.permute(permuted_level_names);
+  SkeletonTree permuted_tree = skeleton_tree.permute(permuted_level_names);
   // To level 4 - Halo X
   BOOST_TEST(permuted_tree.get_nchildren(Indices{2, 1, 0, 0}) == 5);
   // To level 7 - Vector X
@@ -81,7 +80,7 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_permute2D, GridLike2DNChildren) {
   BOOST_TEST(permuted_tree.get_nchildren(Indices{2, 1, 0, 0, 2, 2, 0, 0}) == 2);
   // To level 9 - Site
   BOOST_TEST(permuted_tree.get_nchildren(Indices{2, 1, 0, 0, 2, 2, 0, 0, 1}) ==
-             1);
+             0);
   // Invalid - out of pruned
   BOOST_CHECK_THROW(permuted_tree.get_nchildren(Indices{2, 2, 0, 0}),
                     std::invalid_argument);
@@ -104,7 +103,7 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_permute, GridLikeNChildren) {
       "Vector Y",     // 14
       "Site",         // 15
   };
-  NChildrenTree permuted_tree = nchildren_tree.permute(permuted_level_names);
+  SkeletonTree permuted_tree = skeleton_tree.permute(permuted_level_names);
   // 4 - EO
   BOOST_TEST(permuted_tree.get_nchildren(Indices{2, 3, 1, 1}) == 2);
   // 5 - Local-matrow
@@ -143,12 +142,12 @@ BOOST_FIXTURE_TEST_CASE(test_nchildren_permute, GridLikeNChildren) {
 }
 BOOST_FIXTURE_TEST_CASE(test_get_partitioners_name, GridLike1DNChildren) {
 
-  BOOST_TEST(nchildren_tree.get_level_names() ==
+  BOOST_TEST(skeleton_tree.get_level_names() ==
              vector<std::string>({"MPI X", "Vector X", "Halo X", "EO",
                                   "Local-matrow", "Extra", "Site"}));
 }
 BOOST_FIXTURE_TEST_CASE(test_get_subtree_names, GridLike1DNChildren) {
-  BOOST_TEST(nchildren_tree.get_subtree({2, 0, 2}).get_level_names() ==
+  BOOST_TEST(skeleton_tree.get_subtree({2, 0, 2}).get_level_names() ==
              vector<std::string>({"EO", "Local-matrow", "Extra", "Site"}));
 }
 

@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(test_alignment_grid2D) {
 
   auto size_tree =
       partition_tree
-          .nchildren_tree()                                       //
+          .skeleton_tree()                                        //
           .prune(getp(selectors::mpi_rank, partitioners, {0, 0})) //
           .permute({"MPI X",                                      //
                     "MPI Y",                                      //

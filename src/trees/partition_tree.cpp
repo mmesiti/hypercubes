@@ -204,20 +204,37 @@ int get_max_idx(std::shared_ptr<IPartitioning> n) {
 } // namespace get_max_idx_tree_detail
 
 TreeP<int> get_max_idx_treeM(const PartitionTree &t) {
-  int up_to_Sites = get_max_depth(t) + 1;
 
   return nodemapM<std::shared_ptr<IPartitioning>, //
                   int,                            //
-                  get_max_idx_tree_detail::get_max_idx>(
-      truncate_treeM(t, up_to_Sites));
+                  get_max_idx_tree_detail::get_max_idx>(t);
 }
+
 TreeP<int> get_max_idx_tree(const PartitionTree &t) {
-  int up_to_Sites = get_max_depth(t) + 1;
 
   return nodemap<std::shared_ptr<IPartitioning>, //
                  int,                            //
-                 get_max_idx_tree_detail::get_max_idx>(
-      truncate_tree(t, up_to_Sites));
+                 get_max_idx_tree_detail::get_max_idx>(t);
+}
+
+namespace get_skeleton_detail {
+
+int isleaf(std::shared_ptr<IPartitioning> n) { return n->is_leaf() ? 1 : 0; }
+
+} // namespace get_skeleton_detail
+
+TreeP<int> get_skeletonM(const PartitionTree &t) {
+
+  return nodemapM<std::shared_ptr<IPartitioning>, //
+                  int,                            //
+                  get_skeleton_detail::isleaf>(t);
+}
+
+TreeP<int> get_skeleton(const PartitionTree &t) {
+
+  return nodemap<std::shared_ptr<IPartitioning>, //
+                 int,                            //
+                 get_skeleton_detail::isleaf>(t);
 }
 
 bool validate_idx(const PartitionTree &t, const Indices &idxs) {

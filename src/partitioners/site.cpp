@@ -28,6 +28,7 @@ int Site::idx_to_child_kind(int idx) const {
 }
 
 int Site::max_idx_value() const { return 1; }
+bool Site::is_leaf() const { return true; }
 std::string Site::get_name() const { return "Site"; }
 std::string Site::comments() const { return ""; }
 vector<IndexResultD> Site::coord_to_idxs(const Coordinates &coord) const {

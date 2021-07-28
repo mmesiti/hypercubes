@@ -41,12 +41,12 @@ struct GridLikeBase {
 };
 
 struct GridLikeNChildren : public GridLikeBase {
-  NChildrenTree nchildren_tree;
+  SkeletonTree skeleton_tree;
   GridLikeNChildren()
       : GridLikeBase(), //
-        nchildren_tree(NChildrenTree(partition_tree)
-                           .prune(getp(selectors::mpi_rank, partitioners, //
-                                       {0, 0, 0, 0}))){};
+        skeleton_tree(SkeletonTree(partition_tree)
+                          .prune(getp(selectors::mpi_rank, partitioners, //
+                                      {0, 0, 0, 0}))){};
 };
 
 int main() { GridLikeNChildren test; }

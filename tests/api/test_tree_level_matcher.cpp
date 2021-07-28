@@ -18,10 +18,10 @@ BOOST_FIXTURE_TEST_CASE(match_permutation, GridLike2DOffset) {
       "Vector Y",     // 8
       "Site",         // 9
   };
-  auto permuted = nchildren_tree.permute(permuted_level_names);
+  auto permuted = skeleton_tree.permute(permuted_level_names);
 
-  auto matcher = get_level_matcher(nchildren_tree, permuted);
-  auto swapped_level_names = matcher(nchildren_tree.get_level_names());
+  auto matcher = get_level_matcher(skeleton_tree, permuted);
+  auto swapped_level_names = matcher(skeleton_tree.get_level_names());
 
   BOOST_TEST(swapped_level_names == permuted.get_level_names());
 }

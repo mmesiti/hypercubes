@@ -22,7 +22,7 @@ struct GridLikeBase {
 };
 struct GridLikeNChildren : public GridLikeBase {
   PartitionPredicate predicate;
-  NChildrenTree nchildren_tree;
+  SkeletonTree skeleton_tree;
   GridLikeNChildren();
 };
 struct GridLikeSize : public GridLikeNChildren {
