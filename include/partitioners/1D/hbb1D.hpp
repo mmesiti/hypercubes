@@ -9,7 +9,7 @@ namespace partitioning {
 class HBB1D : public Partitioning1D {
 public:
   enum BoundaryCondition { PERIODIC, OPEN };
-  HBB1D(SizeParity sp, int dimension_, std::string name_, int halo_);
+  HBB1D(PartInfo sp, int dimension_, std::string name_, int halo_);
   int idx_to_coord(int idx, int offset) const;
   int max_idx_value() const;
   std::string comments() const;

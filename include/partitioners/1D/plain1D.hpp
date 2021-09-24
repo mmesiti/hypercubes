@@ -10,7 +10,7 @@ namespace partitioning {
 
 class Plain1D : public Partitioning1D {
 public:
-  Plain1D(SizeParity sp, int dimension_, std::string name_);
+  Plain1D(PartInfo sp, int dimension_, std::string name_);
   int idx_to_coord(int idx, int offset) const;
   int max_idx_value() const;
   std::string comments() const;

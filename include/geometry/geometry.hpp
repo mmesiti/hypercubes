@@ -17,7 +17,7 @@ struct IndexResult {
 enum Parity { EVEN, ODD, NONE };
 enum BoundaryCondition { PERIODIC, OPEN };
 
-struct SizeParity {
+struct PartInfo {
   int size;
   Parity parity;
 };
@@ -32,16 +32,16 @@ struct IndexResultD {
 };
 
 // [nclasses]
-using SizeParities = vector<SizeParity>;
+using PartInfos = vector<PartInfo>;
 // [dimensions]
-using SizeParityD = vector<SizeParity>;
+using PartInfoD = vector<PartInfo>;
 // note:
 // conceptually, SizeParitiesD != vector<SizeParities>:
 // [nclasses][dimensions]
-using SizeParitiesD = vector<vector<SizeParity>>;
+using PartInfosD = vector<vector<PartInfo>>;
 
-bool operator<(SizeParity p1, SizeParity p2);
-bool operator==(SizeParity p1, SizeParity p2);
+bool operator<(PartInfo p1, PartInfo p2);
+bool operator==(PartInfo p1, PartInfo p2);
 bool operator==(IndexResult i1, IndexResult i2);
 
 Coordinates up(Coordinates coords, //
@@ -57,12 +57,12 @@ Coordinates down(Coordinates coords,            //
                  vector<BoundaryCondition> bds, //
                  int dir);
 
-SizeParityD add_parity(Sizes sizes, vector<int> nonspatial_dimensions);
+PartInfoD add_parity(Sizes sizes, vector<int> nonspatial_dimensions);
 } // namespace slow
 } // namespace hypercubes
 namespace std {
 std::ostream &operator<<(std::ostream &os, hypercubes::slow::Parity p);
-std::ostream &operator<<(std::ostream &os, hypercubes::slow::SizeParity sp);
+std::ostream &operator<<(std::ostream &os, hypercubes::slow::PartInfo sp);
 std::ostream &operator<<(std::ostream &os,
                          const hypercubes::slow::Coordinates &cs);
 std::ostream &operator<<(std::ostream &os,

@@ -11,9 +11,9 @@ template <class Q1Dtype> struct Q1DFixture {
 
   Q1Dtype partitioning1D;
   Q1DFixture()
-      : partitioning1D(SizeParity{42, Parity::EVEN}, /* sp */
-                       0,                            /*dimension*/
-                       "test1D",                     /*name*/
+      : partitioning1D(PartInfo{42, Parity::EVEN}, /* sp */
+                       0,                          /*dimension*/
+                       "test1D",                   /*name*/
                        4 /*nparts*/){};
 };
 
@@ -22,9 +22,9 @@ template <class Q1Dtype> struct Q1DFixture11 {
 
   Q1Dtype partitioning1D;
   Q1DFixture11()
-      : partitioning1D(SizeParity{11, Parity::EVEN}, /* sp */
-                       0,                            /*dimension*/
-                       "test1D",                     /*name*/
+      : partitioning1D(PartInfo{11, Parity::EVEN}, /* sp */
+                       0,                          /*dimension*/
+                       "test1D",                   /*name*/
                        2 /*nparts*/){};
 };
 

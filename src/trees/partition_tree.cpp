@@ -14,8 +14,8 @@ namespace memodetails {
 namespace get_partition_tree {
 
 PartitionTree
-base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
-     SizeParityD spd,                                                  //
+base(std::function<PartitionTree(PartInfoD, const PartList &)> frec, //
+     PartInfoD spd,                                                  //
      const PartList &partitioners) {
   PartList other_partitioners;
   std::copy(partitioners.begin() + 1, partitioners.end(),
@@ -25,8 +25,8 @@ base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
   vector<PartitionTree> children;
   if (other_partitioners.size() != 0) {
     for (int idx = 0; idx < n->max_idx_value(); ++idx) {
-      SizeParitiesD spsD = n->sub_sizeparity_info_list();
-      SizeParityD sp_child = spsD[n->idx_to_child_kind(idx)];
+      PartInfosD spsD = n->sub_partinfo_kinds();
+      PartInfoD sp_child = spsD[n->idx_to_partinfo_kind(idx)];
       auto new_child = frec(sp_child, other_partitioners);
       children.push_back(new_child);
     }
@@ -37,13 +37,11 @@ base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
 } // namespace get_partition_tree
 } // namespace memodetails
 
-PartitionTree get_partition_treeM(SizeParityD spd,
-                                  const PartList &partitioners) {
+PartitionTree get_partition_treeM(PartInfoD spd, const PartList &partitioners) {
   using namespace memodetails::get_partition_tree;
   return Memo().memoised(spd, partitioners);
 }
-PartitionTree get_partition_tree(SizeParityD spd,
-                                 const PartList &partitioners) {
+PartitionTree get_partition_tree(PartInfoD spd, const PartList &partitioners) {
   using namespace memodetails::get_partition_tree;
   return Memo().nomemo(spd, partitioners);
 }
@@ -58,14 +56,14 @@ std::string tree_class_repr(const PartitionTree &t, const std::string &prefix,
    * Find first child that represent each class
    * in the children vector.
    * */
-  int nclasses = t->n->sub_sizeparity_info_list().size();
+  int nclasses = t->n->sub_partinfo_kinds().size();
   auto get_first_class_indices = [&nclasses](const PartitionTree &t) {
     vector<int> first_class_indices(nclasses);
     std::fill(first_class_indices.begin(), //
               first_class_indices.end(),   //
               -1);
     for (int idx = 0; idx < t->n->max_idx_value(); ++idx) {
-      int class_idx = t->n->idx_to_child_kind(idx);
+      int class_idx = t->n->idx_to_partinfo_kind(idx);
       if (first_class_indices[class_idx] == -1)
         first_class_indices[class_idx] = idx;
     }

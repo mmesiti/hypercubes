@@ -4,10 +4,10 @@
 namespace hypercubes {
 namespace slow {
 
-bool operator<(SizeParity p1, SizeParity p2) {
+bool operator<(PartInfo p1, PartInfo p2) {
   return p1.size < p2.size or (p1.size == p2.size and p1.parity < p2.parity);
 }
-bool operator==(SizeParity p1, SizeParity p2) {
+bool operator==(PartInfo p1, PartInfo p2) {
   return p1.size == p2.size and p1.parity == p2.parity;
 }
 bool operator==(IndexResult i1, IndexResult i2) {
@@ -65,9 +65,9 @@ Coordinates down(Coordinates coords,            //
   }
 }
 
-SizeParityD add_parity(Sizes sizes, vector<int> nonspatial_dimensions) {
+PartInfoD add_parity(Sizes sizes, vector<int> nonspatial_dimensions) {
 
-  SizeParityD res;
+  PartInfoD res;
   for (int i = 0; i < sizes.size(); ++i)
     res.push_back({sizes[i], (std::find(nonspatial_dimensions.begin(), //
                                         nonspatial_dimensions.end(),   //
@@ -100,7 +100,7 @@ std::ostream &operator<<(std::ostream &os, hypercubes::slow::Parity p) {
   }
   return os;
 }
-std::ostream &operator<<(std::ostream &os, hypercubes::slow::SizeParity p) {
+std::ostream &operator<<(std::ostream &os, hypercubes::slow::PartInfo p) {
   os << "<" << p.size << "," << p.parity << ">";
   return os;
 }

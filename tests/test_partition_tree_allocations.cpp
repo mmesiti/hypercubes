@@ -18,7 +18,7 @@ namespace pm = partitioner_makers;
 
 struct Simple1D {
   PartList partitioners;
-  SizeParityD spd;
+  PartInfoD spd;
   PartitionTree t;
   TreeP<std::pair<int, int>> nalloc_children_tree;
   TreeP<std::pair<int, int>> sizetree;
@@ -37,7 +37,7 @@ struct Simple1D {
 
 struct LessSimple1D {
   PartList partitioners;
-  SizeParityD spd;
+  PartInfoD spd;
   PartitionTree t;
 
   TreeP<std::pair<int, int>> nalloc_children_tree;
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(test_all_allocated) {
                         pm::Plain("PlainExtra", 1),  //
                         pm::Plain("PlainX", 0),      //
                         pm::Site()};
-  SizeParityD spd{{42, Parity::EVEN}};
+  PartInfoD spd{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(spd, partitioners);
 
   TreeP<std::pair<int, int>> sizetree = get_size_tree(
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(test_only_bb_allocated) {
                         pm::Plain("PlainExtra", 1),  //
                         pm::Plain("PlainX", 0),      //
                         pm::Site()};
-  SizeParityD spd{{42, Parity::EVEN}};
+  PartInfoD spd{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(spd, partitioners);
 
   auto nct = prune_tree(get_nchildren_alloc_tree(t),

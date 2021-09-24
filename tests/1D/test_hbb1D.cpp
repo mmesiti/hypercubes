@@ -12,9 +12,9 @@ struct HBB1DFixture {
 
   HBB1D partitioning1D;
   HBB1DFixture()
-      : partitioning1D(SizeParity{7, Parity::EVEN}, /* sp */
-                       0,                           /*dimension*/
-                       "test1D",                    /*name*/
+      : partitioning1D(PartInfo{7, Parity::EVEN}, /* sp */
+                       0,                         /*dimension*/
+                       "test1D",                  /*name*/
                        1 /*halo*/) {}
 };
 
@@ -66,8 +66,8 @@ BOOST_FIXTURE_TEST_CASE(test_max_idx_value, HBB1DFixture) {
   BOOST_TEST(partitioning1D.max_idx_value() == 5);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_info_list, HBB1DFixture) {
-  BOOST_TEST(partitioning1D.sub_sizeparity_info_list().size() <= 3);
+BOOST_FIXTURE_TEST_CASE(test_sub_partinfo_kinds, HBB1DFixture) {
+  BOOST_TEST(partitioning1D.sub_partinfo_kinds().size() <= 3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

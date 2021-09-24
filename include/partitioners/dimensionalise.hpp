@@ -13,7 +13,7 @@ namespace partitioning {
 template <class P1D> class Dimensionalise : public IPartitioning {
 public:
   template <class... Args>
-  Dimensionalise(SizeParities sp_, int dimension_, std::string name_,
+  Dimensionalise(PartInfos sp_, int dimension_, std::string name_,
                  Args... other_args)
       : dimension(dimension_), spd(sp_),
         wrapped(spd[dimension], dimension, name_, other_args...){};
@@ -22,13 +22,12 @@ public:
                                          offsets[dimension]), //
                     offsets);                                 //
   }
-  SizeParitiesD sub_sizeparity_info_list() const {
-    auto res1D = wrapped.sub_sizeparity_info_list();
-    return vtransform(res1D,
-                      [this](SizeParity sp) { return merge_in(sp, spd); });
+  PartInfosD sub_partinfo_kinds() const {
+    auto res1D = wrapped.sub_partinfo_kinds();
+    return vtransform(res1D, [this](PartInfo sp) { return merge_in(sp, spd); });
   };
-  int idx_to_child_kind(int idx) const {
-    return wrapped.idx_to_child_kind(idx);
+  int idx_to_partinfo_kind(int idx) const {
+    return wrapped.idx_to_partinfo_kind(idx);
   };
   int max_idx_value() const { return wrapped.max_idx_value(); };
   std::string get_name() const { return wrapped.get_name(); };
@@ -49,7 +48,7 @@ public:
   int dimensionality() const { return spd.size(); };
 
 private:
-  const SizeParityD spd;
+  const PartInfoD spd;
   P1D wrapped;
 
   template <class T, class Container>

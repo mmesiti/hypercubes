@@ -13,19 +13,18 @@ using partitioning::EO;
 
 struct EO5 {
 
-  const SizeParities sp{{11, Parity::EVEN},
-                        {10, Parity::EVEN},
-                        {9, Parity::ODD},
-                        {5, Parity::NONE},
-                        {8, Parity::ODD}};
+  const PartInfos sp{{11, Parity::EVEN},
+                     {10, Parity::EVEN},
+                     {9, Parity::ODD},
+                     {5, Parity::NONE},
+                     {8, Parity::ODD}};
   const typename EO::CBFlags cbflags{true, true, true, false, true};
   EO P;
   EO5() : P(sp, cbflags, "test5") {}
 };
 
 struct EOALLODD {
-  const SizeParities sp{
-      {11, Parity::ODD}, {11, Parity::NONE}, {11, Parity::EVEN}};
+  const PartInfos sp{{11, Parity::ODD}, {11, Parity::NONE}, {11, Parity::EVEN}};
   const typename EO::CBFlags cbflags{true, false, true};
   EO P;
   EOALLODD() : P(sp, cbflags, "test_allodd") {}
@@ -34,20 +33,20 @@ struct EOALLODD {
 BOOST_AUTO_TEST_SUITE(eo_partitioning)
 
 BOOST_AUTO_TEST_CASE(test_constructor_throws1) {
-  const SizeParities sp{{{11, Parity::EVEN},
-                         {10, Parity::EVEN},
-                         {5, Parity::NONE},
-                         {9, Parity::ODD}}};
+  const PartInfos sp{{{11, Parity::EVEN},
+                      {10, Parity::EVEN},
+                      {5, Parity::NONE},
+                      {9, Parity::ODD}}};
   const typename EO::CBFlags cbflags{true, true, true, false, true};
 
   BOOST_CHECK_THROW(EO(sp, cbflags, "test"), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(test_constructor_throws2) {
-  const SizeParities sp{{{11, Parity::EVEN},
-                         {10, Parity::EVEN},
-                         {5, Parity::NONE},
-                         {9, Parity::ODD}}};
+  const PartInfos sp{{{11, Parity::EVEN},
+                      {10, Parity::EVEN},
+                      {5, Parity::NONE},
+                      {9, Parity::ODD}}};
   const typename EO::CBFlags cbflags{true, true, true, true};
 
   BOOST_CHECK_THROW(EO(sp, cbflags, "test"), std::invalid_argument);
@@ -132,24 +131,24 @@ BOOST_FIXTURE_TEST_CASE(test_idx_to_sizes, EO5) {
   BOOST_TEST(s.size() == P.dimensionality() + 1);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_idx_to_child_kind_even, EO5) {
-  BOOST_TEST(P.idx_to_child_kind(0) == 0);
-  BOOST_TEST(P.idx_to_child_kind(1) == 0);
+BOOST_FIXTURE_TEST_CASE(test_idx_to_partinfo_kind_even, EO5) {
+  BOOST_TEST(P.idx_to_partinfo_kind(0) == 0);
+  BOOST_TEST(P.idx_to_partinfo_kind(1) == 0);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_idx_to_child_kind_odd, EOALLODD) {
-  BOOST_TEST(P.idx_to_child_kind(0) == 0);
-  BOOST_TEST(P.idx_to_child_kind(1) == 1);
+BOOST_FIXTURE_TEST_CASE(test_idx_to_partinfo_kind_odd, EOALLODD) {
+  BOOST_TEST(P.idx_to_partinfo_kind(0) == 0);
+  BOOST_TEST(P.idx_to_partinfo_kind(1) == 1);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_max_idx, EO5) {
   BOOST_TEST(P.max_idx_value() == 2);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_info_list, EO5) {
+BOOST_FIXTURE_TEST_CASE(test_sub_partinfo_kinds, EO5) {
   // Even number of sites, only one class
 
-  auto p = P.sub_sizeparity_info_list();
+  auto p = P.sub_partinfo_kinds();
   decltype(p) expected{{{1, Parity::NONE},
                         {1, Parity::NONE},
                         {1, Parity::NONE},
@@ -159,12 +158,12 @@ BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_info_list, EO5) {
   BOOST_TEST(p == expected);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_info_list_allodd, EOALLODD) {
+BOOST_FIXTURE_TEST_CASE(test_sub_partinfo_kinds_allodd, EOALLODD) {
   // Odd number of sites,
   // Odd partition is bigger
   // because the origin parity is odd.
 
-  auto p = P.sub_sizeparity_info_list();
+  auto p = P.sub_partinfo_kinds();
   decltype(p) expected{
       {{1, Parity::NONE},
        {11, Parity::NONE},

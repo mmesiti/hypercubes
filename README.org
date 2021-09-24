@@ -1106,3 +1106,4 @@ f([F_00* F_01* F_02, F_03, F_10, F_11, F_20, F_21],
 f([F_00, F_01, F_02, F_03, F_10, F_11, F_20, F_21],
   [x_00, x_01, x_02,    0,    0,    0,    0,    0])
 #+end_src
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. && make -j4 && ctest --test-dir ./tests --output-on-failure && make coverage

@@ -6,7 +6,7 @@ namespace hypercubes {
 namespace slow {
 namespace partitioning {
 
-Site::Site(const SizeParityD &sp_) : dimension(sp_.size()) {}
+Site::Site(const PartInfoD &sp_) : dimension(sp_.size()) {}
 
 void Site::check_idx(int idx) const {
   if (idx != 0)
@@ -21,8 +21,8 @@ Sizes Site::idx_to_sizes(int idx) const {
   check_idx(idx);
   return Sizes(dimensionality(), 0);
 }
-SizeParitiesD Site::sub_sizeparity_info_list() const { return SizeParitiesD(); }
-int Site::idx_to_child_kind(int idx) const {
+PartInfosD Site::sub_partinfo_kinds() const { return PartInfosD(); }
+int Site::idx_to_partinfo_kind(int idx) const {
   check_idx(idx);
   return 0;
 }

@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(test_add_parity) {
   Sizes sizes{7, 7, 7, 7, 7, 7};
   vector<int> nonspatial_dimensions{3, 4};
 
-  SizeParityD expected{
+  PartInfoD expected{
       {7, Parity::EVEN}, //
       {7, Parity::EVEN}, //
       {7, Parity::EVEN}, //

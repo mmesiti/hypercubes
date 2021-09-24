@@ -6,7 +6,7 @@ namespace hypercubes {
 namespace slow {
 namespace partitioning {
 
-HBB1D::HBB1D(SizeParity sp, int dimension_, std::string name_, int halo_)
+HBB1D::HBB1D(PartInfo sp, int dimension_, std::string name_, int halo_)
     : Partitioning1D(sp, dimension_, name_), halo(halo_) {
   assert(halo != 0);
   assert(size > 2 * halo);

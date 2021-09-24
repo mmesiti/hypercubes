@@ -25,31 +25,31 @@ Parity Partitioning1D::idx_to_start_parity(int idx) const {
 }
 int Partitioning1D::idx_to_size(int idx) const { return end(idx) - start(idx); }
 
-std::vector<SizeParity> Partitioning1D::sub_sizeparity_info_list() const {
-  std::set<SizeParity> sizes_parities;
+std::vector<PartInfo> Partitioning1D::sub_partinfo_kinds() const {
+  std::set<PartInfo> sizes_parities;
   for (int i = 0; i < limits.size() - 1; ++i) {
-    sizes_parities.insert(SizeParity{idx_to_size(i), idx_to_start_parity(i)});
+    sizes_parities.insert(PartInfo{idx_to_size(i), idx_to_start_parity(i)});
   }
   {
-    std::vector<SizeParity> sizes_parities_v;
+    std::vector<PartInfo> sizes_parities_v;
     std::copy(sizes_parities.begin(), sizes_parities.end(),
               std::back_inserter(sizes_parities_v));
     return sizes_parities_v;
   }
 }
-int Partitioning1D::idx_to_child_kind(int idx) const {
+int Partitioning1D::idx_to_partinfo_kind(int idx) const {
   auto p = idx_to_start_parity(idx);
   auto s = idx_to_size(idx);
-  auto sps = sub_sizeparity_info_list();
+  auto sps = sub_partinfo_kinds();
   for (int i = 0; i < sps.size(); ++i)
-    if (sps[i] == SizeParity{s, p})
+    if (sps[i] == PartInfo{s, p})
       return i;
   {
     std::stringstream message;
-    message << "Child not found."                  //
-            << " SizeParities: " << sps            //
-            << " SizeParity: " << SizeParity{s, p} //
-            << " idx: " << idx                     //
+    message << "Child not found."                //
+            << " SizeParities: " << sps          //
+            << " SizeParity: " << PartInfo{s, p} //
+            << " idx: " << idx                   //
             << " max_idx: " << max_idx_value();
 
     throw std::invalid_argument(message.str());

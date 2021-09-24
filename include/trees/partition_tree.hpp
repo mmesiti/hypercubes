@@ -14,9 +14,9 @@ namespace internals {
 // using partitioners::PartList;
 using PartitionTree = TreeP<std::shared_ptr<partitioning::IPartitioning>>;
 
-PartitionTree get_partition_treeM(SizeParityD spd, //
+PartitionTree get_partition_treeM(PartInfoD spd, //
                                   const PartList &partitioners);
-PartitionTree get_partition_tree(SizeParityD spd, //
+PartitionTree get_partition_tree(PartInfoD spd, //
                                  const PartList &partitioners);
 
 /**

@@ -10,7 +10,7 @@ namespace partitioning {
 
 class Q1DBase : public Partitioning1D {
 public:
-  Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_);
+  Q1DBase(PartInfo sp, int dimension_, std::string name_, int nparts_);
   int idx_to_coord(int idx, int offset) const;
   int max_idx_value() const;
   std::string comments() const;
@@ -30,7 +30,7 @@ private:
 
 class Q1DPeriodic : public Q1DBase {
 public:
-  Q1DPeriodic(SizeParity sp, int dimension_, std::string name_, int nparts_);
+  Q1DPeriodic(PartInfo sp, int dimension_, std::string name_, int nparts_);
 
 private:
   std::tuple<int, int> idx_limits(int relative_x) const;
@@ -39,7 +39,7 @@ private:
 
 class Q1DOpen : public Q1DBase {
 public:
-  Q1DOpen(SizeParity sp, int dimension_, std::string name_, int nparts_);
+  Q1DOpen(PartInfo sp, int dimension_, std::string name_, int nparts_);
 
 private:
   std::tuple<int, int> idx_limits(int relative_x) const;

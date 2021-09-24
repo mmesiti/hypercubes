@@ -26,17 +26,16 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_simple) {
       Site()                  //
   };
 
-  SizeParityD sp{{8, Parity::EVEN}};
+  PartInfoD sp{{8, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, ps);
 
   std::string comments0, comments1;
   {
     comments0 =
-        partitioning::Q1DPeriodic(SizeParity{8, Parity::EVEN}, 0, "MPI", 2)
+        partitioning::Q1DPeriodic(PartInfo{8, Parity::EVEN}, 0, "MPI", 2)
             .comments();
-    comments1 =
-        partitioning::Q1DOpen(SizeParity{4, Parity::EVEN}, 0, "Vector", 2)
-            .comments();
+    comments1 = partitioning::Q1DOpen(PartInfo{4, Parity::EVEN}, 0, "Vector", 2)
+                    .comments();
   }
 
   BOOST_TEST(t->n->comments() == comments0);
@@ -55,7 +54,7 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
       Site(),                 //
   };
 
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
 
   PartitionTree t = get_partition_tree(sp, ps);
 
@@ -66,14 +65,14 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 
   {
     comments0 =
-        partitioning::Q1DPeriodic(SizeParity{42, Parity::EVEN}, 0, "MPI", 4)
+        partitioning::Q1DPeriodic(PartInfo{42, Parity::EVEN}, 0, "MPI", 4)
             .comments();
     comments1 = vector<std::string>{
-        partitioning::Q1DOpen(SizeParity{9, Parity::ODD}, 0, "Vector", 2)
+        partitioning::Q1DOpen(PartInfo{9, Parity::ODD}, 0, "Vector", 2)
             .comments(),
-        partitioning::Q1DOpen(SizeParity{11, Parity::EVEN}, 0, "Vector", 2)
+        partitioning::Q1DOpen(PartInfo{11, Parity::EVEN}, 0, "Vector", 2)
             .comments(),
-        partitioning::Q1DOpen(SizeParity{11, Parity::ODD}, 0, "Vector", 2)
+        partitioning::Q1DOpen(PartInfo{11, Parity::ODD}, 0, "Vector", 2)
             .comments()};
   }
   std::string prefix = "   ";
@@ -91,8 +90,8 @@ BOOST_AUTO_TEST_CASE(test_1D_2lvl_repr) {
 
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_simple) {
   using namespace partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN},  //
-                 {42, Parity::EVEN}}; //
+  PartInfoD sp{{42, Parity::EVEN},  //
+               {42, Parity::EVEN}}; //
   PartitionTree t = get_partition_tree(sp, PartList{
                                                QPeriodic("X-MPI", 0, 4), //
                                                QPeriodic("Y-MPI", 1, 4), //
@@ -116,7 +115,7 @@ int get_idx_from_ghost(GhostResult gr) { return gr.idx; }
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 
   using namespace partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
@@ -145,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_nohalo) {
 BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 
   using namespace partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
@@ -176,7 +175,7 @@ BOOST_AUTO_TEST_CASE(test_get_indices_tree_wg_1D_hbb) {
 BOOST_DATA_TEST_CASE(test_get_coord_from_idx_roundtrip, //
                      bdata::xrange(0, 41), i) {
   using namespace partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
@@ -208,7 +207,7 @@ BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
                                            {{0, 0, 4}, {1}}, //
                                            {{3, 0, 2}, {3}}, //
                                            {{3, 1, 2}, {2}}};
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
@@ -228,7 +227,7 @@ BOOST_AUTO_TEST_CASE(test_get_sizes_from_idx) {
 
 BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
   using namespace partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
@@ -289,7 +288,7 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree) {
 
 BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
   using namespace partitioner_makers;
-  SizeParityD sp{{11, Parity::EVEN}};
+  PartInfoD sp{{11, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QOpen("Vector", 0, 2), //
@@ -339,7 +338,7 @@ BOOST_AUTO_TEST_CASE(test_get_max_idx_tree_weo) {
 
 BOOST_AUTO_TEST_CASE(test_get_skeleton) {
   using namespace partitioner_makers;
-  SizeParityD sp{{11, Parity::EVEN}};
+  PartInfoD sp{{11, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QOpen("Vector", 0, 2), //
@@ -400,7 +399,7 @@ BOOST_DATA_TEST_CASE(test_validate_idx, //
                      }),
                      idx_valid) {
   using namespace partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //
@@ -419,7 +418,7 @@ BOOST_DATA_TEST_CASE(test_validate_idx, //
 
 BOOST_AUTO_TEST_CASE(test_validate_idx_weo) {
   using namespace partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4),      //
@@ -470,7 +469,7 @@ BOOST_AUTO_TEST_CASE(test_partition_limits_1D) {
       Site(),                  //
   };
 
-  SizeParityD sp{{32, Parity::EVEN}};
+  PartInfoD sp{{32, Parity::EVEN}};
 
   PartitionTree t = get_partition_tree(sp, partitioners);
 
@@ -507,7 +506,7 @@ BOOST_AUTO_TEST_CASE(test_partition_limits_2D) {
       Plain("Leaf Y", Y),       //
       Site(),                   //
   };
-  SizeParityD sp{{42, Parity::EVEN}, {42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}, {42, Parity::EVEN}};
 
   PartitionTree t = get_partition_tree(sp, partitioners);
 

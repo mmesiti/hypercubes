@@ -18,14 +18,14 @@ using partitioning::IPartitioning;
 
 class IPartitioner {
 public:
-  std::shared_ptr<IPartitioning> partition(SizeParityD sp) const;
+  std::shared_ptr<IPartitioning> partition(PartInfoD sp) const;
 
   IPartitioner(std::string name_);
   std::string get_name() const;
 
 protected:
   const std::string name;
-  virtual IPartitioning *get(SizeParityD sp) const = 0;
+  virtual IPartitioning *get(PartInfoD sp) const = 0;
 };
 
 using CBFlags = hypercubes::slow::partitioning::EO::CBFlags;
@@ -35,7 +35,7 @@ public:
 
 private:
   CBFlags cbflags;
-  hypercubes::slow::partitioning::EO *get(SizeParityD sp) const;
+  hypercubes::slow::partitioning::EO *get(PartInfoD sp) const;
 };
 
 class Site : public IPartitioner {
@@ -43,7 +43,7 @@ public:
   Site();
 
 private:
-  hypercubes::slow::partitioning::Site *get(SizeParityD sp) const;
+  hypercubes::slow::partitioning::Site *get(PartInfoD sp) const;
 };
 class QPeriodic : public IPartitioner {
 public:
@@ -52,7 +52,7 @@ public:
 private:
   int dimension, nparts;
   partitioning::Dimensionalise<partitioning::Q1DPeriodic> *
-  get(SizeParityD sp) const;
+  get(PartInfoD sp) const;
 };
 
 class QOpen : public IPartitioner {
@@ -61,8 +61,7 @@ public:
 
 private:
   int dimension, nparts;
-  partitioning::Dimensionalise<partitioning::Q1DOpen> *
-  get(SizeParityD sp) const;
+  partitioning::Dimensionalise<partitioning::Q1DOpen> *get(PartInfoD sp) const;
 };
 
 class Plain : public IPartitioner {
@@ -71,8 +70,7 @@ public:
 
 private:
   int dimension;
-  partitioning::Dimensionalise<partitioning::Plain1D> *
-  get(SizeParityD sp) const;
+  partitioning::Dimensionalise<partitioning::Plain1D> *get(PartInfoD sp) const;
 };
 
 class HBB : public IPartitioner {
@@ -82,7 +80,7 @@ public:
 
 private:
   int dimension, halo;
-  partitioning::Dimensionalise<partitioning::HBB1D> *get(SizeParityD sp) const;
+  partitioning::Dimensionalise<partitioning::HBB1D> *get(PartInfoD sp) const;
 };
 
 } // namespace partitioners

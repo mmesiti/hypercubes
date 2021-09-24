@@ -24,7 +24,7 @@ std::vector<int> _assemble(const std::string &tens, const std::string &units);
 struct Part4DF {
 
   enum { X, Y, Z, T, EXTRA };
-  SizeParityD sp;
+  PartInfoD sp;
   PartList partitioners;
   PartitionTree t;
   std::vector<int> bulk_sites;
@@ -36,7 +36,7 @@ struct Part4DF {
 struct Part4DFWLocal {
 
   enum { X, Y, Z, T, LOCAL, EXTRA };
-  SizeParityD sp;
+  PartInfoD sp;
   PartList partitioners;
   PartitionTree t;
   std::vector<int> bulk_sites;
@@ -48,7 +48,7 @@ struct Part4DFWLocal {
 struct Part1D42 {
 
   enum { X, EXTRA };
-  SizeParityD sp;
+  PartInfoD sp;
   PartList partitioners;
   PartitionTree t;
   std::vector<int> bulk_sites;

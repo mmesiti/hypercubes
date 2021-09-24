@@ -27,7 +27,7 @@ static int floor(int dividend, int divisor) {
          (dividend % divisor - mod(dividend, divisor)) / divisor;
 }
 
-Q1DBase::Q1DBase(SizeParity sp, int dimension_, std::string name_, int nparts_)
+Q1DBase::Q1DBase(PartInfo sp, int dimension_, std::string name_, int nparts_)
     : Partitioning1D(sp, dimension_, name_), nparts(nparts_) {
   quotient = size / nparts + ((size % nparts) ? 1 : 0);
   assert(size > nparts);
@@ -66,10 +66,10 @@ int Q1DBase::idx_to_coord(int idx, int offset) const {
 
 std::string Q1DBase::comments() const { return tuple_to_str(key()); }
 
-Q1DPeriodic::Q1DPeriodic(SizeParity sp, int dimension_, std::string name_,
+Q1DPeriodic::Q1DPeriodic(PartInfo sp, int dimension_, std::string name_,
                          int nparts_)
     : Q1DBase(sp, dimension_, name_, nparts_){};
-Q1DOpen::Q1DOpen(SizeParity sp, int dimension_, std::string name_, int nparts_)
+Q1DOpen::Q1DOpen(PartInfo sp, int dimension_, std::string name_, int nparts_)
     : Q1DBase(sp, dimension_, name_, nparts_){};
 
 BoundaryCondition Q1DPeriodic::bc() const {

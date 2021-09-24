@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(test_shift_tree) {
 BOOST_AUTO_TEST_CASE(test_get_partition_tree_via_maxidx) {
 
   using namespace hypercubes::slow::partitioner_makers;
-  SizeParityD sp{{42, Parity::EVEN}};
+  PartInfoD sp{{42, Parity::EVEN}};
   PartitionTree t = get_partition_tree(sp, //
                                        PartList{
                                            QPeriodic("MPI", 0, 4), //

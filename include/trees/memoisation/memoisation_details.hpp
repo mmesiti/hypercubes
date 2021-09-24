@@ -83,13 +83,13 @@ namespace get_partition_tree {
 // using partitioners::PartList;
 using PartitionTree = TreeP<std::shared_ptr<partitioning::IPartitioning>>;
 PartitionTree
-base(std::function<PartitionTree(SizeParityD, const PartList &)> frec, //
-     SizeParityD spd,                                                  //
+base(std::function<PartitionTree(PartInfoD, const PartList &)> frec, //
+     PartInfoD spd,                                                  //
      const PartList &partitioners);
 
-class Memo : public Memoiser<PartitionTree, SizeParityD, PartList> {
+class Memo : public Memoiser<PartitionTree, PartInfoD, PartList> {
 public:
-  Memo() : Memoiser<PartitionTree, SizeParityD, PartList>(base) {}
+  Memo() : Memoiser<PartitionTree, PartInfoD, PartList>(base) {}
 };
 
 } // namespace get_partition_tree

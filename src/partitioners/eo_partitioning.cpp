@@ -10,7 +10,7 @@ namespace hypercubes {
 namespace slow {
 namespace partitioning {
 
-EO::EO(const SizeParityD &sp_, const EO::CBFlags &cbflags_,
+EO::EO(const PartInfoD &sp_, const EO::CBFlags &cbflags_,
        const std::string &name_)
     : spd(sp_), cbflags(cbflags_), name(name_) {
   // check that sizes are the same
@@ -75,14 +75,14 @@ Coordinates EO::idx_to_coords(int idx, const Coordinates &offset) const {
   }
   return res;
 }
-int EO::idx_to_child_kind(int idx) const {
+int EO::idx_to_partinfo_kind(int idx) const {
   if (nsites % 2 == 0)
     return 0;
   else
     return idx;
 }
 int EO::max_idx_value() const { return 2; }
-SizeParitiesD EO::sub_sizeparity_info_list() const {
+PartInfosD EO::sub_partinfo_kinds() const {
   int sites_opposite_parity = nsites / 2;
   int sites_origin_parity = nsites - sites_opposite_parity;
 
@@ -105,11 +105,11 @@ SizeParitiesD EO::sub_sizeparity_info_list() const {
 
   return vtransform(class_sizes, //
                     [this](int s) {
-                      SizeParityD new_sp = spd;
+                      PartInfoD new_sp = spd;
                       for (int i = 0; i < cbflags.size(); ++i)
                         if (cbflags[i])
-                          new_sp[i] = SizeParity{1, Parity::NONE};
-                      new_sp.push_back(SizeParity{s, Parity::NONE});
+                          new_sp[i] = PartInfo{1, Parity::NONE};
+                      new_sp.push_back(PartInfo{s, Parity::NONE});
                       return new_sp;
                     });
 }

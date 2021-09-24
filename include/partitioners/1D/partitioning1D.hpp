@@ -12,12 +12,12 @@ namespace partitioning {
 
 class Partitioning1D {
 public:
-  Partitioning1D(SizeParity sp, int dimension_, std::string name_)
+  Partitioning1D(PartInfo sp, int dimension_, std::string name_)
       : size(sp.size), parity(sp.parity), dimension(dimension_), name(name_) {}
   int start(int idx) const;
   int end(int idx) const;
-  vector<SizeParity> sub_sizeparity_info_list() const;
-  int idx_to_child_kind(int idx) const;
+  vector<PartInfo> sub_partinfo_kinds() const;
+  int idx_to_partinfo_kind(int idx) const;
   int idx_to_size(int idx) const;
   virtual int idx_to_coord(int idx, int offset) const = 0;
   virtual int max_idx_value() const = 0;

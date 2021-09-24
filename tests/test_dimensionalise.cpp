@@ -24,13 +24,13 @@ template <class Q1Dtype> struct QF {
   // const int nparts = 4;
   QF()
       : partitioning(
-            SizeParities{{QSIZE, Parity::EVEN}, {QSIZE, Parity::EVEN}}, /* sp */
+            PartInfos{{QSIZE, Parity::EVEN}, {QSIZE, Parity::EVEN}}, /* sp */
             1,        /*dimension*/
             "test2D", /*name*/
             4 /*nparts*/),
-        partitioning1D(SizeParity{QSIZE, Parity::EVEN}, /* sp */
-                       1,                               /*dimension*/
-                       "test1D",                        /*name*/
+        partitioning1D(PartInfo{QSIZE, Parity::EVEN}, /* sp */
+                       1,                             /*dimension*/
+                       "test1D",                      /*name*/
                        4 /*nparts*/){};
 };
 
@@ -44,13 +44,13 @@ struct HBBF {
   // const int nparts = 4;
   HBBF()
       : partitioning(
-            SizeParities{{HSIZE, Parity::EVEN}, {HSIZE, Parity::EVEN}}, /* sp */
+            PartInfos{{HSIZE, Parity::EVEN}, {HSIZE, Parity::EVEN}}, /* sp */
             1,        /*dimension*/
             "test2D", /*name*/
             1 /*halo*/),
-        partitioning1D(SizeParity{HSIZE, Parity::EVEN}, /* sp */
-                       1,                               /*dimension*/
-                       "test1D",                        /*name*/
+        partitioning1D(PartInfo{HSIZE, Parity::EVEN}, /* sp */
+                       1,                             /*dimension*/
+                       "test1D",                      /*name*/
                        1 /*halo*/){};
 };
 
@@ -64,12 +64,12 @@ struct PlainF {
   // const int nparts = 4;
   PlainF()
       : partitioning(
-            SizeParities{{HSIZE, Parity::EVEN}, {HSIZE, Parity::EVEN}}, /* sp */
-            1,                                          /*dimension*/
-            "test2D"),                                  /*name*/
-        partitioning1D(SizeParity{HSIZE, Parity::EVEN}, /* sp */
-                       1,                               /*dimension*/
-                       "test1D"){};                     /*name*/
+            PartInfos{{HSIZE, Parity::EVEN}, {HSIZE, Parity::EVEN}}, /* sp */
+            1,                                        /*dimension*/
+            "test2D"),                                /*name*/
+        partitioning1D(PartInfo{HSIZE, Parity::EVEN}, /* sp */
+                       1,                             /*dimension*/
+                       "test1D"){};                   /*name*/
 };
 
 // regression between monodimensional and dimensionalized
@@ -154,68 +154,68 @@ BOOST_DATA_TEST_CASE_F(PlainF,                  //
 }
 
 /****************************
- * sub_sizeparity_info_list *
+ * sub_partinfo_kinds *
  ****************************/
 
 template <class P1D>
-auto test_sub_sizeparity_info_list_helper(Dimensionalise<P1D> p, P1D p1D) {
-  SizeParitiesD spss = p.sub_sizeparity_info_list();
-  SizeParities sp1D = p1D.sub_sizeparity_info_list();
-  SizeParities sp = vtransform(spss,                         //
-                               [&](vector<SizeParity> sps) { //
-                                 return sps[p.dimension];
-                               });
+auto test_sub_partinfo_kinds_helper(Dimensionalise<P1D> p, P1D p1D) {
+  PartInfosD spss = p.sub_partinfo_kinds();
+  PartInfos sp1D = p1D.sub_partinfo_kinds();
+  PartInfos sp = vtransform(spss,                       //
+                            [&](vector<PartInfo> sps) { //
+                              return sps[p.dimension];
+                            });
   BOOST_TEST(sp == sp1D);
 };
 
 BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_periodic, QF<Q1DPeriodic>) {
-  test_sub_sizeparity_info_list_helper(partitioning, partitioning1D);
+  test_sub_partinfo_kinds_helper(partitioning, partitioning1D);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_open, QF<Q1DOpen>) {
-  test_sub_sizeparity_info_list_helper(partitioning, partitioning1D);
+  test_sub_partinfo_kinds_helper(partitioning, partitioning1D);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_hbb, HBBF) {
-  test_sub_sizeparity_info_list_helper(partitioning, partitioning1D);
+  test_sub_partinfo_kinds_helper(partitioning, partitioning1D);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_sub_sizeparity_plain, PlainF) {
-  test_sub_sizeparity_info_list_helper(partitioning, partitioning1D);
+  test_sub_partinfo_kinds_helper(partitioning, partitioning1D);
 }
 
 /*********************
- * idx_to_child_kind *
+ * idx_to_partinfo_kind *
  *********************/
 
-auto test_idx_to_child_kind_helper = [](auto p, auto p1D, int idx) {
-  int child_kind = p.idx_to_child_kind(idx);
-  int child_kind1D = p1D.idx_to_child_kind(idx);
+auto test_idx_to_partinfo_kind_helper = [](auto p, auto p1D, int idx) {
+  int child_kind = p.idx_to_partinfo_kind(idx);
+  int child_kind1D = p1D.idx_to_partinfo_kind(idx);
   BOOST_TEST(child_kind == child_kind1D);
 };
 
-BOOST_DATA_TEST_CASE_F(QF<Q1DPeriodic>,                 //
-                       test_idx_to_child_kind_periodic, //
+BOOST_DATA_TEST_CASE_F(QF<Q1DPeriodic>,                    //
+                       test_idx_to_partinfo_kind_periodic, //
                        bdata::xrange(4), idx) {
-  test_idx_to_child_kind_helper(partitioning, partitioning1D, idx);
+  test_idx_to_partinfo_kind_helper(partitioning, partitioning1D, idx);
 }
 
-BOOST_DATA_TEST_CASE_F(QF<Q1DOpen>,                 //
-                       test_idx_to_child_kind_open, //
+BOOST_DATA_TEST_CASE_F(QF<Q1DOpen>,                    //
+                       test_idx_to_partinfo_kind_open, //
                        bdata::xrange(4), idx) {
-  test_idx_to_child_kind_helper(partitioning, partitioning1D, idx);
+  test_idx_to_partinfo_kind_helper(partitioning, partitioning1D, idx);
 }
 
-BOOST_DATA_TEST_CASE_F(HBBF,                       //
-                       test_idx_to_child_kind_hbb, //
+BOOST_DATA_TEST_CASE_F(HBBF,                          //
+                       test_idx_to_partinfo_kind_hbb, //
                        bdata::xrange(5), idx) {
-  test_idx_to_child_kind_helper(partitioning, partitioning1D, idx);
+  test_idx_to_partinfo_kind_helper(partitioning, partitioning1D, idx);
 }
 
-BOOST_DATA_TEST_CASE_F(PlainF,                       //
-                       test_idx_to_child_kind_plain, //
+BOOST_DATA_TEST_CASE_F(PlainF,                          //
+                       test_idx_to_partinfo_kind_plain, //
                        bdata::xrange(5), idx) {
-  test_idx_to_child_kind_helper(partitioning, partitioning1D, idx);
+  test_idx_to_partinfo_kind_helper(partitioning, partitioning1D, idx);
 }
 
 /***********

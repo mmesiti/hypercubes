@@ -10,11 +10,11 @@ namespace partitioning {
  *represents a leaf in the partition tree.*/
 class Site : public IPartitioning {
 public:
-  Site(const SizeParityD &sp_);
+  Site(const PartInfoD &sp_);
   Coordinates idx_to_coords(int idx, const Coordinates &offset) const;
   Sizes idx_to_sizes(int idx) const;
-  SizeParitiesD sub_sizeparity_info_list() const;
-  int idx_to_child_kind(int idx) const;
+  PartInfosD sub_partinfo_kinds() const;
+  int idx_to_partinfo_kind(int idx) const;
   int max_idx_value() const;
   bool is_leaf() const;
   std::string get_name() const;
