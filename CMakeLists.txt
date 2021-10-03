@@ -80,6 +80,10 @@ target_link_libraries(size_tree_iterator geometry partition_tree_allocations)
 
 add_library(level_swap src/trees/level_swap.cpp)
 
+# Tree transformation
+add_library(tree_transform src/api_v2/tree_transform.cpp)
+
+
 # API
 add_library(memory_layout src/api/memory_layout.cpp)
 target_link_libraries(memory_layout geometry

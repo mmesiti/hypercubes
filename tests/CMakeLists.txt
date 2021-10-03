@@ -126,6 +126,7 @@ endif()
 
 add_subdirectory(1D)
 add_subdirectory(api)
+add_subdirectory(api_v2)
 enable_testing()
 # Ordered by duration, asc
 add_test(geometry test_geometry -r confirm)
