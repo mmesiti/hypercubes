@@ -17,20 +17,6 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-/* A newline before each subtree,
- * and a newline after each child. */
-template <class Node> std::string tree_str(const Tree<Node> &tree) {
-  auto _tree_str = [&](const std::string &prefix, const Tree<Node> &t,
-                       auto f) -> std::string {
-    std::stringstream ss;
-    ss << std::endl << prefix << t.n; // head
-    for (const auto &c : t.children)
-      ss << f(prefix + "  ", *c, f) << std::endl;
-    return ss.str();
-  };
-  return _tree_str("", tree, _tree_str);
-}
-
 /**
  * Get the full paths from the root
  *to every leaf of the tree, as a list
@@ -473,14 +459,4 @@ const TreeP<Node> select_subtree(const TreeP<Node> &tree, const Indices &idxs) {
 } // namespace slow
 } // namespace hypercubes
 
-namespace std {
-
-template <class Node>
-std::ostream &operator<<(std::ostream &os,
-                         const hypercubes::slow::internals::Tree<Node> &tree) {
-  os << hypercubes::slow::internals::tree_str(tree);
-  return os;
-}
-
-} // namespace std
 #endif // TREE_H_

@@ -39,7 +39,11 @@ target_link_libraries(test_kvtree boost_test_helper
                                   bool_maybe
                                   -lgcov)
 
-                                
+add_executable(test_kvtree_v2 test_kvtree_v2.cpp)
+target_link_libraries(test_kvtree_v2 boost_test_helper
+                                  -lgcov)
+
+                               
 add_executable(test_partitioners test_partitioners.cpp)
 target_link_libraries(test_partitioners partitioners
                                         boost_test_helper)
@@ -112,6 +116,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   target_compile_options(test_kvtree PRIVATE "-fprofile-arcs"
                                              "-ftest-coverage")
 
+  target_compile_options(test_kvtree_v2 PRIVATE "-fprofile-arcs"
+                                             "-ftest-coverage")
+
 
   target_compile_options(test_size_tree_iterator PRIVATE "-fprofile-arcs"
                                                          "-ftest-coverage")
@@ -147,3 +154,4 @@ add_test(dimensionalise test_dimensionalise -r confirm)
 add_test(partition_tree_allocations test_partition_tree_allocations -r confirm)
 add_test(partition_predicates test_partition_predicates -r confirm)
 add_test(pt_full test_pt_full -r confirm)
+add_test(kvtree_v2 test_kvtree_v2 -r confirm)
