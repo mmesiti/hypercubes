@@ -2,10 +2,17 @@
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/tree_data_structure.hpp"
 #include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_suite.hpp>
 
 using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_kvtree_v2)
+
+BOOST_AUTO_TEST_CASE(test_mtkv) {
+  KVTreePv2<int> t = mtkv(1, {});
+  auto t2 = mtkv(1, {{{2}, t},   //
+                     {{3}, t}}); //
+}
 
 BOOST_AUTO_TEST_CASE(test_pull_keys_up) {
   auto t = mt(mp(0, 1), {mt(mp(3, 4), {mt(mp(8, 80), {}),   //
@@ -14,10 +21,13 @@ BOOST_AUTO_TEST_CASE(test_pull_keys_up) {
                                        mt(mp(19, 80), {})})});
 
   auto t_kv = pull_keys_up(t);
-  auto t_kv_exp = mtkv(1, {{3, mtkv(4, {mp(8, mtkv(80, {})),       //
-                                        mp(9, mtkv(80, {}))})},    //
-                           {5, mtkv(4, {mp(18, mtkv(80, {})),      //
-                                        mp(19, mtkv(80, {}))})}}); //
+  auto t_kv_exp = mtkv(1, {{{3},
+                            mtkv(4, {{{8}, mtkv(80, {})},    //
+                                     {{9}, mtkv(80, {})}})}, //
+                           {{5},
+                            mtkv(4, {{{18}, mtkv(80, {})},      //
+                                     {{19}, mtkv(80, {})}})}}); //
+
   BOOST_TEST(*t_kv == *t_kv_exp);
 }
 BOOST_AUTO_TEST_CASE(test_push_keys_down) {

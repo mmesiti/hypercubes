@@ -51,15 +51,14 @@ BOOST_AUTO_TEST_CASE(test_tree_str) {
                   mt(6, {mt(7, {mt(8, {})})})});
 
   auto res = tree_str(*t);
-  std::string expected(
-      "\n1"               //
-      "\n  2\n"           // end of the '2' child
-      "\n  3"             //
-      "\n    4\n"         // end of the '4' child
-      "\n    5\n\n"       // end of the '5' child, but also 3(45) subtree
-      "\n  6"             //
-      "\n    7"           //
-      "\n      8\n\n\n"); // end of '8','7(8)' and '6(7(8))'
+  std::string expected("\n1"     //
+                       "\n  2"   // end of the '2' child
+                       "\n  3"   //
+                       "\n    4" // end of the '4' child
+                       "\n    5" // end of the '5' child, but also 3(45) subtree
+                       "\n  6"   //
+                       "\n    7" //
+                       "\n      8\n"); // end of '8','7(8)' and '6(7(8))'
   BOOST_TEST(res == expected);
 }
 
