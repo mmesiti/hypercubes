@@ -99,7 +99,7 @@ KVTreePv2<Node> pull_keys_up(const TreeP<pair<int, Node>> t) {
   children.reserve(t->children.size());
   std::transform(t->children.begin(), t->children.end(),
                  std::back_inserter(children), [](auto c) {
-                   return mp(vector<int>{c->n.first}, //
+                   return mp(vector<int>{c->n.first}, // converts int to vector
                              pull_keys_up(c));
                  });
 
@@ -113,8 +113,11 @@ TreeP<pair<int, Node>> push_keys_down(const KVTreePv2<Node> t, int key = 0) {
   children.reserve(t->children.size());
   std::transform(t->children.begin(), //
                  t->children.end(),   //
-                 std::back_inserter(children),
-                 [](auto c) { return push_keys_down(c.second, c.first[0]); });
+                 std::back_inserter(children), [](auto c) {
+                   return push_keys_down(c.second,  //
+                                         c.first[0] // converts vector to int
+                   );
+                 });
 
   return mt(mp(key, t->n), children);
 }
