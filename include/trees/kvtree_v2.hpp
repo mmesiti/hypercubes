@@ -1,5 +1,6 @@
 #ifndef KVTREE_V2_H_
 #define KVTREE_V2_H_
+#include "exceptions/exceptions.hpp"
 #include "kvtree_data_structure.hpp"
 #include <set>
 
@@ -83,17 +84,62 @@ void _collect_nodes_at_level(std::set<Value> &nodes,       //
 }
 
 template <class Value>
-const KVTreePv2<Value> //
-bring_level_on_top_by_key(const KVTreePv2<Value> &tree, int level) {
+void _throw_different_nodes_error(const std::set<Value> &nodes) {
+  std::stringstream message;
+  message << "Not all nodes are equivalent:" << std::endl;
+  for (auto &n : nodes) {
+    message << n << ", ";
+  }
+  throw TreeLevelPermutationError(message.str().c_str());
+}
+
+template <class Value>
+const KVTreePv2<Value> bring_level_on_top_by_key(const KVTreePv2<Value> &tree,
+                                                 int level) {
   std::set<vector<int>> keys;
   _collect_keys_at_level(keys, tree, level);
   std::set<Value> nodes;
   _collect_nodes_at_level(nodes, tree, level);
+  if (nodes.size() != 1)
+    _throw_different_nodes_error(nodes);
   decltype(KVTree<Value>::children) children;
   for (auto key : keys) {
     children.push_back({key, collapse_level_by_key(tree, level, key)});
   }
   return mtkv(*nodes.begin(), children);
+}
+
+inline vector<int> _sub_level_ordering(const vector<int> &level_ordering) {
+  vector<int> res;
+  int lvl_removed = level_ordering[0];
+  for (int i = 1; i < level_ordering.size(); ++i) {
+    int l = level_ordering[i];
+    if (l > lvl_removed)
+      res.push_back(l - 1);
+    else
+      res.push_back(l);
+  }
+  return res;
+}
+
+template <class Value>
+const KVTreePv2<Value> swap_levels(const KVTreePv2<Value> &tree,
+                                   const vector<int> &new_level_ordering) {
+  if (new_level_ordering.size() == 0)
+    return tree;
+  int next_level = new_level_ordering[0];
+  auto new_tree = bring_level_on_top_by_key(tree, next_level);
+
+  auto sub_new_level_ordering = _sub_level_ordering(new_level_ordering);
+
+  decltype(tree->children) new_children;
+  new_children.reserve(tree->children.size());
+  for (const auto &c : new_tree->children) {
+    new_children.push_back(
+        {c.first, swap_levels(c.second, sub_new_level_ordering)});
+  }
+
+  return mtkv(new_tree->n, new_children);
 }
 
 } // namespace internals

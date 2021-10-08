@@ -2,6 +2,7 @@
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
 #include "trees/tree_data_structure.hpp"
+#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
@@ -136,6 +137,41 @@ BOOST_AUTO_TEST_CASE(test_bring_level_on_top_key) {
   auto transf = bring_level_on_top_by_key(t, 2);
 
   BOOST_TEST(*transf_expected == *transf);
+}
+
+BOOST_AUTO_TEST_CASE(test_bring_level_on_top_key_throws) {
+  auto _t =
+      mt(mp(0, 1),
+         {mt(mp(20, 2), {mt(mp(22, 3 /*different*/), {mt(mp(24, 4), {}), //
+                                                      mt(mp(25, 5), {})})}),
+          mt(mp(21, 9), {mt(mp(23, 4 /*different*/), {mt(mp(24, 11), {}), //
+                                                      mt(mp(26, 12), {})})})});
+
+  auto t = pull_keys_up(_t);
+  BOOST_CHECK_THROW(bring_level_on_top_by_key(t, 2), TreeLevelPermutationError);
+}
+
+BOOST_AUTO_TEST_CASE(test_swap_levels_by_key) {
+
+  auto _t =
+      mt(mp(0, 1), {mt(mp(10, 2), {mt(mp(12, 3), {mt(mp(14, 5), {}),     //
+                                                  mt(mp(15, 6), {})})}), //
+                    mt(mp(11, 4), {mt(mp(13, 3), {mt(mp(14, 7), {}),     //
+                                                  mt(mp(15, 8), {})})})});
+  vector<int> new_level_ordering{2, 0, 1};
+
+  auto _newt_exp =
+      mt(mp(0, 3), {mt(mp(14, 1), {mt(mp(10, 2), {mt(mp(12, 5), {})}),   //
+                                   mt(mp(11, 4), {mt(mp(13, 7), {})})}), //
+                    mt(mp(15, 1), {mt(mp(10, 2), {mt(mp(12, 6), {})}),   //
+                                   mt(mp(11, 4), {mt(mp(13, 8), {})})})});
+
+  auto t = pull_keys_up(_t);
+  auto newt_exp = pull_keys_up(_newt_exp);
+
+  auto newt = swap_levels(t, new_level_ordering);
+
+  BOOST_TEST(*newt == *newt_exp);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

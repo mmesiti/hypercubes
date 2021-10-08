@@ -1,6 +1,8 @@
 #include "api_v2/tree_transform.hpp"
+#include "exceptions/exceptions.hpp"
 #include "trees/tree.hpp"
 #include "trees/tree_data_structure.hpp"
+#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
@@ -11,14 +13,14 @@ BOOST_AUTO_TEST_SUITE(test_tree_transform)
 BOOST_AUTO_TEST_CASE(test_generate_nd_tree) {
 
   auto t = generate_nd_tree({2, 3});
-  auto expected = mtkv(false, {{{NOKEY},
-                                mtkv(false, {{{NOKEY}, mtkv(true, {})},    //
-                                             {{NOKEY}, mtkv(true, {})},    //
-                                             {{NOKEY}, mtkv(true, {})}})}, //
-                               {{NOKEY},
-                                mtkv(false, {{{NOKEY}, mtkv(true, {})},      //
-                                             {{NOKEY}, mtkv(true, {})},      //
-                                             {{NOKEY}, mtkv(true, {})}})}}); //
+  auto expected = mtkv(false, {{{0},
+                                mtkv(false, {{{0}, mtkv(true, {})},    //
+                                             {{1}, mtkv(true, {})},    //
+                                             {{2}, mtkv(true, {})}})}, //
+                               {{1},
+                                mtkv(false, {{{0}, mtkv(true, {})},      //
+                                             {{1}, mtkv(true, {})},      //
+                                             {{2}, mtkv(true, {})}})}}); //
 
   BOOST_TEST(*t == *expected);
 }
@@ -179,6 +181,126 @@ BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
   auto t_partitioned = eo_naive(t_numbered, 1);
   auto t_expected = mtkv(false, {{{0}, t_sub_expected}});
   BOOST_TEST(*t_partitioned == *t_expected);
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pushback_id) {
+  auto t = generate_nd_tree({2, 2, 2});
+  vector<int> in{0, 1, 0};
+  auto out = index_pullback(t, 3, in);
+  BOOST_TEST(in == out);
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pullback) {
+  auto subtree = mtkv(false, {{{10}, mtkv(false, {})},                      //
+                              {{11}, mtkv(false, {{{6}, mtkv(true, {})}})}, //
+                              {{12}, mtkv(false, {{{8}, mtkv(true, {})}})}, //
+                              {{13}, mtkv(false, {})}});                    //
+  auto t0 = mtkv(false, {{{40}, subtree},                                   //
+                         {{21}, subtree}});
+
+  vector<int> in{0, 2, 0};
+  vector<int> out_expected{40, 12, 8};
+  auto out = index_pullback(t0, 3, in);
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_expected.begin(), out_expected.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pushforward) {
+  auto t = generate_nd_tree({2, 2, 2});
+  vector<int> in{0, 1, 0};
+  auto out = index_pushforward(t, 3, in);
+  BOOST_TEST(in == out);
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pullback_throws) {
+  auto t = generate_nd_tree({2, 4, 4});
+  BOOST_CHECK_THROW(index_pullback(t, 3, {1, 4, 3}), KeyNotFoundError);
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pushforward_throws) {
+  auto t = generate_nd_tree({2, 4, 4});
+  BOOST_CHECK_THROW(index_pushforward(t, 3, {1, 4, 3}), KeyNotFoundError);
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pullback_q) {
+  auto t0 = generate_nd_tree({2, 4, 4});
+  int level = 1;
+  auto t1 = q(t0, level, 2);
+  vector<int> in{0, 1, 1, 2};
+  vector<int> out_exp{0, 3, 2};
+  auto out =
+      index_pullback(t1, level + 2, in); // because q creates 2 new levels
+  BOOST_TEST(out.size() == 3);
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pushforward_q) {
+  auto t0 = generate_nd_tree({2, 4, 4});
+  int level = 1;
+  auto t1 = q(t0, level, 2);
+  vector<int> in{0, 3, 2};
+  vector<int> out_exp{0, 1, 1, 2};
+  auto out =
+      index_pushforward(t1, level + 2, in); // because q creates 2 new levels
+  BOOST_TEST(out.size() == 3);
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pullback_both_ways) {
+  auto t0 = generate_nd_tree({2, 4, 4});
+  int level = 1;
+  auto t1 = q(t0, level, 2);
+  auto t2 = flatten(t1, level, level + 2);
+
+  vector<int> in2{0, 3, 2};
+  vector<int> out2_exp{0, 1, 1, 2};
+  vector<int> out1_exp{0, 3, 2}; // = in2;
+
+  auto out2 = index_pullback(t2, level + 1, in2);
+  auto out1 = index_pullback(t1, level + 2, out2);
+  BOOST_CHECK_EQUAL_COLLECTIONS(out2.begin(), out2.end(), //
+                                out2_exp.begin(), out2_exp.end());
+  BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
+                                out1_exp.begin(), out1_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_remap_level) {
+  auto subtree = mtkv(false, {{{10}, mtkv(false, {})},                      //
+                              {{11}, mtkv(false, {{{6}, mtkv(true, {})}})}, //
+                              {{12}, mtkv(false, {{{8}, mtkv(true, {})}})}, //
+                              {{13}, mtkv(false, {})}});                    //
+  auto t0 = mtkv(false, {{{0}, subtree},                                    //
+                         {{1}, subtree}});
+  vector<int> remapping{3, 0, 2, 1};
+  auto t1 = remap_level(t0, 1, remapping);
+  auto subtree1_exp =
+      mtkv(false, {{{3}, mtkv(false, {})},                        //
+                   {{0}, mtkv(false, {})},                        //
+                   {{2}, mtkv(false, {{{8}, mtkv(true, {})}})},   //
+                   {{1}, mtkv(false, {{{6}, mtkv(true, {})}})}}); //
+  auto t1_exp = mtkv(false, {{{0}, subtree1_exp},                 //
+                             {{1}, subtree1_exp}});
+  BOOST_TEST(*t1 == *t1_exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_remap_level_pullback_index) {
+  auto subtree = mtkv(false, {{{10}, mtkv(false, {})},                      //
+                              {{11}, mtkv(false, {{{6}, mtkv(true, {})}})}, //
+                              {{12}, mtkv(false, {{{8}, mtkv(true, {})}})}, //
+                              {{13}, mtkv(false, {})}});                    //
+  auto t0 = mtkv(false, {{{0}, subtree},                                    //
+                         {{1}, subtree}});
+  vector<int> remapping{3, 0, 2, 1};
+  int level = 1;
+  auto t1 = remap_level(t0, level, remapping);
+
+  vector<int> in{0, 3, 0};
+  auto out = index_pullback(t1, level + 1, in);
+  vector<int> out_expected{0, 1, 0};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_expected.begin(), out_expected.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
