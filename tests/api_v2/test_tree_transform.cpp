@@ -2,7 +2,6 @@
 #include "exceptions/exceptions.hpp"
 #include "trees/tree.hpp"
 #include "trees/tree_data_structure.hpp"
-#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
@@ -351,4 +350,29 @@ BOOST_AUTO_TEST_CASE(test_remap_level_pullback_index) {
 
 // TODO: Test that instead of crashes meaningful exceptions are thrown
 //       (is this a good thing?)
+BOOST_AUTO_TEST_CASE(test_swap_levels_by_key) {
+
+  auto t = mtkv(1, {{{10},
+                     mtkv(2, {{{12},
+                               mtkv(3, {{{14}, mtkv(5, {})},       //
+                                        {{15}, mtkv(6, {})}})}})}, //
+                    {{11},
+                     mtkv(4, {{{13},
+                               mtkv(3, {{{14}, mtkv(7, {})}, //
+                                        {{15}, mtkv(8, {})}})}})}});
+  vector<int> new_level_ordering{2, 0, 1};
+
+  auto newt_exp =
+      mtkv(3, {{{14},
+                mtkv(1, {{{10}, mtkv(2, {{{12}, mtkv(5, {})}})},    //
+                         {{11}, mtkv(4, {{{13}, mtkv(7, {})}})}})}, //
+               {{15},
+                mtkv(1, {{{10}, mtkv(2, {{{12}, mtkv(6, {})}})}, //
+                         {{11}, mtkv(4, {{{13}, mtkv(8, {})}})}})}});
+
+  auto newt = swap_levels(t, new_level_ordering);
+
+  BOOST_TEST(*newt == *newt_exp);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

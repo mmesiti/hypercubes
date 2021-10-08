@@ -151,27 +151,4 @@ BOOST_AUTO_TEST_CASE(test_bring_level_on_top_key_throws) {
   BOOST_CHECK_THROW(bring_level_on_top_by_key(t, 2), TreeLevelPermutationError);
 }
 
-BOOST_AUTO_TEST_CASE(test_swap_levels_by_key) {
-
-  auto _t =
-      mt(mp(0, 1), {mt(mp(10, 2), {mt(mp(12, 3), {mt(mp(14, 5), {}),     //
-                                                  mt(mp(15, 6), {})})}), //
-                    mt(mp(11, 4), {mt(mp(13, 3), {mt(mp(14, 7), {}),     //
-                                                  mt(mp(15, 8), {})})})});
-  vector<int> new_level_ordering{2, 0, 1};
-
-  auto _newt_exp =
-      mt(mp(0, 3), {mt(mp(14, 1), {mt(mp(10, 2), {mt(mp(12, 5), {})}),   //
-                                   mt(mp(11, 4), {mt(mp(13, 7), {})})}), //
-                    mt(mp(15, 1), {mt(mp(10, 2), {mt(mp(12, 6), {})}),   //
-                                   mt(mp(11, 4), {mt(mp(13, 8), {})})})});
-
-  auto t = pull_keys_up(_t);
-  auto newt_exp = pull_keys_up(_newt_exp);
-
-  auto newt = swap_levels(t, new_level_ordering);
-
-  BOOST_TEST(*newt == *newt_exp);
-}
-
 BOOST_AUTO_TEST_SUITE_END()

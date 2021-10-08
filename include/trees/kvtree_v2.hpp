@@ -122,26 +122,6 @@ inline vector<int> _sub_level_ordering(const vector<int> &level_ordering) {
   return res;
 }
 
-template <class Value>
-const KVTreePv2<Value> swap_levels(const KVTreePv2<Value> &tree,
-                                   const vector<int> &new_level_ordering) {
-  if (new_level_ordering.size() == 0)
-    return tree;
-  int next_level = new_level_ordering[0];
-  auto new_tree = bring_level_on_top_by_key(tree, next_level);
-
-  auto sub_new_level_ordering = _sub_level_ordering(new_level_ordering);
-
-  decltype(tree->children) new_children;
-  new_children.reserve(tree->children.size());
-  for (const auto &c : new_tree->children) {
-    new_children.push_back(
-        {c.first, swap_levels(c.second, sub_new_level_ordering)});
-  }
-
-  return mtkv(new_tree->n, new_children);
-}
-
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes
