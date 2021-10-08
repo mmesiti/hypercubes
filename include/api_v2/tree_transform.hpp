@@ -10,7 +10,6 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-const int NOKEY = -1;
 /** Generates a very simple tree
  * representing a N-dimensional array
  * from a list of dimensions.
@@ -20,16 +19,14 @@ const int NOKEY = -1;
 KVTreePv2<bool> generate_nd_tree(std::vector<int> Dimensions);
 
 /** Level splitting functions.
- * The new level uses "NOKEY" for all the keys
+ * The new level uses {} for all the keys
  * as there is no correspondent level in the input tree.
  * NOTE: the subtrees at depth level+1 are untouched
  *       and concide with the relative subtrees in the input tree.
  *       This means that they should be ignored by index_pullback. */
 
 /** Splits a level of a tree in n-parts,
- * making sure the partitions are as equal as possible.
- * The new level uses "NOKEY" for all the keys
- * as there is no correspondent level in the input tree. */
+ * making sure the partitions are as equal as possible. */
 KVTreePv2<bool> q(KVTreePv2<bool>, int level, int nparts);
 
 /** Splits a level in 3 parts,
@@ -76,21 +73,24 @@ vector<int> index_pullback(const KVTreePv2<Value> &tree, int level_no_id_max,
     auto subtree = tree->children[idx].second;
     auto out_tail = index_pullback(subtree, level_no_id_max - 1, tail(in));
     vector<int> out;
-    std::copy_if(key.begin(), key.end(),  //
-                 std::back_inserter(out), //
-                 [](int k) { return k != NOKEY; });
+    std::copy(key.begin(), key.end(), //
+              std::back_inserter(out));
     std::copy(out_tail.begin(), out_tail.end(), //
               std::back_inserter(out));
     return out;
   }
 }
+/* This function checks the keys in the tree
+ * and returns the index that matches that.
+ * There might be more than one match */
 template <class Value>
-vector<int> index_pushforward(const KVTreePv2<Value> &tree, int level_no_id_max,
-                              const vector<int> &in) {
+vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,
+                                      int level_no_id_max,
+                                      const vector<int> &in) {
   if (level_no_id_max == 0 or in.size() == 0) {
     // we are sure that beyond this point
     // no changes will be made.
-    return in;
+    return vector<vector<int>>{in};
   } else {
     int keylen = tree->children[0].first.size();
     vector<int> key;
@@ -101,21 +101,20 @@ vector<int> index_pushforward(const KVTreePv2<Value> &tree, int level_no_id_max,
     other_indices.reserve(in.size() - keylen);
     std::copy(in.begin() + keylen, in.end(), //
               std::back_inserter(other_indices));
-    for (auto c : tree->children) {
-      if (c.first == key) {
-        auto subtree = c.second;
-        auto out_tail =
+    vector<vector<int>> sub_results;
+    for (auto c = tree->children.begin(); c != tree->children.end(); ++c) {
+      if (c->first == key) {
+        auto subtree = c->second;
+        auto out_tails =
             index_pushforward(subtree, level_no_id_max - 1, other_indices);
-        vector<int> out;
-        std::copy_if(key.begin(), key.end(),  //
-                     std::back_inserter(out), //
-                     [](int k) { return k != NOKEY; });
-        std::copy(out_tail.begin(), out_tail.end(), //
-                  std::back_inserter(out));
-        return out;
+        int idx = (int)(c - tree->children.begin());
+        for (auto &out_tail : out_tails) {
+          vector<int> out = append(idx, out_tail);
+          sub_results.push_back(out);
+        }
       }
     }
-    throw KeyNotFoundError("key not found");
+    return sub_results;
   }
 }
 

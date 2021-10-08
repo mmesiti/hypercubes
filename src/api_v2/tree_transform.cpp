@@ -40,7 +40,7 @@ void _partition_children_into_subtrees(
       grandchildren.push_back({{i}, //
                                t_children[i].second});
 
-    children.push_back({{NOKEY}, mtkv(false, grandchildren)});
+    children.push_back({{}, mtkv(false, grandchildren)});
   }
 }
 

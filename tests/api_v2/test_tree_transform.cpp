@@ -29,13 +29,13 @@ BOOST_AUTO_TEST_CASE(test_partition_q_dimension_0_no_rest) {
   auto t = generate_nd_tree({6});
   auto t_partitioned = q(t, 0, 3);
   auto t_partitioned_expected =
-      mtkv(false, {{{NOKEY},
+      mtkv(false, {{{},
                     mtkv(false, {{{0}, mtkv(true, {})},    //
                                  {{1}, mtkv(true, {})}})}, //
-                   {{NOKEY},
+                   {{},
                     mtkv(false, {{{2}, mtkv(true, {})},    //
                                  {{3}, mtkv(true, {})}})}, //
-                   {{NOKEY},
+                   {{},
                     mtkv(false, {{{4}, mtkv(true, {})}, //
                                  {{5}, mtkv(true, {})}})}});
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
@@ -44,11 +44,11 @@ BOOST_AUTO_TEST_CASE(test_partition_q_dimension_0_with_rest) {
   auto t = generate_nd_tree({5});
   auto t_partitioned = q(t, 0, 2);
   auto t_partitioned_expected =
-      mtkv(false, {{{NOKEY},
+      mtkv(false, {{{},
                     mtkv(false, {{{0}, mtkv(true, {})},    //
                                  {{1}, mtkv(true, {})},    //
                                  {{2}, mtkv(true, {})}})}, //
-                   {{NOKEY},
+                   {{},
                     mtkv(false, {{{3}, mtkv(true, {})}, //
                                  {{4}, mtkv(true, {})}})}});
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
@@ -57,11 +57,11 @@ BOOST_AUTO_TEST_CASE(test_partition_q_dimension_0_with_rest) {
 BOOST_AUTO_TEST_CASE(test_partition_q_dimension_1_with_rest) {
   auto t = generate_nd_tree({2, 5});
   auto t_partitioned = q(t, 1, 2);
-  auto subtree = mtkv(false, {{{NOKEY},
+  auto subtree = mtkv(false, {{{},
                                mtkv(false, {{{0}, mtkv(true, {})},    //
                                             {{1}, mtkv(true, {})},    //
                                             {{2}, mtkv(true, {})}})}, //
-                              {{NOKEY},
+                              {{},
                                mtkv(false, {{{3}, mtkv(true, {})}, //
                                             {{4}, mtkv(true, {})}})}});
 
@@ -85,14 +85,14 @@ BOOST_AUTO_TEST_CASE(test_bb_dimension_0) {
   auto t = generate_nd_tree({7});
   auto t_partitioned = bb(t, 0, 2);
   auto t_partitioned_expected =
-      mtkv(false, {{{NOKEY},
+      mtkv(false, {{{},
                     mtkv(false, {{{0}, mtkv(true, {})},    //
                                  {{1}, mtkv(true, {})}})}, //
-                   {{NOKEY},
+                   {{},
                     mtkv(false, {{{2}, mtkv(true, {})},    //
                                  {{3}, mtkv(true, {})},    //
                                  {{4}, mtkv(true, {})}})}, //
-                   {{NOKEY},
+                   {{},
                     mtkv(false, {{{5}, mtkv(true, {})}, //
                                  {{6}, mtkv(true, {})}})}});
 
@@ -101,16 +101,16 @@ BOOST_AUTO_TEST_CASE(test_bb_dimension_0) {
 BOOST_AUTO_TEST_CASE(test_bb_dimension_1) {
   auto t = generate_nd_tree({3, 7});
   auto t_partitioned = bb(t, 1, 2);
-  auto subtree = mtkv(false, {{{NOKEY},
+  auto subtree = mtkv(false, {{{},
                                mtkv(false, {{{0}, mtkv(true, {})}, //
                                             {{1}, mtkv(true, {})}})},
                               //
-                              {{NOKEY},
+                              {{},
                                mtkv(false, {{{2}, mtkv(true, {})}, //
                                             {{3}, mtkv(true, {})}, //
                                             {{4}, mtkv(true, {})}})},
                               //
-                              {{NOKEY},
+                              {{},
                                mtkv(false, {{{5}, mtkv(true, {})}, //
                                             {{6}, mtkv(true, {})}})}});
 
@@ -205,11 +205,36 @@ BOOST_AUTO_TEST_CASE(test_index_pullback) {
                                 out_expected.begin(), out_expected.end());
 }
 
+BOOST_AUTO_TEST_CASE(test_index_pullback_and_pushforward) {
+  /// Pushforward is the opposite of pullback.
+  auto subtree = mtkv(false, {{{10}, mtkv(false, {})},                      //
+                              {{11}, mtkv(false, {{{6}, mtkv(true, {})}})}, //
+                              {{12}, mtkv(false, {{{8}, mtkv(true, {})}})}, //
+                              {{13}, mtkv(false, {})}});                    //
+  auto t0 = mtkv(false, {{{40}, subtree},                                   //
+                         {{21}, subtree}});
+  {
+    vector<int> in{0, 2, 0};
+    auto pullback = index_pullback(t0, 3, in);
+    auto pushforward = index_pushforward(t0, 3, pullback)[0];
+    BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), //
+                                  pushforward.begin(), pushforward.end());
+  }
+  /// In both ways!
+  {
+    vector<int> in{40, 11, 6};
+    auto pushforward = index_pushforward(t0, 3, in)[0];
+    auto pullback = index_pullback(t0, 3, pushforward);
+    BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), //
+                                  pullback.begin(), pullback.end());
+  }
+}
+
 BOOST_AUTO_TEST_CASE(test_index_pushforward) {
   auto t = generate_nd_tree({2, 2, 2});
   vector<int> in{0, 1, 0};
   auto out = index_pushforward(t, 3, in);
-  BOOST_TEST(in == out);
+  BOOST_TEST(vector<vector<int>>{in} == out);
 }
 
 BOOST_AUTO_TEST_CASE(test_index_pullback_throws) {
@@ -217,9 +242,10 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_throws) {
   BOOST_CHECK_THROW(index_pullback(t, 3, {1, 4, 3}), KeyNotFoundError);
 }
 
-BOOST_AUTO_TEST_CASE(test_index_pushforward_throws) {
+BOOST_AUTO_TEST_CASE(test_index_pushforward_noresults) {
   auto t = generate_nd_tree({2, 4, 4});
-  BOOST_CHECK_THROW(index_pushforward(t, 3, {1, 4, 3}), KeyNotFoundError);
+  auto res = index_pushforward(t, 3, {1, 4, 3});
+  BOOST_TEST(res.size() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(test_index_pullback_q) {
@@ -242,17 +268,17 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_q) {
   vector<int> in{0, 3, 2};
   vector<int> out_exp{0, 1, 1, 2};
   auto out =
-      index_pushforward(t1, level + 2, in); // because q creates 2 new levels
-  BOOST_TEST(out.size() == 3);
+      index_pushforward(t1, level + 2, in)[0]; // because q creates 2 new levels
+  BOOST_TEST(out.size() == 4);
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
 
-BOOST_AUTO_TEST_CASE(test_index_pullback_both_ways) {
+BOOST_AUTO_TEST_CASE(test_index_pullback_inverse_tree) {
   auto t0 = generate_nd_tree({2, 4, 4});
   int level = 1;
   auto t1 = q(t0, level, 2);
-  auto t2 = flatten(t1, level, level + 2);
+  auto t2 = flatten(t1, level, level + 2); // the inverse tree
 
   vector<int> in2{0, 3, 2};
   vector<int> out2_exp{0, 1, 1, 2};
@@ -260,6 +286,24 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_both_ways) {
 
   auto out2 = index_pullback(t2, level + 1, in2);
   auto out1 = index_pullback(t1, level + 2, out2);
+  BOOST_CHECK_EQUAL_COLLECTIONS(out2.begin(), out2.end(), //
+                                out2_exp.begin(), out2_exp.end());
+  BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
+                                out1_exp.begin(), out1_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_index_pushforward_both_ways) {
+  auto t0 = generate_nd_tree({2, 4, 4});
+  int level = 1;
+  auto t1 = q(t0, level, 2);
+  auto t2 = flatten(t1, level, level + 2); // the inverse tree
+
+  vector<int> in2{0, 3, 2};
+  vector<int> out2_exp{0, 1, 1, 2};
+  vector<int> out1_exp{0, 3, 2}; // = in2;
+
+  auto out2 = index_pushforward(t1, level + 2, in2)[0];
+  auto out1 = index_pushforward(t2, level + 1, out2)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out2.begin(), out2.end(), //
                                 out2_exp.begin(), out2_exp.end());
   BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
@@ -302,5 +346,9 @@ BOOST_AUTO_TEST_CASE(test_remap_level_pullback_index) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
 }
+// TODO: Test that remapping collision + index_pushforward
+//       produces more than 1 results;
 
+// TODO: Test that instead of crashes meaningful exceptions are thrown
+//       (is this a good thing?)
 BOOST_AUTO_TEST_SUITE_END()
