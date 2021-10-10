@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
 BOOST_AUTO_TEST_CASE(test_index_pullback_id) {
   auto t = generate_nd_tree({2, 2, 2});
   vector<int> in{0, 1, 0};
-  auto out = index_pullback(t, in);
+  auto out = index_pullback(t, in)[0];
   BOOST_TEST(in == out);
 }
 
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_complex) {
 
   vector<int> in{0, 2, 0};
   vector<int> out_expected{40, 12, 8};
-  auto out = index_pullback(t0, in);
+  auto out = index_pullback(t0, in)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
 }
@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_and_pushforward) {
                          {{21}, subtree}});
   {
     vector<int> in{0, 2, 0};
-    auto pullback = index_pullback(t0, in);
+    auto pullback = index_pullback(t0, in)[0];
     auto pushforward = index_pushforward(t0, pullback)[0];
     BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), //
                                   pushforward.begin(), pushforward.end());
@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_and_pushforward) {
   {
     vector<int> in{40, 11, 6};
     auto pushforward = index_pushforward(t0, in)[0];
-    auto pullback = index_pullback(t0, pushforward);
+    auto pullback = index_pullback(t0, pushforward)[0];
     BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), //
                                   pullback.begin(), pullback.end());
   }
@@ -319,8 +319,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_q) {
   auto t1 = q(t0, level, 2);
   vector<int> in{0, 1, 1, 2};
   vector<int> out_exp{0, 3, 2};
-  auto out = index_pullback(t1, in); // because q creates 2 new levels
-  BOOST_TEST(out.size() == 3);
+  auto out = index_pullback(t1, in)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
@@ -331,8 +330,9 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_q) {
   auto t1 = q(t0, level, 2);
   vector<int> in{0, 3, 2};
   vector<int> out_exp{0, 1, 1, 2};
-  auto out = index_pushforward(t1, in)[0];
-  BOOST_TEST(out.size() == 4);
+  auto outs = index_pushforward(t1, in);
+  BOOST_TEST(outs.size() == 1);
+  auto out = outs[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
@@ -347,8 +347,8 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_inverse_tree) {
   vector<int> out2_exp{0, 1, 1, 2};
   vector<int> out1_exp{0, 3, 2}; // = in2;
 
-  auto out2 = index_pullback(t2, in2);
-  auto out1 = index_pullback(t1, out2);
+  auto out2 = index_pullback(t2, in2)[0];
+  auto out1 = index_pullback(t1, out2)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out2.begin(), out2.end(), //
                                 out2_exp.begin(), out2_exp.end());
   BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
@@ -404,7 +404,7 @@ BOOST_AUTO_TEST_CASE(test_remap_level_pullback_index) {
   auto t1 = remap_level(t0, level, remapping);
 
   vector<int> in{0, 3, 0};
-  auto out = index_pullback(t1, in);
+  auto out = index_pullback(t1, in)[0];
   vector<int> out_expected{0, 1, 0};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
@@ -437,7 +437,7 @@ BOOST_AUTO_TEST_CASE(test_flatten_pullback) {
                                            {{1, 0}, subtree}, //
                                            {{1, 1}, subtree}});
 
-  auto out = index_pullback(t_collapsed, {2, 0});
+  auto out = index_pullback(t_collapsed, {2, 0})[0];
   decltype(out) out_expected{1, 0, 0};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());

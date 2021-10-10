@@ -86,29 +86,18 @@ KVTreePv2<bool> flatten(KVTreePv2<bool> t, int levelstart, int levelend);
 //       (consider)
 KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level);
 
+enum KeyIndexSwitch { KEY, INDEX };
 /** Where all these functions transform an input tree into an output tree,
  * this function transforms an index in the opposite direction
  * (that's why it's called 'pullback').
  * */
 template <class Value>
-vector<int> index_pullback(const KVTreePv2<Value> &tree,
-                           const vector<int> &in) {
-  if (in.size() == 0)
-    return in;
-  int idx = in[0];
-  if (idx >= tree->children.size()) {
-    throw KeyNotFoundError("index over bound");
-  }
-  vector<int> key;
-  key = tree->children[idx].first;
-  auto subtree = tree->children[idx].second;
-  auto out_tail = index_pullback(subtree, tail(in));
-  vector<int> out;
-  std::copy(key.begin(), key.end(), //
-            std::back_inserter(out));
-  std::copy(out_tail.begin(), out_tail.end(), //
-            std::back_inserter(out));
-  return out;
+vector<vector<int>> index_pullback(const KVTreePv2<Value> &tree,
+                                   const vector<int> &in) {
+
+  vector<KeyIndexSwitch> switches(in.size());
+  std::fill(switches.begin(), switches.end(), INDEX);
+  return _index_find(tree, in, switches);
 }
 /* This function checks the keys in the tree
  * and returns the index that matches that.
@@ -116,26 +105,77 @@ vector<int> index_pullback(const KVTreePv2<Value> &tree,
 template <class Value>
 vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,
                                       const vector<int> &in) {
-  if (in.size() == 0)
+  vector<KeyIndexSwitch> switches(in.size());
+  std::fill(switches.begin(), switches.end(), KEY);
+  return _index_find(tree, in, switches);
+}
+
+template <class Value>
+vector<vector<int>> _index_find(const KVTreePv2<Value> &tree,
+                                const vector<int> &in,
+                                const vector<KeyIndexSwitch> &switches) {
+  if (in.size() == 0) {
     return vector<vector<int>>{{}};
-  else {
-    int keylen = tree->children[0].first.size();
+  } else {
+    KeyIndexSwitch s = switches[0];
+    int idx;
+    if (s == INDEX) { // pullback
+      idx = in[0];
+      if (idx >= tree->children.size()) {
+        throw KeyNotFoundError("index over bound");
+      }
+    }
     vector<int> key;
-    key.reserve(keylen);
-    std::copy(in.begin(), in.begin() + keylen, //
-              std::back_inserter(key));
     vector<int> other_indices;
-    other_indices.reserve(in.size() - keylen);
-    std::copy(in.begin() + keylen, in.end(), //
-              std::back_inserter(other_indices));
+    vector<KeyIndexSwitch> other_switches;
     vector<vector<int>> sub_results;
+    switch (s) {
+    case INDEX: // pullback
+      key = tree->children[idx].first;
+      other_indices = tail(in);
+      other_switches = tail(switches);
+      break;
+    case KEY: // pushforward
+      int keylen = tree->children[0].first.size();
+      key.reserve(keylen);                       // key
+      std::copy(in.begin(), in.begin() + keylen, //
+                std::back_inserter(key));
+      other_indices.reserve(in.size() - keylen); // other_indices
+      std::copy(in.begin() + keylen, in.end(),   //
+                std::back_inserter(other_indices));
+      other_switches.reserve(in.size() - keylen);          // other_switches
+      std::copy(switches.begin() + keylen, switches.end(), //
+                std::back_inserter(other_switches));
+      break;
+    }
     for (auto c = tree->children.begin(); c != tree->children.end(); ++c) {
-      if (c->first == key) {
+      bool condition;
+      switch (s) {
+      case INDEX: // pullback
+        condition = (c - tree->children.begin() == idx);
+        break;
+      case KEY: // pushforward
+        condition = (c->first == key);
+        break;
+      }
+      if (condition) {
         auto subtree = c->second;
-        auto out_tails = index_pushforward(subtree, other_indices);
-        int idx = (int)(c - tree->children.begin());
+        vector<vector<int>> out_tails =
+            _index_find(subtree, other_indices, other_switches);
         for (auto &out_tail : out_tails) {
-          vector<int> out = append(idx, out_tail);
+          vector<int> out;
+          switch (s) {
+          case INDEX:                         // pullback
+            std::copy(key.begin(), key.end(), //
+                      std::back_inserter(out));
+            std::copy(out_tail.begin(), out_tail.end(), //
+                      std::back_inserter(out));
+            break;
+          case KEY: // pushforward
+            idx = (int)(c - tree->children.begin());
+            out = append(idx, out_tail);
+            break;
+          }
           sub_results.push_back(out);
         }
       }
@@ -143,7 +183,6 @@ vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,
     return sub_results;
   }
 }
-
 /** Reshuffles the keys in a level.*/
 template <class Value>
 KVTreePv2<Value> remap_level(const KVTreePv2<Value> t, int level,
