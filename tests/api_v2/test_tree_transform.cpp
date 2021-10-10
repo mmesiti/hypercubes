@@ -2,12 +2,56 @@
 #include "exceptions/exceptions.hpp"
 #include "trees/tree.hpp"
 #include "trees/tree_data_structure.hpp"
+#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
 using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_tree_transform)
+
+BOOST_AUTO_TEST_CASE(test_generate_flat_level) {
+  auto t = generate_flat_level(3);
+  auto leaf = mtkv(true, {});
+  auto texp = mtkv(false, {{{0}, leaf}, //
+                           {{1}, leaf}, //
+                           {{2}, leaf}});
+  BOOST_TEST(*texp == *t);
+}
+
+BOOST_AUTO_TEST_CASE(test_tree_product1) {
+  auto t2 = generate_flat_level(2);
+  auto t = tree_product({t2});
+  BOOST_TEST(*t == *t2);
+}
+
+BOOST_AUTO_TEST_CASE(test_tree_product2) {
+  auto t2 = generate_flat_level(2);
+  auto t3 = generate_flat_level(3);
+  auto t6 = tree_product({t2, t3});
+  auto t6exp = mtkv(false, {{{0}, t3}, //
+                            {{1}, t3}});
+  BOOST_TEST(*t6 == *t6exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_tree_product3) {
+  auto t2 = generate_flat_level(2);
+  auto t3 = generate_flat_level(3);
+  auto _t6 = tree_product({t3, t2});
+  auto t12 = tree_product({t2, t3, t2});
+  auto t12exp = mtkv(false, {{{0}, _t6}, //
+                             {{1}, _t6}});
+  BOOST_TEST(*t12 == *t12exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_tree_sum) {
+  auto t2 = generate_flat_level(2);
+  auto t3 = generate_flat_level(3);
+  auto t5 = tree_sum({t2, t3});
+  auto t5exp = mtkv(false, {{{0}, t2}, //
+                            {{1}, t3}});
+  BOOST_TEST(*t5 == *t5exp);
+}
 
 BOOST_AUTO_TEST_CASE(test_generate_nd_tree) {
 
@@ -381,6 +425,36 @@ BOOST_AUTO_TEST_CASE(test_remap_level_pushforward_index_multiple) {
   vector<vector<int>> outs_expected{{0, 1, 0}, {0, 3, 0}};
   BOOST_CHECK_EQUAL_COLLECTIONS(outs.begin(), outs.end(), //
                                 outs_expected.begin(), outs_expected.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_flatten_pullback) {
+  auto t = generate_nd_tree({2, 2, 2});
+  auto t_collapsed = flatten(t, 0, 2);
+
+  auto subtree = generate_nd_tree({2});
+  auto t_collapsed_expected = mtkv(false, {{{0, 0}, subtree}, //
+                                           {{0, 1}, subtree}, //
+                                           {{1, 0}, subtree}, //
+                                           {{1, 1}, subtree}});
+
+  auto out = index_pullback(t_collapsed, {2, 0});
+  decltype(out) out_expected{1, 0, 0};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_expected.begin(), out_expected.end());
+}
+BOOST_AUTO_TEST_CASE(test_flatten_pushforward) {
+  auto t = generate_nd_tree({2, 2, 2});
+  auto t_collapsed = flatten(t, 0, 2);
+
+  auto subtree = generate_nd_tree({2});
+  auto t_collapsed_expected = mtkv(false, {{{0, 0}, subtree}, //
+                                           {{0, 1}, subtree}, //
+                                           {{1, 0}, subtree}, //
+                                           {{1, 1}, subtree}});
+  auto out = index_pushforward(t_collapsed, {1, 0, 0})[0];
+  decltype(out) out_expected{2, 0};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_expected.begin(), out_expected.end());
 }
 
 // TODO: Test that instead of crashes meaningful exceptions are thrown

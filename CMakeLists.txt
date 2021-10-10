@@ -82,8 +82,8 @@ add_library(level_swap src/trees/level_swap.cpp)
 
 # Tree transformation
 add_library(tree_transform src/api_v2/tree_transform.cpp)
-add_library(level_names src/api_v2/level_names.cpp)
-add_library(index_transformer src/api_v2/index_transformer.cpp)
+add_library(transformer src/api_v2/transformer.cpp)
+target_link_libraries(transformer tree_transform)
 
 # API
 add_library(memory_layout src/api/memory_layout.cpp)

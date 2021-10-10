@@ -11,6 +11,10 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
+KVTreePv2<bool> generate_flat_level(int dimension);
+
+KVTreePv2<bool> tree_product(const vector<KVTreePv2<bool>> &trees);
+KVTreePv2<bool> tree_sum(const vector<KVTreePv2<bool>> &trees);
 /** Generates a very simple tree
  * representing a N-dimensional array
  * from a list of dimensions.
@@ -26,6 +30,10 @@ KVTreePv2<bool> generate_nd_tree(std::vector<int> Dimensions);
  *       and concide with the relative subtrees in the input tree.
  *       This means that they should be ignored by index_pullback. */
 // TODO: consider memoisation
+// TODO: We need an equivalent function that does not renumber children
+//       and just copies the keys
+//       (this is useful to skip some transformation steps).
+//       (consider)
 template <class F>
 KVTreePv2<bool> renumber_children(const KVTreePv2<bool> t, F f) {
 
@@ -39,21 +47,28 @@ KVTreePv2<bool> renumber_children(const KVTreePv2<bool> t, F f) {
 }
 
 // TODO: consider memoisation
+// TODO: We need an equivalent function that does not renumber children
+//       and just copies the keys
+//       In this case, it is just a no-op.
+//       (consider)
 KVTreePv2<bool> renumber_children_rec(const KVTreePv2<bool> t);
 /** Splits a level of a tree in n-parts,
- * making sure the partitions are as equal as possible. */
+ * making sure the partitions are as equal as possible.
+ * Affects only level and level+1. */
 KVTreePv2<bool> q(KVTreePv2<bool>, int level, int nparts);
 
 /** Splits a level in 3 parts,
  * representing the first border,
- * the bulk and the last border. */
+ * the bulk and the last border.
+ * Affects only level and level+1. */
 KVTreePv2<bool> bb(KVTreePv2<bool>, int level, int halosize);
 
 /** Level collapsing function.
  * Collapses the levels in the range [levelstart,levelend),
  * which are replaced by a single level placed at "levelstart".
  * The keys in the new level are the concatenation
- * of the indices in the collapsed levels. */
+ * of the indices in the collapsed levels.
+ * Affects only the levels in said range. */
 KVTreePv2<bool> flatten(KVTreePv2<bool> t, int levelstart, int levelend);
 
 /** Assumes that the relevant dimensions (levels)
@@ -66,6 +81,9 @@ KVTreePv2<bool> flatten(KVTreePv2<bool> t, int levelstart, int levelend);
  * This means that the partitioning between even and odd sites
  * will be correct only up to an exchange between even and odd
  * (that will be different for each subtree). */
+// TODO: eo_naive should not remap the children,
+//       since it is already done by the previous flatten().
+//       (consider)
 KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level);
 
 /** Where all these functions transform an input tree into an output tree,

@@ -10,17 +10,55 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-KVTreePv2<bool> generate_nd_tree(std::vector<int> dimensions) {
-  if (dimensions.size() > 0) {
-    auto child = generate_nd_tree(tail(dimensions));
-    decltype(KVTree<bool>::children) children;
-    children.reserve(dimensions[0]);
-    for (int i = 0; i < dimensions[0]; ++i)
-      children.push_back({{i}, child});
-    return mtkv(false, children);
-  } else {
-    return mtkv(true, {});
+KVTreePv2<bool> generate_flat_level(int size) {
+  auto leaf = mtkv(true, {});
+  decltype(KVTree<bool>::children) children;
+  children.reserve(size);
+  for (int i = 0; i < size; ++i) {
+    children.push_back({{i}, leaf});
   }
+  return mtkv(false, children);
+}
+
+KVTreePv2<bool> tree_product2(const KVTreePv2<bool> &t1,
+                              const KVTreePv2<bool> &t2) {
+  if (t1->n == true) {
+    return t2;
+  } else {
+    decltype(KVTree<bool>::children) children;
+    children.reserve(t1->children.size());
+    std::transform(t1->children.begin(), //
+                   t1->children.end(),   //
+                   std::back_inserter(children), [t2](auto c) {
+                     return mp(c.first, //
+                               tree_product2(c.second, t2));
+                   });
+    return mtkv(t1->n, children);
+  }
+}
+KVTreePv2<bool> tree_product(const vector<KVTreePv2<bool>> &trees) {
+  if (trees.size() == 1) {
+    return trees[0];
+  } else {
+    return tree_product2(trees[0], tree_product(tail(trees)));
+  }
+};
+
+KVTreePv2<bool> tree_sum(const vector<KVTreePv2<bool>> &trees) {
+  decltype(KVTree<bool>::children) children;
+  children.reserve(trees.size());
+  for (int i = 0; i < trees.size(); ++i)
+    children.push_back({{i}, trees[i]});
+  return mtkv(false, children);
+}
+KVTreePv2<bool> generate_nd_tree(std::vector<int> dimensions) {
+  vector<KVTreePv2<bool>> levels;
+  levels.reserve(dimensions.size());
+  std::transform(dimensions.begin(),         //
+                 dimensions.end(),           //
+                 std::back_inserter(levels), //
+                 generate_flat_level);
+  return tree_product(levels);
 }
 
 KVTreePv2<bool> renumber_children_rec(const KVTreePv2<bool> t) {
