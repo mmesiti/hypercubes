@@ -69,26 +69,36 @@ public:
   Transformer(Args... args) : TreeTransformer(args...) {}
 };
 
-struct Id : public Transformer {
+class Id : public Transformer {
 public:
   Id(vector<int> dimensions, vector<std::string> dimension_names);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
-struct Q : public Transformer {
+class Q : public Transformer {
+private:
+  int level_idx;
+
 public:
   Q(TreeTransformerP previous, std::string level, int nparts, std::string name);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
-struct BB : public Transformer {
+class BB : public Transformer {
+private:
+  int level_idx;
+
 public:
   BB(TreeTransformerP previous, std::string level, int halosize,
      std::string name);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
-struct Flatten : public Transformer {
+class Flatten : public Transformer {
+private:
+  int level_start_idx, level_end_idx;
+
+public:
   Flatten(TreeTransformerP previous, //
           std::string level_start,   //
           std::string level_end,     // INCLUSIVE

@@ -97,7 +97,9 @@ Id::Id(vector<int> dimensions, vector<std::string> dimension_names)
                                 " to size of dimension_names");
 }
 
+// No checks are made on ranges.
 vector<Index> Id::apply(const Index &idx) { return vector<Index>{idx}; }
+// No checks are made on ranges.
 vector<Index> Id::inverse(const Index &idx) { return vector<Index>{idx}; }
 
 Q::Q(TreeTransformerP previous, std::string level, int nparts, std::string name)
@@ -106,13 +108,16 @@ Q::Q(TreeTransformerP previous, std::string level, int nparts, std::string name)
                     previous->find_level(level), //
                     nparts),
                   previous->emplace_name(name, //
-                                         level)) {}
+                                         level)),
+      level_idx(previous->find_level(level)) {}
 
 vector<Index> Q::apply(const Index &in) {
-  return index_pushforward(output_tree, in);
+  return index_pushforward(output_tree, in, level_idx,
+                           level_idx + 2); // TODO: check
 }
 vector<Index> Q::inverse(const Index &in) {
-  return vector<Index>{index_pullback(output_tree, in)};
+  return vector<Index>{
+      index_pullback(output_tree, in, level_idx, level_idx + 2)}; // TODO: check
 }
 
 BB::BB(TreeTransformerP previous, std::string level, int halosize,
@@ -122,13 +127,16 @@ BB::BB(TreeTransformerP previous, std::string level, int halosize,
                      previous->find_level(level), //
                      halosize),
                   previous->emplace_name(name, //
-                                         level)) {}
+                                         level)),
+      level_idx(previous->find_level(level)) {}
 
 vector<Index> BB::apply(const Index &in) {
-  return index_pushforward(output_tree, in);
+  return index_pushforward(output_tree, in, level_idx,
+                           level_idx + 2); // TODO: check
 }
 vector<Index> BB::inverse(const Index &in) {
-  return vector<Index>{index_pullback(output_tree, in)};
+  return vector<Index>{
+      index_pullback(output_tree, in, level_idx, level_idx + 2)}; // TODO: check
 }
 
 Flatten::Flatten(TreeTransformerP previous, //
@@ -137,18 +145,22 @@ Flatten::Flatten(TreeTransformerP previous, //
                  std::string name)
     : Transformer(
           previous,
-          flatten(previous->output_tree,                //
-                  previous->find_level(level_start),    //
-                  previous->find_level(level_end) + 1), // level_end inclusive
-          previous->replace_name_range(name,            //
-                                       level_start,     //
-                                       level_end)) {}
+          flatten(previous->output_tree,                  //
+                  previous->find_level(level_start),      //
+                  previous->find_level(level_end) + 1),   // level_end inclusive
+          previous->replace_name_range(name,              //
+                                       level_start,       //
+                                       level_end)),       //
+      level_start_idx(previous->find_level(level_start)), //
+      level_end_idx(previous->find_level(level_end) + 1) {}
 
 vector<Index> Flatten::apply(const Index &in) {
-  return index_pushforward(output_tree, in);
+  return index_pushforward(output_tree, in, level_start_idx,
+                           level_start_idx + 1); // TODO: check
 }
 vector<Index> Flatten::inverse(const Index &in) {
-  return vector<Index>{index_pullback(output_tree, in)};
+  return vector<Index>{index_pullback(output_tree, in, level_start_idx,
+                                      level_start_idx + 1)}; // TODO: check
 }
 
 } // namespace internals

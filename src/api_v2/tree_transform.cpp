@@ -61,17 +61,6 @@ KVTreePv2<bool> generate_nd_tree(std::vector<int> dimensions) {
   return tree_product(levels);
 }
 
-KVTreePv2<bool> renumber_children_rec(const KVTreePv2<bool> t) {
-
-  decltype(KVTree<bool>::children) children;
-  auto tchildren = t->children;
-  children.reserve(tchildren.size());
-  for (auto i = 0; i != tchildren.size(); ++i) {
-    children.push_back({{i}, renumber_children_rec(tchildren[i].second)});
-  }
-  return mtkv(t->n, children);
-}
-
 void _partition_children_into_subtrees(
     decltype(KVTree<bool>::children) &children, //
     const vector<int> &starts,                  //
@@ -87,7 +76,7 @@ void _partition_children_into_subtrees(
 
     for (auto i = i_grandchildren_start; i < i_grandchildren_end; ++i)
       grandchildren.push_back({{i}, //
-                               renumber_children_rec(t_children[i].second)});
+                               t_children[i].second});
 
     children.push_back({{}, mtkv(false, grandchildren)});
   }
@@ -108,7 +97,7 @@ KVTreePv2<bool> q(KVTreePv2<bool> t, int level, int nparts) {
     _partition_children_into_subtrees(children, starts, ends, t->children);
     return mtkv(false, children);
   } else {
-    return renumber_children(t, [level, nparts](auto subtree) {
+    return apply_to_subtrees(t, [level, nparts](auto subtree) {
       return q(subtree, level - 1, nparts);
     });
   }
@@ -127,7 +116,7 @@ KVTreePv2<bool> bb(KVTreePv2<bool> t, int level, int halosize) {
     _partition_children_into_subtrees(children, starts, ends, t->children);
     return mtkv(false, children);
   } else {
-    return renumber_children(t, [level, halosize](auto subtree) {
+    return apply_to_subtrees(t, [level, halosize](auto subtree) {
       return bb(subtree, level - 1, halosize);
     });
   }
@@ -152,7 +141,7 @@ KVTreePv2<bool> flatten(const KVTreePv2<bool> t, int levelstart, int levelend) {
     }
     return mtkv(false, children);
   } else {
-    return renumber_children(t, //
+    return apply_to_subtrees(t, //
                              [levelstart, levelend](auto subtree) {
                                return flatten(subtree, levelstart - 1,
                                               levelend - 1);
@@ -175,7 +164,7 @@ KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level) {
     children.push_back({{1}, mtkv(false, EO[1])});
     return mtkv(false, children);
   } else {
-    return renumber_children(
+    return apply_to_subtrees(
         t, //
         [level](auto subtree) { return eo_naive(subtree, level - 1); });
   }

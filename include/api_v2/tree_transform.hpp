@@ -3,8 +3,10 @@
 #include "exceptions/exceptions.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
+#include "utils/print_utils.hpp"
 #include "utils/utils.hpp"
 #include <cassert>
+#include <iostream>
 #include <vector>
 
 namespace hypercubes {
@@ -35,23 +37,18 @@ KVTreePv2<bool> generate_nd_tree(std::vector<int> Dimensions);
 //       (this is useful to skip some transformation steps).
 //       (consider)
 template <class F>
-KVTreePv2<bool> renumber_children(const KVTreePv2<bool> t, F f) {
+KVTreePv2<bool> apply_to_subtrees(const KVTreePv2<bool> t, F f) {
 
   decltype(KVTree<bool>::children) children;
   auto tchildren = t->children;
   children.reserve(tchildren.size());
-  for (auto i = 0; i != tchildren.size(); ++i) {
-    children.push_back({{i}, f(tchildren[i].second)});
+  for (const auto &c : tchildren) {
+    children.push_back({c.first, f(c.second)});
   }
   return mtkv(t->n, children);
 }
 
 // TODO: consider memoisation
-// TODO: We need an equivalent function that does not renumber children
-//       and just copies the keys
-//       In this case, it is just a no-op.
-//       (consider)
-KVTreePv2<bool> renumber_children_rec(const KVTreePv2<bool> t);
 /** Splits a level of a tree in n-parts,
  * making sure the partitions are as equal as possible.
  * Affects only level and level+1. */
@@ -91,8 +88,10 @@ KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level);
  * (that's why it's called 'pullback').
  * */
 template <class Value>
-vector<int> index_pullback(const KVTreePv2<Value> &tree,
-                           const vector<int> &in) {
+vector<int> index_pullback(const KVTreePv2<Value> &tree, //
+                           const vector<int> &in,        //
+                           int competence_range_start,   //
+                           int competence_range_end) {
   if (in.size() == 0)
     return in;
   int idx = in[0];
@@ -102,23 +101,42 @@ vector<int> index_pullback(const KVTreePv2<Value> &tree,
   vector<int> key;
   key = tree->children[idx].first;
   auto subtree = tree->children[idx].second;
-  auto out_tail = index_pullback(subtree, tail(in));
+  auto out_tail = index_pullback(subtree,                    //
+                                 tail(in),                   //
+                                 competence_range_start - 1, //
+                                 competence_range_end - 1);
   vector<int> out;
-  std::copy(key.begin(), key.end(), //
-            std::back_inserter(out));
-  std::copy(out_tail.begin(), out_tail.end(), //
-            std::back_inserter(out));
+  if (competence_range_start <= 0 and 0 < competence_range_end) {
+    std::copy(key.begin(), key.end(), //
+              std::back_inserter(out));
+    std::copy(out_tail.begin(), out_tail.end(), //
+              std::back_inserter(out));
+  } else {
+    out = append(idx, out_tail);
+  }
   return out;
 }
 /* This function checks the keys in the tree
  * and returns the index that matches that.
  * There might be more than one match */
 template <class Value>
-vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,
-                                      const vector<int> &in) {
+vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,      //
+                                      const vector<int> &in,             //
+                                      int output_competence_range_start, //
+                                      int output_competence_range_end) {
   if (in.size() == 0)
     return vector<vector<int>>{{}};
   else {
+    // if (tree->children.size() == 0) return vector<vector<int>>{}; // FIXME
+    std::cout << "nchildren " << tree->children.size();
+    std::cout << " - ";
+    for (auto c : tree->children) {
+      std::cout << c.first << ",";
+    }
+    std::cout << " - ";
+    std::cout << " in " << in;
+    std::cout << "range (" << output_competence_range_start << ","
+              << output_competence_range_end << ")";
     int keylen = tree->children[0].first.size();
     vector<int> key;
     key.reserve(keylen);
@@ -128,18 +146,41 @@ vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,
     other_indices.reserve(in.size() - keylen);
     std::copy(in.begin() + keylen, in.end(), //
               std::back_inserter(other_indices));
+    std::cout << " key " << key;
+    std::cout << " other_indices " << other_indices;
     vector<vector<int>> sub_results;
+    bool transform_index = (output_competence_range_start <= 0 and
+                            0 < output_competence_range_end);
+    int output_size = 1; // transform_index ? 1 : keylen;
+    std::cout << "output size " << output_size;
+    std::cout << std::endl;
     for (auto c = tree->children.begin(); c != tree->children.end(); ++c) {
       if (c->first == key) {
         auto subtree = c->second;
-        auto out_tails = index_pushforward(subtree, other_indices);
+        auto out_tails =
+            index_pushforward(subtree,       //
+                              other_indices, //
+                              output_competence_range_start - output_size,
+                              output_competence_range_end - output_size);
         int idx = (int)(c - tree->children.begin());
         for (auto &out_tail : out_tails) {
-          vector<int> out = append(idx, out_tail);
+          vector<int> out;
+          if (transform_index) {
+            out = append(idx, out_tail);
+            std::cout << "eya\n";
+          } else {
+            std::cout << "no\n";
+            std::copy(key.begin(), key.end(), //
+                      std::back_inserter(out));
+            std::copy(out_tail.begin(), out_tail.end(), //
+                      std::back_inserter(out));
+          }
+          std::cout << "out " << out << std::endl;
           sub_results.push_back(out);
         }
       }
     }
+    std::cout << "results " << sub_results << std::endl;
     return sub_results;
   }
 }
@@ -153,11 +194,11 @@ KVTreePv2<Value> remap_level(const KVTreePv2<Value> t, int level,
   if (level == 0) {
     for (int key : index_map) {
       auto c = t->children[key];
-      children.push_back({{key}, renumber_children_rec(c.second)});
+      children.push_back(c);
     }
 
   } else {
-    return renumber_children(t, [level, index_map](auto subtree) {
+    return apply_to_subtrees(t, [level, index_map](auto subtree) {
       return remap_level(subtree, level - 1, index_map);
     });
   }

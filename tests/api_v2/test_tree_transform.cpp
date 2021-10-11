@@ -198,7 +198,33 @@ BOOST_AUTO_TEST_CASE(test_flatten_levels_3d_02) {
 
 BOOST_AUTO_TEST_CASE(test_eo_naive_1d_even) {
   auto t = generate_nd_tree({4});
-  auto t_numbered = q(t, 0, 1);
+  auto t_expected = mtkv(false, {{{0},
+                                  mtkv(false, {{{0}, mtkv(true, {})},    //
+                                               {{2}, mtkv(true, {})}})}, //
+                                 {{1},
+                                  mtkv(false, {{{1}, mtkv(true, {})}, //
+                                               {{3}, mtkv(true, {})}})}});
+
+  auto t_partitioned = eo_naive(t, 0);
+  BOOST_TEST(*t_partitioned == *t_expected);
+}
+BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
+  auto t = generate_nd_tree({5});
+  auto t_expected = mtkv(false, {{{0},
+                                  mtkv(false, {{{0}, mtkv(true, {})},    //
+                                               {{2}, mtkv(true, {})},    //
+                                               {{4}, mtkv(true, {})}})}, //
+                                 {{1},
+                                  mtkv(false, {{{1}, mtkv(true, {})}, //
+                                               {{3}, mtkv(true, {})}})}});
+
+  auto t_partitioned = eo_naive(t, 0);
+  BOOST_TEST(*t_partitioned == *t_expected);
+}
+
+BOOST_AUTO_TEST_CASE(test_eo_naive_1d_even_nested) {
+  auto t = generate_nd_tree({4});
+  auto t_nested = q(t, 0, 1); // Adding a level
   auto t_sub_expected = mtkv(false, {{{0},
                                       mtkv(false, {{{0}, mtkv(true, {})},    //
                                                    {{2}, mtkv(true, {})}})}, //
@@ -206,13 +232,14 @@ BOOST_AUTO_TEST_CASE(test_eo_naive_1d_even) {
                                       mtkv(false, {{{1}, mtkv(true, {})}, //
                                                    {{3}, mtkv(true, {})}})}});
 
-  auto t_partitioned = eo_naive(t_numbered, 1);
-  auto t_expected = mtkv(false, {{{0}, t_sub_expected}});
+  auto t_partitioned = eo_naive(t_nested, 1);
+  auto t_expected = mtkv(false, {{{}, // key added by q is empty
+                                  t_sub_expected}});
   BOOST_TEST(*t_partitioned == *t_expected);
 }
-BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
+BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd_nested) {
   auto t = generate_nd_tree({5});
-  auto t_numbered = q(t, 0, 1);
+  auto t_nested = q(t, 0, 1); // Adding a level
   auto t_sub_expected = mtkv(false, {{{0},
                                       mtkv(false, {{{0}, mtkv(true, {})},    //
                                                    {{2}, mtkv(true, {})},    //
@@ -221,15 +248,16 @@ BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
                                       mtkv(false, {{{1}, mtkv(true, {})}, //
                                                    {{3}, mtkv(true, {})}})}});
 
-  auto t_partitioned = eo_naive(t_numbered, 1);
-  auto t_expected = mtkv(false, {{{0}, t_sub_expected}});
+  auto t_partitioned = eo_naive(t_nested, 1);
+  auto t_expected = mtkv(false, {{{}, // key added by q is empty
+                                  t_sub_expected}});
   BOOST_TEST(*t_partitioned == *t_expected);
 }
 
 BOOST_AUTO_TEST_CASE(test_index_pullback_id) {
   auto t = generate_nd_tree({2, 2, 2});
   vector<int> in{0, 1, 0};
-  auto out = index_pullback(t, in);
+  auto out = index_pullback(t, in, 0, 3);
   BOOST_TEST(in == out);
 }
 
@@ -243,7 +271,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_complex) {
 
   vector<int> in{0, 2, 0};
   vector<int> out_expected{40, 12, 8};
-  auto out = index_pullback(t0, in);
+  auto out = index_pullback(t0, in, 0, 3);
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
 }
@@ -251,7 +279,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_complex) {
 BOOST_AUTO_TEST_CASE(test_index_pushforward_id) {
   auto t = generate_nd_tree({2, 2, 2});
   vector<int> in{0, 1, 0};
-  auto out = index_pushforward(t, in);
+  auto out = index_pushforward(t, in, 0, 3);
   BOOST_TEST(vector<vector<int>>{in} == out);
 }
 
@@ -265,7 +293,7 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_complex) {
 
   vector<int> in{40, 12, 8};
   vector<int> out_expected{0, 2, 0};
-  auto out = index_pushforward(t0, in)[0];
+  auto out = index_pushforward(t0, in, 0, 3)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
 }
@@ -280,16 +308,16 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_and_pushforward) {
                          {{21}, subtree}});
   {
     vector<int> in{0, 2, 0};
-    auto pullback = index_pullback(t0, in);
-    auto pushforward = index_pushforward(t0, pullback)[0];
+    auto pullback = index_pullback(t0, in, 0, 3);
+    auto pushforward = index_pushforward(t0, pullback, 0, 3)[0];
     BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), //
                                   pushforward.begin(), pushforward.end());
   }
   /// In both ways!
   {
     vector<int> in{40, 11, 6};
-    auto pushforward = index_pushforward(t0, in)[0];
-    auto pullback = index_pullback(t0, pushforward);
+    auto pushforward = index_pushforward(t0, in, 0, 3)[0];
+    auto pullback = index_pullback(t0, pushforward, 0, 3);
     BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), //
                                   pullback.begin(), pullback.end());
   }
@@ -297,19 +325,19 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_and_pushforward) {
 
 BOOST_AUTO_TEST_CASE(test_index_pullback_throws) {
   auto t = generate_nd_tree({2, 4, 4});
-  BOOST_CHECK_THROW(index_pullback(t, {1, 4, 3}), KeyNotFoundError);
+  BOOST_CHECK_THROW(index_pullback(t, {1, 4, 3}, 0, 3), KeyNotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(test_index_pullback_throws_with_level_below_error) {
   /// in this case, the index out of bound is above the level
   /// at which keys are considered.
   auto t = generate_nd_tree({2, 4, 4});
-  BOOST_CHECK_THROW(index_pullback(t, {1, 4, 3}), KeyNotFoundError);
+  BOOST_CHECK_THROW(index_pullback(t, {1, 4, 3}, 0, 3), KeyNotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(test_index_pushforward_noresults) {
   auto t = generate_nd_tree({2, 4, 4});
-  auto res = index_pushforward(t, {1, 4, 3});
+  auto res = index_pushforward(t, {1, 4, 3}, 0, 3);
   BOOST_TEST(res.size() == 0);
 }
 
@@ -319,7 +347,8 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_q) {
   auto t1 = q(t0, level, 2);
   vector<int> in{0, 1, 1, 2};
   vector<int> out_exp{0, 3, 2};
-  auto out = index_pullback(t1, in); // because q creates 2 new levels
+  auto out =
+      index_pullback(t1, in, 0, in.size()); // because q creates 2 new levels
   BOOST_TEST(out.size() == 3);
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
@@ -331,8 +360,8 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_q) {
   auto t1 = q(t0, level, 2);
   vector<int> in{0, 3, 2};
   vector<int> out_exp{0, 1, 1, 2};
-  auto out = index_pushforward(t1, in)[0];
-  BOOST_TEST(out.size() == 4);
+  std::cout << "diocane" << std::endl;
+  auto out = index_pushforward(t1, in, level, level + 2)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
@@ -341,14 +370,22 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_inverse_tree) {
   auto t0 = generate_nd_tree({2, 4, 4});
   int level = 1;
   auto t1 = q(t0, level, 2);
-  auto t2 = flatten(t1, level, level + 2); // the inverse tree
+  int start_level = level;
+  int end_level = level + 2;
+  auto t2 = flatten(t1, start_level, end_level); // the inverse tree
 
   vector<int> in2{0, 3, 2};
   vector<int> out2_exp{0, 1, 1, 2};
   vector<int> out1_exp{0, 3, 2}; // = in2;
 
-  auto out2 = index_pullback(t2, in2);
-  auto out1 = index_pullback(t1, out2);
+  auto out2 = index_pullback(t2,                          //
+                             in2,                         //
+                             start_level,                 //
+                             start_level + 1);            //
+  auto out1 = index_pullback(t1,                          //
+                             out2,                        //
+                             level,                       //
+                             level + 2);                  //
   BOOST_CHECK_EQUAL_COLLECTIONS(out2.begin(), out2.end(), //
                                 out2_exp.begin(), out2_exp.end());
   BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
@@ -359,14 +396,22 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_both_ways) {
   auto t0 = generate_nd_tree({2, 4, 4});
   int level = 1;
   auto t1 = q(t0, level, 2);
-  auto t2 = flatten(t1, level, level + 2); // the inverse tree
+  int start_level = level;
+  int end_level = level + 2;
+  auto t2 = flatten(t1, start_level, end_level); // the inverse tree
 
   vector<int> in2{0, 3, 2};
   vector<int> out2_exp{0, 1, 1, 2};
   vector<int> out1_exp{0, 3, 2}; // = in2;
 
-  auto out2 = index_pushforward(t1, in2)[0];
-  auto out1 = index_pushforward(t2, out2)[0];
+  auto out2 = index_pushforward(t1,                       //
+                                in2,                      //
+                                level,                    //
+                                level + 2)[0];            //
+  auto out1 = index_pushforward(t2,                       //
+                                out2,                     //
+                                start_level,              //
+                                end_level)[0];            //
   BOOST_CHECK_EQUAL_COLLECTIONS(out2.begin(), out2.end(), //
                                 out2_exp.begin(), out2_exp.end());
   BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
@@ -383,11 +428,11 @@ BOOST_AUTO_TEST_CASE(test_remap_level) {
   vector<int> remapping{3, 0, 2, 1};
   auto t1 = remap_level(t0, 1, remapping);
   auto subtree1_exp =
-      mtkv(false, {{{3}, mtkv(false, {})},                        //
-                   {{0}, mtkv(false, {})},                        //
-                   {{2}, mtkv(false, {{{0}, mtkv(true, {})}})},   //
-                   {{1}, mtkv(false, {{{0}, mtkv(true, {})}})}}); //
-  auto t1_exp = mtkv(false, {{{0}, subtree1_exp},                 //
+      mtkv(false, {{{13}, mtkv(false, {})},                        //
+                   {{10}, mtkv(false, {})},                        //
+                   {{12}, mtkv(false, {{{8}, mtkv(true, {})}})},   //
+                   {{11}, mtkv(false, {{{6}, mtkv(true, {})}})}}); //
+  auto t1_exp = mtkv(false, {{{0}, subtree1_exp},                  //
                              {{1}, subtree1_exp}});
   BOOST_TEST(*t1 == *t1_exp);
 }
@@ -404,8 +449,8 @@ BOOST_AUTO_TEST_CASE(test_remap_level_pullback_index) {
   auto t1 = remap_level(t0, level, remapping);
 
   vector<int> in{0, 3, 0};
-  auto out = index_pullback(t1, in);
-  vector<int> out_expected{0, 1, 0};
+  auto out = index_pullback(t1, in, level, level + 1);
+  vector<int> out_expected{0, 11, 0};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
 }
@@ -420,16 +465,18 @@ BOOST_AUTO_TEST_CASE(test_remap_level_pushforward_index_multiple) {
   int level = 1;
   auto t1 = remap_level(t0, level, remapping);
 
-  vector<int> in{0, 2, 0};
-  auto outs = index_pushforward(t1, in);
-  vector<vector<int>> outs_expected{{0, 1, 0}, {0, 3, 0}};
+  vector<int> in{0, 12, 8};
+  auto outs = index_pushforward(t1, in, level, level + 1);
+  vector<vector<int>> outs_expected{{0, 1, 8}, {0, 3, 8}};
   BOOST_CHECK_EQUAL_COLLECTIONS(outs.begin(), outs.end(), //
                                 outs_expected.begin(), outs_expected.end());
 }
 
 BOOST_AUTO_TEST_CASE(test_flatten_pullback) {
   auto t = generate_nd_tree({2, 2, 2});
-  auto t_collapsed = flatten(t, 0, 2);
+  int level_start = 0;
+  int level_end = 2;
+  auto t_collapsed = flatten(t, level_start, level_end);
 
   auto subtree = generate_nd_tree({2});
   auto t_collapsed_expected = mtkv(false, {{{0, 0}, subtree}, //
@@ -437,21 +484,29 @@ BOOST_AUTO_TEST_CASE(test_flatten_pullback) {
                                            {{1, 0}, subtree}, //
                                            {{1, 1}, subtree}});
 
-  auto out = index_pullback(t_collapsed, {2, 0});
+  auto out = index_pullback(t_collapsed,      //
+                            {2, 0},           //
+                            level_start,      //
+                            level_start + 1); //
   decltype(out) out_expected{1, 0, 0};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
 }
 BOOST_AUTO_TEST_CASE(test_flatten_pushforward) {
   auto t = generate_nd_tree({2, 2, 2});
-  auto t_collapsed = flatten(t, 0, 2);
+  int level_start = 0;
+  int level_end = 2;
+  auto t_collapsed = flatten(t, level_start, level_end);
 
   auto subtree = generate_nd_tree({2});
   auto t_collapsed_expected = mtkv(false, {{{0, 0}, subtree}, //
                                            {{0, 1}, subtree}, //
                                            {{1, 0}, subtree}, //
                                            {{1, 1}, subtree}});
-  auto out = index_pushforward(t_collapsed, {1, 0, 0})[0];
+  auto out = index_pushforward(t_collapsed,   //
+                               {1, 0, 0},     //
+                               level_start,   //
+                               level_end)[0]; //
   decltype(out) out_expected{2, 0};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
@@ -482,6 +537,35 @@ BOOST_AUTO_TEST_CASE(test_swap_levels_by_key) {
   auto newt = swap_levels(t, new_level_ordering);
 
   BOOST_TEST(*newt == *newt_exp);
+}
+
+BOOST_AUTO_TEST_CASE(test_pullback_q_after_doubleremap) {
+  // This test should fail if some of the ranges in pullback
+  // are set incorrectly.
+  auto t = generate_nd_tree({3, 4, 4});
+  auto t05 = remap_level(t, 0, {1, 2, 0});     // remapping before the range
+  auto t1 = remap_level(t05, 2, {2, 3, 0, 1}); // remapping after before
+  int level = 1;
+  auto t2 = q(t1, level, 2);
+  auto pullback2 = index_pullback(t2, {2, 1, 0, 3}, level, level + 2);
+  decltype(pullback2) exp_pullback2{2, 2, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(pullback2.begin(), pullback2.end(), //
+                                exp_pullback2.begin(), exp_pullback2.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_pushback_q_before_doubleremap) {
+  // This test should fail if some of the ranges in pullback
+  // are set incorrectly.
+  auto t = generate_nd_tree({3, 4, 4});
+  auto t05 = remap_level(t, 0, {1, 2, 0});     // remapping before the range
+  auto t1 = remap_level(t05, 2, {2, 3, 0, 1}); // remapping after the range
+  int level = 1;
+  auto t2 = q(t1, level, 2);
+  auto pushforward2 = index_pushforward(t2, {2, 2, 3}, level, level + 2)[0];
+  decltype(pushforward2) exp_pushforward2{2, 1, 0, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(pushforward2.begin(), pushforward2.end(), //
+                                exp_pushforward2.begin(),
+                                exp_pushforward2.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

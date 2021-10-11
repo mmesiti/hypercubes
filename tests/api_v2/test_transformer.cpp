@@ -80,6 +80,30 @@ BOOST_AUTO_TEST_CASE(test_q_apply) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
+BOOST_AUTO_TEST_CASE(test_doubleq) {
+  auto R = std::make_shared<Id>(vector<int>{2, 4, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto partY = std::make_shared<Q>(R, "Y", 2, "MPI Y");
+  auto partYZ = std::make_shared<Q>(partY, "Z", 2, "MPI Z");
+
+  auto zsplit = mtkv(false, {{{},
+                              mtkv(false, {{{0}, mtkv(true, {})},    //
+                                           {{1}, mtkv(true, {})}})}, //
+                             {{},
+                              mtkv(false, {{{2}, mtkv(true, {})}, //
+                                           {{3}, mtkv(true, {})}})}});
+
+  auto ysplit = mtkv(false, {{{},
+                              mtkv(false, {{{0}, zsplit},    //
+                                           {{1}, zsplit}})}, //
+                             {{},
+                              mtkv(false, {{{2}, zsplit}, //
+                                           {{3}, zsplit}})}});
+
+  auto x = mtkv(false, {{{0}, ysplit}, //
+                        {{1}, ysplit}});
+  BOOST_TEST(*x == *(partYZ->output_tree));
+}
 
 BOOST_AUTO_TEST_CASE(test_q_inverse) {
   auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
@@ -87,6 +111,28 @@ BOOST_AUTO_TEST_CASE(test_q_inverse) {
   Q part(R, "Y", 2, "MPI Y");
   Index out = part.inverse({2, 1, 0, 3})[0];
   Index out_exp{2, 4, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_doubleq_apply) {
+  auto R = std::make_shared<Id>(vector<int>{2, 4, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto partY = std::make_shared<Q>(R, "Y", 2, "MPI Y");
+  auto partYZ = std::make_shared<Q>(partY, "Z", 2, "MPI Z");
+  Index out = partYZ->apply({1, 1, 3})[0];
+  Index out_exp{1, 1, 1, 1};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_doubleq_inverse) {
+  auto R = std::make_shared<Id>(vector<int>{2, 4, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto partY = std::make_shared<Q>(R, "Y", 2, "MPI Y");
+  auto partYZ = std::make_shared<Q>(partY, "Z", 2, "MPI Z");
+  Index out = partYZ->inverse({1, 1, 1, 1})[0];
+  Index out_exp{1, 1, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
@@ -102,17 +148,6 @@ BOOST_AUTO_TEST_CASE(test_bb_constructor) {
                                 part.output_levelnames.end());
 }
 
-BOOST_AUTO_TEST_CASE(test_bb_apply) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
-                                vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y");
-  BB part(split, "Y", 1, "BB Y");
-  Index out = part.apply({2, 1, 0, 3})[0];
-  Index out_exp{2, 1, 0, 0, 3};
-  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
-                                out_exp.begin(), out_exp.end());
-}
-
 BOOST_AUTO_TEST_CASE(test_bb_inverse) {
   auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
@@ -120,6 +155,17 @@ BOOST_AUTO_TEST_CASE(test_bb_inverse) {
   BB part(split, "Y", 1, "BB Y");
   Index out = part.inverse({2, 1, 0, 0, 3})[0];
   Index out_exp{2, 1, 0, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_bb_apply) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y"); // {4,2,4,4}
+  BB part(split, "Y", 1, "BB Y");                       // {4,2,3,[1,2,1],4}
+  Index out = part.apply({2, 1, 0, 3})[0];
+  Index out_exp{2, 1, 0, 0, 0};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
