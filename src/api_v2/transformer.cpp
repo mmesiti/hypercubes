@@ -112,7 +112,7 @@ vector<Index> Q::apply(const Index &in) {
   return index_pushforward(output_tree, in);
 }
 vector<Index> Q::inverse(const Index &in) {
-  return index_pullback(output_tree, in);
+  return vector<Index>{index_pullback(output_tree, in)};
 }
 
 BB::BB(TreeTransformerP previous, std::string level, int halosize,
@@ -128,7 +128,7 @@ vector<Index> BB::apply(const Index &in) {
   return index_pushforward(output_tree, in);
 }
 vector<Index> BB::inverse(const Index &in) {
-  return index_pullback(output_tree, in);
+  return vector<Index>{index_pullback(output_tree, in)};
 }
 
 Flatten::Flatten(TreeTransformerP previous, //
@@ -148,7 +148,7 @@ vector<Index> Flatten::apply(const Index &in) {
   return index_pushforward(output_tree, in);
 }
 vector<Index> Flatten::inverse(const Index &in) {
-  return index_pullback(output_tree, in);
+  return vector<Index>{index_pullback(output_tree, in)};
 }
 
 } // namespace internals

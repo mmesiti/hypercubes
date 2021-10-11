@@ -8,12 +8,9 @@ namespace std {
 template <class T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
   os << std::string("[");
-  if (v.size() > 0) {
-    for (int i = 0; i < v.size() - 1; ++i)
-      os << v[i] << ", ";
-    os << *v.rbegin();
-  }
-  os << "]";
+  for (int i = 0; i < v.size() - 1; ++i)
+    os << v[i] << ", ";
+  os << *v.rbegin() << "]";
 
   return os;
 }
