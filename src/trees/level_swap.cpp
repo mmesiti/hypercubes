@@ -1,9 +1,8 @@
 #include "trees/level_swap.hpp"
 #include "utils/utils.hpp"
-
 namespace std {
-std::string to_string(std::string s) { return s; }
 
+std::string to_string(std::string s) { return s; }
 } // namespace std
 namespace hypercubes {
 namespace slow {

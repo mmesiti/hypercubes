@@ -48,8 +48,8 @@ BOOST_AUTO_TEST_CASE(test_tree_sum) {
   auto t2 = generate_flat_level(2);
   auto t3 = generate_flat_level(3);
   auto t5 = tree_sum({t2, t3});
-  auto t5exp = mtkv(false, {{{0}, t2}, //
-                            {{1}, t3}});
+  auto t5exp = mtkv(false, {{{}, t2}, //
+                            {{}, t3}});
   BOOST_TEST(*t5 == *t5exp);
 }
 

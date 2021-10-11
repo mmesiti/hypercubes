@@ -1,6 +1,7 @@
 #include "api_v2/transformer.hpp"
 #include "api_v2/tree_transform.hpp"
 #include "trees/kvtree_data_structure.hpp"
+#include "trees/level_swap.hpp"
 #include <stdexcept>
 
 namespace hypercubes {
@@ -81,13 +82,27 @@ TreeTransformer::TreeTransformer(TreeTransformerP previous,    //
                                  const vector<std::string> _output_levelnames)
     : input_tree(previous->output_tree), //
       output_tree(_output_tree),         //
-      output_levelnames(_output_levelnames){};
+      output_levelnames(_output_levelnames) {
+  if (not check_names_different())
+    throw std::invalid_argument("Level names are not different.");
+};
 
 TreeTransformer::TreeTransformer(KVTreePv2<bool> input_output_tree, //
                                  const vector<std::string> _output_levelnames)
     : input_tree(input_output_tree),  //
       output_tree(input_output_tree), //
-      output_levelnames(_output_levelnames){};
+      output_levelnames(_output_levelnames) {
+  if (not check_names_different())
+    throw std::invalid_argument("Level names are not different.");
+};
+
+bool TreeTransformer::check_names_different() {
+  for (int i = 0; i < output_levelnames.size(); ++i)
+    for (int j = i + 1; j < output_levelnames.size(); ++j)
+      if (output_levelnames[i] == output_levelnames[j])
+        return false;
+  return true;
+}
 
 Id::Id(vector<int> dimensions, vector<std::string> dimension_names)
     : Transformer(generate_nd_tree(dimensions), //
@@ -149,6 +164,105 @@ vector<Index> Flatten::apply(const Index &in) {
 }
 vector<Index> Flatten::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
+}
+
+LevelRemap::LevelRemap(TreeTransformerP previous, //
+                       std::string level,         //
+                       vector<int> index_map)
+    : Transformer(previous,
+                  remap_level(previous->output_tree,       //
+                              previous->find_level(level), //
+                              index_map),                  //
+                  previous->output_levelnames) {}
+
+vector<Index> LevelRemap::apply(const Index &in) {
+  return index_pushforward(output_tree, in);
+}
+vector<Index> LevelRemap::inverse(const Index &in) {
+  return vector<Index>{index_pullback(output_tree, in)};
+}
+
+Sum::Sum(TreeTransformerP previous,                    //
+         const vector<TreeTransformerP> &transformers, //
+         std::string name)
+    : Transformer(previous, //
+                  tree_sum([&]() {
+                    vector<KVTreePv2<bool>> ts;
+                    std::transform(
+                        transformers.begin(), //
+                        transformers.end(),   //
+                        std::back_inserter(ts),
+                        [](TreeTransformerP T) { return T->output_tree; });
+                    return ts;
+                  }()),
+                  append(name, previous->output_levelnames)) {
+  for (auto T : transformers) {
+    if (T->input_tree != previous->output_tree)
+      throw std::invalid_argument(
+          "All transformers need to have the same input tree,\n"
+          "equal to the output of the previous transformer.");
+  }
+}
+
+vector<Index> Sum::apply(const Index &in) {
+  return index_pushforward(output_tree, in);
+}
+vector<Index> Sum::inverse(const Index &in) {
+  return vector<Index>{index_pullback(output_tree, in)};
+}
+LevelSwap::LevelSwap(TreeTransformerP previous, vector<std::string> names)
+    : Transformer(
+          previous, //
+          swap_levels(
+              previous->output_tree, //
+              [&]() {
+                // names must be a permutation of
+                // previous->output_levelnames
+                if (not check_is_permutation(names,
+                                             previous->output_levelnames))
+                  throw std::invalid_argument(
+                      "New names are not a permutation of the old ones.");
+
+                vector<int> levels;
+                levels.reserve(previous->output_levelnames.size());
+                std::transform(names.begin(), names.end(),
+                               std::back_inserter(levels),
+                               [&](const std::string &name) {
+                                 return previous->find_level(name);
+                               });
+                return levels;
+              }()),
+          names),
+      permutation_apply(
+          find_permutation(names, previous->output_levelnames)), //
+      permutation_inverse(
+          find_permutation(previous->output_levelnames, names)) {}
+
+bool LevelSwap::check_is_permutation(vector<std::string> oldnames,
+                                     vector<std::string> newnames) {
+  return oldnames.size() == newnames.size() and
+             [&oldnames, &newnames]() -> bool {
+    return std::all_of(oldnames.begin(), oldnames.end(),
+                       [&newnames](const std::string &n) {
+                         return std::find(newnames.begin(), newnames.end(),
+                                          n) != newnames.end();
+                       });
+  }();
+}
+
+vector<Index> LevelSwap::apply(const Index &in) {
+  vector<int> out;
+  out.reserve(in.size());
+  for (int i : permutation_apply)
+    out.push_back(in[i]);
+  return {out};
+}
+vector<Index> LevelSwap::inverse(const Index &in) {
+  vector<int> out;
+  out.reserve(in.size());
+  for (int i : permutation_inverse)
+    out.push_back(in[i]);
+  return {out};
 }
 
 } // namespace internals

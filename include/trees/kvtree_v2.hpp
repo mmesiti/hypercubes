@@ -109,19 +109,6 @@ const KVTreePv2<Value> bring_level_on_top_by_key(const KVTreePv2<Value> &tree,
   return mtkv(*nodes.begin(), children);
 }
 
-inline vector<int> _sub_level_ordering(const vector<int> &level_ordering) {
-  vector<int> res;
-  int lvl_removed = level_ordering[0];
-  for (int i = 1; i < level_ordering.size(); ++i) {
-    int l = level_ordering[i];
-    if (l > lvl_removed)
-      res.push_back(l - 1);
-    else
-      res.push_back(l);
-  }
-  return res;
-}
-
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes

@@ -7,12 +7,9 @@
 #include <exception>
 #include <stdexcept>
 #include <vector>
-
 namespace std {
 std::string to_string(std::string s);
-
-} // namespace std
-
+}
 namespace hypercubes {
 namespace slow {
 namespace internals {

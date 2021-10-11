@@ -61,6 +61,9 @@ struct TreeTransformer {
                   const vector<std::string> _output_levelnames);
   TreeTransformer(KVTreePv2<bool> input_output_tree, //
                   const vector<std::string> _output_levelnames);
+
+private:
+  bool check_names_different();
 };
 
 class Transformer : public TreeTransformer, public IIndexTransformer {
@@ -96,10 +99,32 @@ struct Flatten : public Transformer {
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
-struct EO : public Transformer {};         // TODO
-struct Sum : public Transformer {};        // TODO
-struct LevelRemap : public Transformer {}; // TODO
-struct LevelSwap : public Transformer {};  // TODO
+struct LevelRemap : public Transformer {
+  LevelRemap(TreeTransformerP previous, //
+             std::string level,         //
+             vector<int> index_map);
+  vector<Index> apply(const Index &);
+  vector<Index> inverse(const Index &);
+};
+struct Sum : public Transformer {
+  Sum(TreeTransformerP previous,                    //
+      const vector<TreeTransformerP> &transformers, //
+      std::string name);
+  vector<Index> apply(const Index &);
+  vector<Index> inverse(const Index &);
+};
+struct LevelSwap : public Transformer {
+  LevelSwap(TreeTransformerP previous, vector<std::string> names);
+  vector<Index> apply(const Index &);
+  vector<Index> inverse(const Index &);
+
+private:
+  vector<int> permutation_apply;
+  vector<int> permutation_inverse;
+  static bool check_is_permutation(vector<std::string> oldnames,
+                                   vector<std::string> newnames);
+};
+struct EO : public Transformer {}; // TODO
 
 } // namespace internals
 } // namespace slow

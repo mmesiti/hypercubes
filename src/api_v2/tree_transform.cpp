@@ -48,7 +48,7 @@ KVTreePv2<bool> tree_sum(const vector<KVTreePv2<bool>> &trees) {
   decltype(KVTree<bool>::children) children;
   children.reserve(trees.size());
   for (int i = 0; i < trees.size(); ++i)
-    children.push_back({{i}, trees[i]});
+    children.push_back({{}, trees[i]});
   return mtkv(false, children);
 }
 KVTreePv2<bool> generate_nd_tree(std::vector<int> dimensions) {

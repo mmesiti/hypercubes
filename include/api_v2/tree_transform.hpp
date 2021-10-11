@@ -23,17 +23,9 @@ KVTreePv2<bool> tree_sum(const vector<KVTreePv2<bool>> &trees);
  * */
 KVTreePv2<bool> generate_nd_tree(std::vector<int> Dimensions);
 
-/** Level splitting functions.
- * The new level uses {} for all the keys
- * as there is no correspondent level in the input tree.
- * NOTE: the subtrees at depth level+1 are untouched
- *       and concide with the relative subtrees in the input tree.
- *       This means that they should be ignored by index_pullback. */
 // TODO: consider memoisation
-// TODO: We need an equivalent function that does not renumber children
-//       and just copies the keys
-//       (this is useful to skip some transformation steps).
-//       (consider)
+/** Renumbers subtrees, and applies a function to them.
+ *  Helper functions to deal with recursion */
 template <class F>
 KVTreePv2<bool> renumber_children(const KVTreePv2<bool> t, F f) {
 
@@ -47,11 +39,17 @@ KVTreePv2<bool> renumber_children(const KVTreePv2<bool> t, F f) {
 }
 
 // TODO: consider memoisation
-// TODO: We need an equivalent function that does not renumber children
-//       and just copies the keys
-//       In this case, it is just a no-op.
-//       (consider)
+/** Renumbers subtrees recursively.
+ *  Helper functions to deal with recursion */
 KVTreePv2<bool> renumber_children_rec(const KVTreePv2<bool> t);
+
+/** Level splitting functions.
+ * The new level uses {} for all the keys
+ * as there is no correspondent level in the input tree.
+ * NOTE: the subtrees at depth level+1 are untouched
+ *       and concide with the relative subtrees in the input tree.
+ *       This means that they should be ignored by index_pullback. */
+
 /** Splits a level of a tree in n-parts,
  * making sure the partitions are as equal as possible.
  * Affects only level and level+1. */
@@ -81,9 +79,6 @@ KVTreePv2<bool> flatten(KVTreePv2<bool> t, int levelstart, int levelend);
  * This means that the partitioning between even and odd sites
  * will be correct only up to an exchange between even and odd
  * (that will be different for each subtree). */
-// TODO: eo_naive should not remap the children,
-//       since it is already done by the previous flatten().
-//       (consider)
 KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level);
 
 /** Where all these functions transform an input tree into an output tree,
@@ -162,6 +157,19 @@ KVTreePv2<Value> remap_level(const KVTreePv2<Value> t, int level,
     });
   }
   return mtkv(t->n, children);
+}
+
+inline vector<int> _sub_level_ordering(const vector<int> &level_ordering) {
+  vector<int> res;
+  int lvl_removed = level_ordering[0];
+  for (int i = 1; i < level_ordering.size(); ++i) {
+    int l = level_ordering[i];
+    if (l > lvl_removed)
+      res.push_back(l - 1);
+    else
+      res.push_back(l);
+  }
+  return res;
 }
 
 template <class Value>

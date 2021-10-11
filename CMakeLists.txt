@@ -79,11 +79,12 @@ add_library(size_tree_iterator src/trees/size_tree_iterator.cpp)
 target_link_libraries(size_tree_iterator geometry partition_tree_allocations)
 
 add_library(level_swap src/trees/level_swap.cpp)
+target_link_libraries(level_swap partitioners)
 
 # Tree transformation
 add_library(tree_transform src/api_v2/tree_transform.cpp)
 add_library(transformer src/api_v2/transformer.cpp)
-target_link_libraries(transformer tree_transform)
+target_link_libraries(transformer tree_transform level_swap)
 
 # API
 add_library(memory_layout src/api/memory_layout.cpp)

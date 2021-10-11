@@ -1,5 +1,6 @@
 #include "api_v2/transformer.hpp"
 #include "api_v2/tree_transform.hpp"
+#include "trees/kvtree_data_structure.hpp"
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
@@ -9,14 +10,27 @@ using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_transformers)
 
-BOOST_AUTO_TEST_CASE(test_find_level) {
+BOOST_AUTO_TEST_CASE(test_tree_transformer_find_level) {
 
   TreeTransformer t{0, {"X", "Y", "Z", "T"}};
   int ilevel = t.find_level("Z");
   BOOST_TEST(ilevel == 2);
 }
 
-BOOST_AUTO_TEST_CASE(test_emplace_name) {
+BOOST_AUTO_TEST_CASE(test_tree_transformer_check_names_different) {
+  BOOST_CHECK_THROW(TreeTransformer(0, {"X", "Y", "Z", "Z"}),
+                    std::invalid_argument);
+}
+BOOST_AUTO_TEST_CASE(test_tree_transformer_check_names_different_3args) {
+  auto t = std::make_shared<TreeTransformer>(
+      (KVTreePv2<bool>)0, //
+      vector<std::string>{"X", "Y", "Z", "T"});
+
+  BOOST_CHECK_THROW(TreeTransformer(t, 0, {"X", "Y", "Z", "Z"}),
+                    std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_tree_transformer_emplace_name) {
 
   TreeTransformer t{0, {"X", "Y", "Z", "T"}};
   auto new_names = t.emplace_name("MPI Z", "Z");
@@ -25,7 +39,7 @@ BOOST_AUTO_TEST_CASE(test_emplace_name) {
                                 new_names_exp.begin(), new_names_exp.end());
 }
 
-BOOST_AUTO_TEST_CASE(test_replace_name_range) {
+BOOST_AUTO_TEST_CASE(test_tree_transformer_replace_name_range) {
 
   TreeTransformer t{0, {"X", "Y", "Z", "T"}};
   auto new_names = t.replace_name_range("FLAT", "Y", "Z");
@@ -176,6 +190,180 @@ BOOST_AUTO_TEST_CASE(test_flatten_inverse) {
   Index out_exp{2, 5, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_remap_constructor) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto remapped =
+      std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 1, 2, 1});
+  vector<std::string> names_exp{"X", "Y", "Z"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(names_exp.begin(), names_exp.end(), //
+                                remapped->output_levelnames.begin(),
+                                remapped->output_levelnames.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_remap_apply_none) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto remapped =
+      std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 2, 1, 1});
+  auto outs = remapped->apply({3, 6, 3});
+  BOOST_TEST(outs.size() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_remap_apply_2) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto remapped =
+      std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 2, 1, 1});
+  auto outs = remapped->apply({3, 6, 1});
+  decltype(outs) expouts = {{3, 6, 2}, {3, 6, 3}};
+  BOOST_CHECK_EQUAL_COLLECTIONS(outs[0].begin(), outs[0].end(), //
+                                expouts[0].begin(), expouts[0].end());
+  BOOST_CHECK_EQUAL_COLLECTIONS(outs[1].begin(), outs[1].end(), //
+                                expouts[1].begin(), expouts[1].end());
+}
+
+BOOST_AUTO_TEST_CASE(test_remap_inverse) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto remapped =
+      std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 2, 1, 1});
+  auto out = remapped->inverse({3, 6, 1})[0];
+  decltype(out) expout = {3, 6, 2};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                expout.begin(), expout.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_sum_constructor) {
+  auto R =
+      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+
+  auto remapped0 = std::make_shared<LevelRemap>(R, "X", std::vector<int>{0, 2});
+  auto remapped1 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{6, 7});
+  auto remapped2 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{3, 4});
+
+  vector<std::string> output_levelnames{"SUM", "X", "Y"};
+  auto sum = std::make_shared<Sum>(R,                                  //
+                                   vector<TreeTransformerP>{remapped0, //
+                                                            remapped1, //
+                                                            remapped2},
+                                   "SUM");
+  BOOST_CHECK_EQUAL_COLLECTIONS(
+      sum->output_levelnames.begin(), sum->output_levelnames.end(),
+      output_levelnames.begin(), output_levelnames.end());
+}
+BOOST_AUTO_TEST_CASE(test_sum_constructor_throws) {
+  auto R0 =
+      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+  auto R1 =
+      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+
+  auto remapped0 =
+      std::make_shared<LevelRemap>(R0, "X", std::vector<int>{0, 2});
+  auto remapped1 =
+      std::make_shared<LevelRemap>(R1, "Y", std::vector<int>{6, 7});
+
+  BOOST_CHECK_THROW(Sum(R0, {remapped0, remapped1}, "SUM"),
+                    std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_sum_apply) {
+  auto R =
+      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+
+  auto remapped0 = std::make_shared<LevelRemap>(R, "X", std::vector<int>{0, 2});
+  auto remapped1 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{6, 7});
+  auto remapped2 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{3, 4});
+
+  auto sum = std::make_shared<Sum>(R,                                  //
+                                   vector<TreeTransformerP>{remapped0, //
+                                                            remapped1, //
+                                                            remapped2},
+                                   "SUM");
+
+  auto outs = sum->apply({0, 3});
+  decltype(outs) expouts{{0, 0, 3},  // in remapped0
+                         {2, 0, 0}}; // in remapped2
+  BOOST_CHECK_EQUAL_COLLECTIONS(outs[0].begin(), outs[0].end(),
+                                expouts[0].begin(), expouts[0].end());
+  BOOST_CHECK_EQUAL_COLLECTIONS(outs[1].begin(), outs[1].end(),
+                                expouts[1].begin(), expouts[1].end());
+}
+
+BOOST_AUTO_TEST_CASE(test_sum_inverse) {
+  auto R =
+      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+
+  auto remapped0 = std::make_shared<LevelRemap>(R, "X", std::vector<int>{0, 2});
+  auto remapped1 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{6, 7});
+  auto remapped2 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{3, 4});
+
+  auto sum = std::make_shared<Sum>(R,                                  //
+                                   vector<TreeTransformerP>{remapped0, //
+                                                            remapped1, //
+                                                            remapped2},
+                                   "SUM");
+
+  auto out = sum->inverse({2, 0, 0})[0]; // in remapped2
+  decltype(out) expout{0, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), expout.begin(),
+                                expout.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_constructor) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto swapped =
+      std::make_shared<LevelSwap>(R, vector<std::string>{"Y", "Z", "X"});
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_check_names_wrong_length) {
+  vector<std::string> oldnames{"X", "Y", "Z"};
+  vector<std::string> newnames{"X", "Y", "Z", "T"};
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_too_few_names) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  BOOST_CHECK_THROW(
+      std::make_shared<LevelSwap>(R, vector<std::string>{"Y", "Z"}),
+      std::invalid_argument);
+}
+BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_no_permutation) {
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  BOOST_CHECK_THROW(
+      std::make_shared<LevelSwap>(R, vector<std::string>{"Y", "Z", "T"}),
+      std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_apply) {
+
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  auto swapped =
+      std::make_shared<LevelSwap>(R, vector<std::string>{"Y", "Z", "X"});
+  auto out = swapped->apply({1, 2, 3})[0];
+  decltype(out) outexp{2, 3, 1};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                outexp.begin(), outexp.end());
+}
+BOOST_AUTO_TEST_CASE(test_levelswap_inverse) {
+
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  auto swapped =
+      std::make_shared<LevelSwap>(R, vector<std::string>{"Y", "Z", "X"});
+  auto out = swapped->inverse({2, 3, 1})[0];
+  decltype(out) outexp{1, 2, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                outexp.begin(), outexp.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
