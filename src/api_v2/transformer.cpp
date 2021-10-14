@@ -210,6 +210,7 @@ vector<Index> Sum::apply(const Index &in) {
 vector<Index> Sum::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
+
 LevelSwap::LevelSwap(TreeTransformerP previous, vector<std::string> names)
     : Transformer(
           previous, //
@@ -263,6 +264,21 @@ vector<Index> LevelSwap::inverse(const Index &in) {
   for (int i : permutation_inverse)
     out.push_back(in[i]);
   return {out};
+}
+
+EONaive::EONaive(TreeTransformerP previous, //
+                 std::string keylevel,      //
+                 std::string newname)
+    : Transformer(
+          previous,
+          eo_naive(previous->output_tree, previous->find_level(keylevel)),
+          previous->emplace_name(newname, keylevel)) {}
+
+vector<Index> EONaive::apply(const Index &in) {
+  return index_pushforward(output_tree, in);
+}
+vector<Index> EONaive::inverse(const Index &in) {
+  return vector<Index>{index_pullback(output_tree, in)};
 }
 
 } // namespace internals

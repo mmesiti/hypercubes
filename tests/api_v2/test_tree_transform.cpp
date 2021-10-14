@@ -198,30 +198,30 @@ BOOST_AUTO_TEST_CASE(test_flatten_levels_3d_02) {
 
 BOOST_AUTO_TEST_CASE(test_eo_naive_1d_even) {
   auto t = generate_nd_tree({4});
-  auto t_numbered = q(t, 0, 1);
-  auto t_sub_expected = mtkv(false, {{{0},
+  auto t_nested = q(t, 0, 1);
+  auto t_sub_expected = mtkv(false, {{{},
                                       mtkv(false, {{{0}, mtkv(true, {})},    //
                                                    {{2}, mtkv(true, {})}})}, //
-                                     {{1},
+                                     {{},
                                       mtkv(false, {{{1}, mtkv(true, {})}, //
                                                    {{3}, mtkv(true, {})}})}});
 
-  auto t_partitioned = eo_naive(t_numbered, 1);
+  auto t_partitioned = eo_naive(t_nested, 1);
   auto t_expected = mtkv(false, {{{0}, t_sub_expected}});
   BOOST_TEST(*t_partitioned == *t_expected);
 }
 BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
   auto t = generate_nd_tree({5});
-  auto t_numbered = q(t, 0, 1);
-  auto t_sub_expected = mtkv(false, {{{0},
+  auto t_nested = q(t, 0, 1);
+  auto t_sub_expected = mtkv(false, {{{},
                                       mtkv(false, {{{0}, mtkv(true, {})},    //
                                                    {{2}, mtkv(true, {})},    //
                                                    {{4}, mtkv(true, {})}})}, //
-                                     {{1},
+                                     {{},
                                       mtkv(false, {{{1}, mtkv(true, {})}, //
                                                    {{3}, mtkv(true, {})}})}});
 
-  auto t_partitioned = eo_naive(t_numbered, 1);
+  auto t_partitioned = eo_naive(t_nested, 1);
   auto t_expected = mtkv(false, {{{0}, t_sub_expected}});
   BOOST_TEST(*t_partitioned == *t_expected);
 }

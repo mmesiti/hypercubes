@@ -71,6 +71,7 @@ public:
   template <typename... Args>
   Transformer(Args... args) : TreeTransformer(args...) {}
 };
+using TransformerP = std::shared_ptr<Transformer>;
 
 struct Id : public Transformer {
 public:
@@ -124,7 +125,18 @@ private:
   static bool check_is_permutation(vector<std::string> oldnames,
                                    vector<std::string> newnames);
 };
-struct EO : public Transformer {}; // TODO
+struct EONaive : public Transformer {
+private:
+  vector<std::string> levelnames;
+
+public:
+  EONaive(TreeTransformerP previous, //
+          std::string keylevel,      //
+          std::string newname);
+  vector<Index> apply(const Index &);
+  vector<Index> inverse(const Index &);
+
+}; // TODO
 
 } // namespace internals
 } // namespace slow

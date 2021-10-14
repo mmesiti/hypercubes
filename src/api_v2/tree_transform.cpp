@@ -171,8 +171,8 @@ KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level) {
       EO[std::accumulate(keys.begin(), keys.end(), 0) % 2].push_back(
           {{i}, t->children[i].second});
     }
-    children.push_back({{0}, mtkv(false, EO[0])});
-    children.push_back({{1}, mtkv(false, EO[1])});
+    children.push_back({{}, mtkv(false, EO[0])});
+    children.push_back({{}, mtkv(false, EO[1])});
     return mtkv(false, children);
   } else {
     return renumber_children(

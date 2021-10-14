@@ -1,6 +1,7 @@
 #include "api_v2/transformer.hpp"
 #include "api_v2/tree_transform.hpp"
 #include "trees/kvtree_data_structure.hpp"
+#include "utils/print_utils.hpp"
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
@@ -364,6 +365,58 @@ BOOST_AUTO_TEST_CASE(test_levelswap_inverse) {
   decltype(out) outexp{1, 2, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 outexp.begin(), outexp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_eonaive_constructor) {
+
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4, 3},
+                                vector<std::string>{"X", "Y", "Z", "ROW"});
+  auto flat = std::make_shared<Flatten>(R, "X", "Z", "FLAT");
+  auto eo = std::make_shared<EONaive>(flat, "FLAT", "EO");
+  vector<std::string> exp_levelnames{"EO", "FLAT", "ROW"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(eo->output_levelnames.begin(), //
+                                eo->output_levelnames.end(),   //
+                                exp_levelnames.begin(),        //
+                                exp_levelnames.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_eonaive_apply) {
+
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4, 3},
+                                vector<std::string>{"X", "Y", "Z", "ROW"});
+  auto flat = std::make_shared<Flatten>(R, "X", "Z", "FLAT");
+  auto eo = std::make_shared<EONaive>(flat, "FLAT", "EO");
+
+  Index in{3, 2, 2, 1};
+  auto out1 = flat->apply(in)[0];
+  std::cout << out1 << std::endl;
+  auto out = eo->apply(out1)[0];
+  std::cout << out << std::endl;
+  decltype(out) exp_out{1, (3 * 8 * 4 + 2 * 4 + 2) / 2, 1};
+
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(),     //
+                                out.end(),       //
+                                exp_out.begin(), //
+                                exp_out.end());
+}
+BOOST_AUTO_TEST_CASE(test_eonaive_inverse) {
+
+  auto R = std::make_shared<Id>(vector<int>{4, 8, 4, 3},
+                                vector<std::string>{"X", "Y", "Z", "ROW"});
+  auto flat = std::make_shared<Flatten>(R, "X", "Z", "FLAT");
+  auto eo = std::make_shared<EONaive>(flat, "FLAT", "EO");
+
+  Index in{1, (3 * 8 * 4 + 2 * 4 + 2) / 2, 1};
+  auto out1 = eo->inverse(in)[0];
+  std::cout << out1 << std::endl;
+  auto out = flat->inverse(out1)[0];
+  std::cout << out << std::endl;
+  decltype(out) exp_out{3, 2, 2, 1};
+
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(),     //
+                                out.end(),       //
+                                exp_out.begin(), //
+                                exp_out.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
