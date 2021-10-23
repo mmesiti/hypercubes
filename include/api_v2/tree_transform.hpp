@@ -86,103 +86,130 @@ KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level);
 /** Where all these functions transform an input tree into an output tree,
  * this function transforms an index in the opposite direction
  * (that's why it's called 'pullback').
- * */
+ * The function is recursive, and each recursive call
+ * "consumes" one element from the front of 'in'.
+ * This means that if the depth of the tree is d,
+ * then the d elements at the front of 'in' will be consumed. */
 template <class Value>
-vector<int> index_pullback(const KVTreePv2<Value> &tree, //
-                           const vector<int> &in,        //
-                           int competence_range_start,   //
-                           int competence_range_end) {
-  if (in.size() == 0)
-    return in;
-  int idx = in[0];
-  if (idx >= tree->children.size()) {
-    throw KeyNotFoundError("index over bound");
-  }
-  vector<int> key;
-  key = tree->children[idx].first;
-  auto subtree = tree->children[idx].second;
-  auto out_tail = index_pullback(subtree,                    //
-                                 tail(in),                   //
-                                 competence_range_start - 1, //
-                                 competence_range_end - 1);
+vector<int> index_pullback(const KVTreePv2<Value> &tree,      //
+                           const vector<int> &in,             //
+                           int output_competence_range_start, //
+                           int output_competence_range_end) {
+  std::cout << "PULLBACK " //
+            << "in: " << in;
+  std::cout << " range: " << output_competence_range_start << ","
+            << output_competence_range_end << std::endl;
   vector<int> out;
-  if (competence_range_start <= 0 and 0 < competence_range_end) {
-    std::copy(key.begin(), key.end(), //
-              std::back_inserter(out));
-    std::copy(out_tail.begin(), out_tail.end(), //
-              std::back_inserter(out));
+  if (0 < output_competence_range_end) {
+    int idx = in[0];
+    if (idx >= tree->children.size()) {
+      throw KeyNotFoundError("index over bound");
+    }
+
+    // we need to explore subtrees
+    auto subtree = tree->children[idx].second;
+    auto out_tail = index_pullback(subtree,                           //
+                                   tail(in),                          //
+                                   output_competence_range_start - 1, //
+                                   output_competence_range_end - 1);
+    if (0 < output_competence_range_start) {
+      // still out of competence range:
+      // this part of the output needs to be equal to input
+      // (i.e., idx)
+      out = append(idx, out_tail);
+    } else {
+      // in competence range,
+      // this part of the output needs to be
+      // the key found at the position given by idx
+      vector<int> key;
+      key = tree->children[idx].first;
+      std::copy(key.begin(), key.end(), //
+                std::back_inserter(out));
+      std::copy(out_tail.begin(), out_tail.end(), //
+                std::back_inserter(out));
+
+      std::cout << " key: " << key;
+    }
   } else {
-    out = append(idx, out_tail);
+    // again out of competence range:
+    // we do not need to explore subtrees
+    out = in;
   }
   return out;
 }
 /* This function checks the keys in the tree
  * and returns the index that matches that.
- * There might be more than one match */
+ * There might be more than one match.
+ * The function is recursive, and each recursive call
+ * "consumes" a number of elements from the front 'in'
+ * equal to the length of the key at that level
+ * (which might be zero). */
 template <class Value>
 vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,      //
                                       const vector<int> &in,             //
                                       int output_competence_range_start, //
                                       int output_competence_range_end) {
-  if (in.size() == 0)
-    return vector<vector<int>>{{}};
-  else {
-    // if (tree->children.size() == 0) return vector<vector<int>>{}; // FIXME
-    std::cout << "nchildren " << tree->children.size();
-    std::cout << " - ";
-    for (auto c : tree->children) {
-      std::cout << c.first << ",";
-    }
-    std::cout << " - ";
-    std::cout << " in " << in;
-    std::cout << "range (" << output_competence_range_start << ","
-              << output_competence_range_end << ")";
+  vector<vector<int>> sub_results;
+  if (0 < output_competence_range_end) {
     int keylen = tree->children[0].first.size();
+    // we split 'in' in the 'key' for the current level
+    // and in the 'other_indices' for the recursion.
     vector<int> key;
     key.reserve(keylen);
     std::copy(in.begin(), in.begin() + keylen, //
               std::back_inserter(key));
+
     vector<int> other_indices;
     other_indices.reserve(in.size() - keylen);
     std::copy(in.begin() + keylen, in.end(), //
               std::back_inserter(other_indices));
-    std::cout << " key " << key;
-    std::cout << " other_indices " << other_indices;
-    vector<vector<int>> sub_results;
-    bool transform_index = (output_competence_range_start <= 0 and
-                            0 < output_competence_range_end);
-    int output_size = 1; // transform_index ? 1 : keylen;
-    std::cout << "output size " << output_size;
-    std::cout << std::endl;
+
+    std::cout << "PUSHFORWARD "                      //
+              << "in: " << in                        //
+              << " key: " << key                     //
+              << " other_indices: " << other_indices //
+              << "range: " << output_competence_range_start << ","
+              << output_competence_range_end << std::endl;
     for (auto c = tree->children.begin(); c != tree->children.end(); ++c) {
+      std::cout << "first: " << c->first << std::endl;
+
       if (c->first == key) {
         auto subtree = c->second;
-        auto out_tails =
-            index_pushforward(subtree,       //
-                              other_indices, //
-                              output_competence_range_start - output_size,
-                              output_competence_range_end - output_size);
-        int idx = (int)(c - tree->children.begin());
+        auto out_tails = index_pushforward(subtree,       //
+                                           other_indices, //
+                                           output_competence_range_start - 1,
+                                           output_competence_range_end - 1);
         for (auto &out_tail : out_tails) {
           vector<int> out;
-          if (transform_index) {
-            out = append(idx, out_tail);
-            std::cout << "eya\n";
-          } else {
-            std::cout << "no\n";
+          if (0 < output_competence_range_start) {
+            // still out of competence range:
+            // this part of the output needs to be equal to input
+            // (i.e., the key)
             std::copy(key.begin(), key.end(), //
                       std::back_inserter(out));
             std::copy(out_tail.begin(), out_tail.end(), //
                       std::back_inserter(out));
+            std::cout << "still out of competence range" << std::endl;
+          } else {
+            // in competence range,
+            // this part of the output needs to be
+            // the idx at which the key was found.
+            int idx = (int)(c - tree->children.begin());
+            out = append(idx, out_tail);
+            std::cout << "in competence range: " << idx << std::endl;
           }
-          std::cout << "out " << out << std::endl;
           sub_results.push_back(out);
         }
       }
     }
-    std::cout << "results " << sub_results << std::endl;
-    return sub_results;
+  } else {
+    // again out of competence range
+    // we do not need to explore subtrees
+    std::cout << "out of competence range again " << std::endl;
+    sub_results.push_back(in);
   }
+  std::cout << "RESULTS: " << sub_results << std::endl;
+  return sub_results;
 }
 
 /** Reshuffles the keys in a level.*/

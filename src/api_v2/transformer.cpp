@@ -109,7 +109,9 @@ Q::Q(TreeTransformerP previous, std::string level, int nparts, std::string name)
                     nparts),
                   previous->emplace_name(name, //
                                          level)),
-      level_idx(previous->find_level(level)) {}
+      level_idx(previous->find_level(level)) {
+  std::cout << "Q constructor: level_idx : " << level_idx << std::endl;
+}
 
 vector<Index> Q::apply(const Index &in) {
   return index_pushforward(output_tree, in, level_idx,
@@ -128,7 +130,9 @@ BB::BB(TreeTransformerP previous, std::string level, int halosize,
                      halosize),
                   previous->emplace_name(name, //
                                          level)),
-      level_idx(previous->find_level(level)) {}
+      level_idx(previous->find_level(level)) {
+  std::cout << "BB constructor: level_idx : " << level_idx << std::endl;
+}
 
 vector<Index> BB::apply(const Index &in) {
   return index_pushforward(output_tree, in, level_idx,

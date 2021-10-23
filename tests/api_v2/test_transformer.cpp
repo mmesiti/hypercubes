@@ -131,8 +131,8 @@ BOOST_AUTO_TEST_CASE(test_doubleq_inverse) {
                                 vector<std::string>{"X", "Y", "Z"});
   auto partY = std::make_shared<Q>(R, "Y", 2, "MPI Y");
   auto partYZ = std::make_shared<Q>(partY, "Z", 2, "MPI Z");
-  Index out = partYZ->inverse({1, 1, 1, 1})[0];
-  Index out_exp{1, 1, 3};
+  Index out = partYZ->inverse({1, 1, 1, 1, 1})[0];
+  Index out_exp{1, 1, 1, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(test_bb_apply) {
   auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y"); // {4,2,4,4}
   BB part(split, "Y", 1, "BB Y");                       // {4,2,3,[1,2,1],4}
   Index out = part.apply({2, 1, 0, 3})[0];
-  Index out_exp{2, 1, 0, 0, 0};
+  Index out_exp{2, 1, 0, 0, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
@@ -176,7 +176,26 @@ BOOST_AUTO_TEST_CASE(test_composition_apply) {
   auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y");
   auto part = std::make_shared<BB>(split, "Y", 1, "BB Y");
   Composition all({split, part});
-  Index out = all.apply({2, 5, 3})[0];
+
+  Index in{2, 5, 3};
+  Index out1 = split->apply(in)[0];
+  Index out1_exp{2, 1, 1, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
+                                out1_exp.begin(), out1_exp.end());
+  std::cout << "Check this" << std::endl;
+
+  /*  {[0,1]{X},[0,1]{},[]{},3}
+  **   ^----------- X
+  **     ^--------- MPI Y
+  **       ^------- Y
+  **         ^----- Z
+  */
+  Index out2 = part->apply(in)[0];
+  Index out2_exp{2, 1, 1, 0, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out2.begin(), out2.end(), //
+                                out2_exp.begin(), out2_exp.end());
+
+  Index out = all.apply(in)[0];
   Index out_exp{2, 1, 1, 0, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
