@@ -7,6 +7,7 @@
 namespace hypercubes {
 namespace slow {
 namespace internals {
+namespace transformers {
 
 // Inverse
 Inverse::Inverse(const IndexTransformerP other) : wrapped(other){};
@@ -104,7 +105,7 @@ bool TreeTransformer::check_names_different() {
   return true;
 }
 
-Id::Id(TreeFactory<bool> f, vector<int> dimensions,
+Id::Id(TreeFactory<bool> &f, vector<int> dimensions,
        vector<std::string> dimension_names)
     : Transformer(f.generate_nd_tree(dimensions), //
                   dimension_names) {
@@ -116,11 +117,15 @@ Id::Id(TreeFactory<bool> f, vector<int> dimensions,
 vector<Index> Id::apply(const Index &idx) { return vector<Index>{idx}; }
 vector<Index> Id::inverse(const Index &idx) { return vector<Index>{idx}; }
 
-Q::Q(TreeTransformerP previous, std::string level, int nparts, std::string name)
+Q::Q(TreeFactory<bool> &f,      //
+     TreeTransformerP previous, //
+     std::string level,         //
+     int nparts,                //
+     std::string name)
     : Transformer(previous,
-                  q(previous->output_tree,       //
-                    previous->find_level(level), //
-                    nparts),
+                  f.q(previous->output_tree,       //
+                      previous->find_level(level), //
+                      nparts),
                   previous->emplace_name(name, //
                                          level)) {}
 
@@ -131,12 +136,15 @@ vector<Index> Q::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
-BB::BB(TreeTransformerP previous, std::string level, int halosize,
+BB::BB(TreeFactory<bool> &f,      //
+       TreeTransformerP previous, //
+       std::string level,         //
+       int halosize,              //
        std::string name)
     : Transformer(previous,
-                  bb(previous->output_tree,       //
-                     previous->find_level(level), //
-                     halosize),
+                  f.bb(previous->output_tree,       //
+                       previous->find_level(level), //
+                       halosize),
                   previous->emplace_name(name, //
                                          level)) {}
 
@@ -147,17 +155,18 @@ vector<Index> BB::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
-Flatten::Flatten(TreeTransformerP previous, //
+Flatten::Flatten(TreeFactory<bool> &f,      //
+                 TreeTransformerP previous, //
                  std::string level_start,   //
                  std::string level_end,     //
                  std::string name)
     : Transformer(
           previous,
-          flatten(previous->output_tree,                //
-                  previous->find_level(level_start),    //
-                  previous->find_level(level_end) + 1), // level_end inclusive
-          previous->replace_name_range(name,            //
-                                       level_start,     //
+          f.flatten(previous->output_tree,                //
+                    previous->find_level(level_start),    //
+                    previous->find_level(level_end) + 1), // level_end inclusive
+          previous->replace_name_range(name,              //
+                                       level_start,       //
                                        level_end)) {}
 
 vector<Index> Flatten::apply(const Index &in) {
@@ -167,13 +176,14 @@ vector<Index> Flatten::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
-LevelRemap::LevelRemap(TreeTransformerP previous, //
+LevelRemap::LevelRemap(TreeFactory<bool> &f,      //
+                       TreeTransformerP previous, //
                        std::string level,         //
                        vector<int> index_map)
     : Transformer(previous,
-                  remap_level(previous->output_tree,       //
-                              previous->find_level(level), //
-                              index_map),                  //
+                  f.remap_level(previous->output_tree,       //
+                                previous->find_level(level), //
+                                index_map),                  //
                   previous->output_levelnames) {}
 
 vector<Index> LevelRemap::apply(const Index &in) {
@@ -183,7 +193,7 @@ vector<Index> LevelRemap::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
-Sum::Sum(TreeFactory<bool> f,                          //
+Sum::Sum(TreeFactory<bool> &f,                         //
          TreeTransformerP previous,                    //
          const vector<TreeTransformerP> &transformers, //
          std::string name)
@@ -213,10 +223,12 @@ vector<Index> Sum::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
-LevelSwap::LevelSwap(TreeTransformerP previous, vector<std::string> names)
+LevelSwap::LevelSwap(TreeFactory<bool> &f,      //
+                     TreeTransformerP previous, //
+                     vector<std::string> names)
     : Transformer(
           previous, //
-          swap_levels(
+          f.swap_levels(
               previous->output_tree, //
               [&]() {
                 // names must be a permutation of
@@ -268,12 +280,13 @@ vector<Index> LevelSwap::inverse(const Index &in) {
   return {out};
 }
 
-EONaive::EONaive(TreeTransformerP previous, //
+EONaive::EONaive(TreeFactory<bool> &f,      //
+                 TreeTransformerP previous, //
                  std::string keylevel,      //
                  std::string newname)
     : Transformer(
           previous,
-          eo_naive(previous->output_tree, previous->find_level(keylevel)),
+          f.eo_naive(previous->output_tree, previous->find_level(keylevel)),
           previous->emplace_name(newname, keylevel)) {}
 
 vector<Index> EONaive::apply(const Index &in) {
@@ -283,6 +296,7 @@ vector<Index> EONaive::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
+} // namespace transformers
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes

@@ -11,6 +11,8 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
+namespace transformers {
+
 using std::vector;
 using Index = vector<int>;
 class IIndexTransformer;
@@ -76,7 +78,7 @@ using TransformerP = std::shared_ptr<Transformer>;
 
 struct Id : public Transformer {
 public:
-  Id(TreeFactory<bool> f,    //
+  Id(TreeFactory<bool> &f,   //
      vector<int> dimensions, //
      vector<std::string> dimension_names);
   vector<Index> apply(const Index &);
@@ -84,19 +86,26 @@ public:
 };
 struct Q : public Transformer {
 public:
-  Q(TreeTransformerP previous, std::string level, int nparts, std::string name);
+  Q(TreeFactory<bool> &f,      //
+    TreeTransformerP previous, //
+    std::string level,         //
+    int nparts,                //
+    std::string name);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
 struct BB : public Transformer {
 public:
-  BB(TreeTransformerP previous, std::string level, int halosize,
-     std::string name);
+  BB(TreeFactory<bool> &f,      //
+     TreeTransformerP previous, //
+     std::string level,         //
+     int halosize, std::string name);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
 struct Flatten : public Transformer {
-  Flatten(TreeTransformerP previous, //
+  Flatten(TreeFactory<bool> &f,      //
+          TreeTransformerP previous, //
           std::string level_start,   //
           std::string level_end,     // INCLUSIVE
           std::string name);
@@ -104,22 +113,26 @@ struct Flatten : public Transformer {
   vector<Index> inverse(const Index &);
 };
 struct LevelRemap : public Transformer {
-  LevelRemap(TreeTransformerP previous, //
+  LevelRemap(TreeFactory<bool> &f,      //
+             TreeTransformerP previous, //
              std::string level,         //
              vector<int> index_map);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
 struct Sum : public Transformer {
-  Sum(TreeFactory<bool> f,                          //
+  Sum(TreeFactory<bool> &f,                         //
       TreeTransformerP previous,                    //
       const vector<TreeTransformerP> &transformers, //
       std::string name);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
+
 struct LevelSwap : public Transformer {
-  LevelSwap(TreeTransformerP previous, vector<std::string> names);
+  LevelSwap(TreeFactory<bool> &f,      //
+            TreeTransformerP previous, //
+            vector<std::string> names);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 
@@ -134,14 +147,15 @@ private:
   vector<std::string> levelnames;
 
 public:
-  EONaive(TreeTransformerP previous, //
+  EONaive(TreeFactory<bool> &f,      //
+          TreeTransformerP previous, //
           std::string keylevel,      //
           std::string newname);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
+};
 
-}; // TODO
-
+} // namespace transformers
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes
