@@ -11,17 +11,73 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 
-KVTreePv2<bool> generate_flat_level(int dimension);
+template <class Node> class TreeFactory {
+private:
+  Node make_leaf();
+  Node make_node();
+  KVTreePv2<Node> tree_product2(const KVTreePv2<Node> &t1,
+                                const KVTreePv2<Node> &t2) {
+    if (t1->n == true) {
+      return t2;
+    } else {
+      decltype(KVTree<Node>::children) children;
+      children.reserve(t1->children.size());
+      std::transform(t1->children.begin(), //
+                     t1->children.end(),   //
+                     std::back_inserter(children), [t2, this](auto c) {
+                       return mp(c.first, //
+                                 tree_product2(c.second, t2));
+                     });
+      return mtkv(t1->n, children);
+    }
+  }
 
-KVTreePv2<bool> tree_product(const vector<KVTreePv2<bool>> &trees);
-KVTreePv2<bool> tree_sum(const vector<KVTreePv2<bool>> &trees);
-/** Generates a very simple tree
- * representing a N-dimensional array
- * from a list of dimensions.
- * It is also guaranteed yield an identity transformation
- * when used with index_pullback.
- * */
-KVTreePv2<bool> generate_nd_tree(std::vector<int> Dimensions);
+public:
+  KVTreePv2<Node> generate_flat_level(int size) {
+    auto leaf = mtkv(make_leaf(), {});
+    decltype(KVTree<Node>::children) children;
+    children.reserve(size);
+    for (int i = 0; i < size; ++i) {
+      children.push_back({{i}, leaf});
+    }
+    return mtkv(make_node(), children);
+  }
+
+  KVTreePv2<Node> tree_product(const vector<KVTreePv2<Node>> &trees) {
+    if (trees.size() == 1) {
+      return trees[0];
+    } else {
+      return tree_product2(trees[0], tree_product(tail(trees)));
+    }
+  };
+
+  KVTreePv2<Node> tree_sum(const vector<KVTreePv2<Node>> &trees) {
+    decltype(KVTree<Node>::children) children;
+    children.reserve(trees.size());
+    for (int i = 0; i < trees.size(); ++i)
+      children.push_back({{}, trees[i]});
+    return mtkv(false, children);
+  }
+
+  /** Generates a very simple tree
+   * representing a N-dimensional array
+   * from a list of dimensions.
+   * It is also guaranteed yield an identity transformation
+   * when used with index_pullback.
+   * */
+  KVTreePv2<Node> generate_nd_tree(std::vector<int> dimensions) {
+    vector<KVTreePv2<Node>> levels;
+    levels.reserve(dimensions.size());
+    std::transform(dimensions.begin(),         //
+                   dimensions.end(),           //
+                   std::back_inserter(levels), //
+                   [this](int s) { return generate_flat_level(s); });
+    return tree_product(levels);
+  }
+};
+
+template <> bool TreeFactory<bool>::make_leaf();
+template <> bool TreeFactory<bool>::make_node();
 
 // TODO: consider memoisation
 /** Renumbers subtrees, and applies a function to them.
@@ -40,7 +96,8 @@ KVTreePv2<bool> renumber_children(const KVTreePv2<bool> t, F f) {
 
 // TODO: consider memoisation
 /** Renumbers subtrees recursively.
- *  Helper functions to deal with recursion */
+ *  Helper functions to deal with recursion.
+ *  Recursive function. */
 KVTreePv2<bool> renumber_children_rec(const KVTreePv2<bool> t);
 
 /** Level splitting functions.
@@ -52,13 +109,15 @@ KVTreePv2<bool> renumber_children_rec(const KVTreePv2<bool> t);
 
 /** Splits a level of a tree in n-parts,
  * making sure the partitions are as equal as possible.
- * Affects only level and level+1. */
+ * Affects only level and level+1.
+ * Uses recursion. */
 KVTreePv2<bool> q(KVTreePv2<bool>, int level, int nparts);
 
 /** Splits a level in 3 parts,
  * representing the first border,
  * the bulk and the last border.
- * Affects only level and level+1. */
+ * Affects only level and level+1.
+ * Uses recursion. */
 KVTreePv2<bool> bb(KVTreePv2<bool>, int level, int halosize);
 
 /** Level collapsing function.
@@ -66,7 +125,8 @@ KVTreePv2<bool> bb(KVTreePv2<bool>, int level, int halosize);
  * which are replaced by a single level placed at "levelstart".
  * The keys in the new level are the concatenation
  * of the indices in the collapsed levels.
- * Affects only the levels in said range. */
+ * Affects only the levels in said range.
+ * Uses recursion. */
 KVTreePv2<bool> flatten(KVTreePv2<bool> t, int levelstart, int levelend);
 
 /** Assumes that the relevant dimensions (levels)
@@ -78,7 +138,8 @@ KVTreePv2<bool> flatten(KVTreePv2<bool> t, int levelstart, int levelend);
  * corresponding to the subtree.
  * This means that the partitioning between even and odd sites
  * will be correct only up to an exchange between even and odd
- * (that will be different for each subtree). */
+ * (that will be different for each subtree).
+ * Uses recursion. */
 KVTreePv2<bool> eo_naive(const KVTreePv2<bool> t, int level);
 
 /** Where all these functions transform an input tree into an output tree,

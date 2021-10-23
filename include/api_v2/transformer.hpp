@@ -1,5 +1,6 @@
 #ifndef TRANSFORMER_H_
 #define TRANSFORMER_H_
+#include "tree_transform.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
 #include <memory>
@@ -56,7 +57,7 @@ struct TreeTransformer {
                                          const std::string &name_end) const;
 
   int find_level(const std::string &) const;
-  TreeTransformer(TreeTransformerP previous,
+  TreeTransformer(TreeTransformerP previous,    //
                   KVTreePv2<bool> _output_tree, //
                   const vector<std::string> _output_levelnames);
   TreeTransformer(KVTreePv2<bool> input_output_tree, //
@@ -75,7 +76,9 @@ using TransformerP = std::shared_ptr<Transformer>;
 
 struct Id : public Transformer {
 public:
-  Id(vector<int> dimensions, vector<std::string> dimension_names);
+  Id(TreeFactory<bool> f,    //
+     vector<int> dimensions, //
+     vector<std::string> dimension_names);
   vector<Index> apply(const Index &);
   vector<Index> inverse(const Index &);
 };
@@ -108,7 +111,8 @@ struct LevelRemap : public Transformer {
   vector<Index> inverse(const Index &);
 };
 struct Sum : public Transformer {
-  Sum(TreeTransformerP previous,                    //
+  Sum(TreeFactory<bool> f,                          //
+      TreeTransformerP previous,                    //
       const vector<TreeTransformerP> &transformers, //
       std::string name);
   vector<Index> apply(const Index &);

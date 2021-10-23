@@ -49,7 +49,8 @@ BOOST_AUTO_TEST_CASE(test_tree_transformer_replace_name_range) {
                                 new_names_exp.begin(), new_names_exp.end());
 }
 BOOST_AUTO_TEST_CASE(test_id_constructor) {
-  Id R({3, 4}, {"X", "Y"});
+  TreeFactory<bool> f;
+  Id R(f, {3, 4}, {"X", "Y"});
   auto tflat = flatten(R.output_tree, 0, 2);
   int nchildren = tflat->children.size();
   BOOST_TEST(nchildren == 12);
@@ -57,11 +58,13 @@ BOOST_AUTO_TEST_CASE(test_id_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_id_constructor_throws) {
 
-  BOOST_CHECK_THROW((Id{{3, 4, 5}, {"Y", "Z"}}), std::invalid_argument);
+  TreeFactory<bool> f;
+  BOOST_CHECK_THROW((Id{f, {3, 4, 5}, {"Y", "Z"}}), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(test_id_apply) {
-  Id R({3, 4}, {"X", "Y"});
+  TreeFactory<bool> f;
+  Id R(f, {3, 4}, {"X", "Y"});
   Index in{1, 2};
   auto out = R.apply(in)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
@@ -69,7 +72,8 @@ BOOST_AUTO_TEST_CASE(test_id_apply) {
 }
 
 BOOST_AUTO_TEST_CASE(test_id_inverse) {
-  Id R({3, 4}, {"X", "Y"});
+  TreeFactory<bool> f;
+  Id R(f, {3, 4}, {"X", "Y"});
   Index in{1, 2};
   auto out = R.inverse(in)[0];
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
@@ -77,7 +81,9 @@ BOOST_AUTO_TEST_CASE(test_id_inverse) {
 }
 
 BOOST_AUTO_TEST_CASE(test_q_constructor) {
-  auto R = std::make_shared<Id>(vector<int>{4, 4, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 4, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   Q part(R, "Y", 2, "MPI Y");
   vector<std::string> partnames_exp{"X", "MPI Y", "Y", "Z"};
@@ -87,7 +93,9 @@ BOOST_AUTO_TEST_CASE(test_q_constructor) {
 }
 
 BOOST_AUTO_TEST_CASE(test_q_apply) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                    //
+                                vector<int>{4, 8, 4}, //
                                 vector<std::string>{"X", "Y", "Z"});
   Q part(R, "Y", 2, "MPI Y");
   Index out = part.apply({2, 4, 3})[0];
@@ -97,7 +105,10 @@ BOOST_AUTO_TEST_CASE(test_q_apply) {
 }
 
 BOOST_AUTO_TEST_CASE(test_q_inverse) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   Q part(R, "Y", 2, "MPI Y");
   Index out = part.inverse({2, 1, 0, 3})[0];
@@ -107,7 +118,9 @@ BOOST_AUTO_TEST_CASE(test_q_inverse) {
 }
 
 BOOST_AUTO_TEST_CASE(test_bb_constructor) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y");
   BB part(split, "Y", 1, "BB Y");
@@ -118,7 +131,9 @@ BOOST_AUTO_TEST_CASE(test_bb_constructor) {
 }
 
 BOOST_AUTO_TEST_CASE(test_bb_apply) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y");
   BB part(split, "Y", 1, "BB Y");
@@ -129,7 +144,9 @@ BOOST_AUTO_TEST_CASE(test_bb_apply) {
 }
 
 BOOST_AUTO_TEST_CASE(test_bb_inverse) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y");
   BB part(split, "Y", 1, "BB Y");
@@ -140,7 +157,9 @@ BOOST_AUTO_TEST_CASE(test_bb_inverse) {
 }
 
 BOOST_AUTO_TEST_CASE(test_composition_apply) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y");
   auto part = std::make_shared<BB>(split, "Y", 1, "BB Y");
@@ -152,7 +171,9 @@ BOOST_AUTO_TEST_CASE(test_composition_apply) {
 }
 
 BOOST_AUTO_TEST_CASE(test_composition_inverse) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto split = std::make_shared<Q>(R, "Y", 2, "MPI Y");
   auto part = std::make_shared<BB>(split, "Y", 1, "BB Y");
@@ -164,7 +185,9 @@ BOOST_AUTO_TEST_CASE(test_composition_inverse) {
 }
 
 BOOST_AUTO_TEST_CASE(test_flatten_constructor) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto flat = std::make_shared<Flatten>(R, "Y", "Z", "FLAT");
   vector<std::string> names_exp{"X", "FLAT"};
@@ -174,7 +197,9 @@ BOOST_AUTO_TEST_CASE(test_flatten_constructor) {
 }
 
 BOOST_AUTO_TEST_CASE(test_flatten_apply) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto flat = std::make_shared<Flatten>(R, "Y", "Z", "FLAT");
   Index out = flat->apply({2, 5, 3})[0];
@@ -184,7 +209,9 @@ BOOST_AUTO_TEST_CASE(test_flatten_apply) {
 }
 
 BOOST_AUTO_TEST_CASE(test_flatten_inverse) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto flat = std::make_shared<Flatten>(R, "Y", "Z", "FLAT");
   Index out = flat->inverse({2, 23})[0];
@@ -194,7 +221,9 @@ BOOST_AUTO_TEST_CASE(test_flatten_inverse) {
 }
 
 BOOST_AUTO_TEST_CASE(test_remap_constructor) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto remapped =
       std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 1, 2, 1});
@@ -205,7 +234,9 @@ BOOST_AUTO_TEST_CASE(test_remap_constructor) {
 }
 
 BOOST_AUTO_TEST_CASE(test_remap_apply_none) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto remapped =
       std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 2, 1, 1});
@@ -214,7 +245,9 @@ BOOST_AUTO_TEST_CASE(test_remap_apply_none) {
 }
 
 BOOST_AUTO_TEST_CASE(test_remap_apply_2) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto remapped =
       std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 2, 1, 1});
@@ -227,7 +260,9 @@ BOOST_AUTO_TEST_CASE(test_remap_apply_2) {
 }
 
 BOOST_AUTO_TEST_CASE(test_remap_inverse) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto remapped =
       std::make_shared<LevelRemap>(R, "Z", std::vector<int>{0, 2, 1, 1});
@@ -238,15 +273,18 @@ BOOST_AUTO_TEST_CASE(test_remap_inverse) {
 }
 
 BOOST_AUTO_TEST_CASE(test_sum_constructor) {
-  auto R =
-      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //
+                                vector<int>{4, 8}, //
+                                vector<std::string>{"X", "Y"});
 
   auto remapped0 = std::make_shared<LevelRemap>(R, "X", std::vector<int>{0, 2});
   auto remapped1 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{6, 7});
   auto remapped2 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{3, 4});
 
   vector<std::string> output_levelnames{"SUM", "X", "Y"};
-  auto sum = std::make_shared<Sum>(R,                                  //
+  auto sum = std::make_shared<Sum>(f,                                  //
+                                   R,                                  //
                                    vector<TreeTransformerP>{remapped0, //
                                                             remapped1, //
                                                             remapped2},
@@ -256,29 +294,32 @@ BOOST_AUTO_TEST_CASE(test_sum_constructor) {
       output_levelnames.begin(), output_levelnames.end());
 }
 BOOST_AUTO_TEST_CASE(test_sum_constructor_throws) {
+  TreeFactory<bool> f;
   auto R0 =
-      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+      std::make_shared<Id>(f, vector<int>{4, 8}, vector<std::string>{"X", "Y"});
   auto R1 =
-      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+      std::make_shared<Id>(f, vector<int>{4, 8}, vector<std::string>{"X", "Y"});
 
   auto remapped0 =
       std::make_shared<LevelRemap>(R0, "X", std::vector<int>{0, 2});
   auto remapped1 =
       std::make_shared<LevelRemap>(R1, "Y", std::vector<int>{6, 7});
 
-  BOOST_CHECK_THROW(Sum(R0, {remapped0, remapped1}, "SUM"),
+  BOOST_CHECK_THROW(Sum(f, R0, {remapped0, remapped1}, "SUM"),
                     std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(test_sum_apply) {
+  TreeFactory<bool> f;
   auto R =
-      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+      std::make_shared<Id>(f, vector<int>{4, 8}, vector<std::string>{"X", "Y"});
 
   auto remapped0 = std::make_shared<LevelRemap>(R, "X", std::vector<int>{0, 2});
   auto remapped1 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{6, 7});
   auto remapped2 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{3, 4});
 
-  auto sum = std::make_shared<Sum>(R,                                  //
+  auto sum = std::make_shared<Sum>(f,                                  //
+                                   R,                                  //
                                    vector<TreeTransformerP>{remapped0, //
                                                             remapped1, //
                                                             remapped2},
@@ -294,14 +335,16 @@ BOOST_AUTO_TEST_CASE(test_sum_apply) {
 }
 
 BOOST_AUTO_TEST_CASE(test_sum_inverse) {
+  TreeFactory<bool> f;
   auto R =
-      std::make_shared<Id>(vector<int>{4, 8}, vector<std::string>{"X", "Y"});
+      std::make_shared<Id>(f, vector<int>{4, 8}, vector<std::string>{"X", "Y"});
 
   auto remapped0 = std::make_shared<LevelRemap>(R, "X", std::vector<int>{0, 2});
   auto remapped1 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{6, 7});
   auto remapped2 = std::make_shared<LevelRemap>(R, "Y", std::vector<int>{3, 4});
 
-  auto sum = std::make_shared<Sum>(R,                                  //
+  auto sum = std::make_shared<Sum>(f,                                  //
+                                   R,                                  //
                                    vector<TreeTransformerP>{remapped0, //
                                                             remapped1, //
                                                             remapped2},
@@ -314,7 +357,9 @@ BOOST_AUTO_TEST_CASE(test_sum_inverse) {
 }
 
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
   auto swapped =
       std::make_shared<LevelSwap>(R, vector<std::string>{"Y", "Z", "X"});
@@ -326,7 +371,9 @@ BOOST_AUTO_TEST_CASE(test_levelswap_check_names_wrong_length) {
 }
 
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_too_few_names) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
   BOOST_CHECK_THROW(
@@ -334,7 +381,9 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_too_few_names) {
       std::invalid_argument);
 }
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_no_permutation) {
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
   BOOST_CHECK_THROW(
@@ -344,7 +393,9 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_no_permutation) {
 
 BOOST_AUTO_TEST_CASE(test_levelswap_apply) {
 
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
   auto swapped =
@@ -356,7 +407,9 @@ BOOST_AUTO_TEST_CASE(test_levelswap_apply) {
 }
 BOOST_AUTO_TEST_CASE(test_levelswap_inverse) {
 
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
   auto swapped =
@@ -369,7 +422,9 @@ BOOST_AUTO_TEST_CASE(test_levelswap_inverse) {
 
 BOOST_AUTO_TEST_CASE(test_eonaive_constructor) {
 
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4, 3},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4, 3},
                                 vector<std::string>{"X", "Y", "Z", "ROW"});
   auto flat = std::make_shared<Flatten>(R, "X", "Z", "FLAT");
   auto eo = std::make_shared<EONaive>(flat, "FLAT", "EO");
@@ -382,7 +437,9 @@ BOOST_AUTO_TEST_CASE(test_eonaive_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_eonaive_apply) {
 
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4, 3},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4, 3},
                                 vector<std::string>{"X", "Y", "Z", "ROW"});
   auto flat = std::make_shared<Flatten>(R, "X", "Z", "FLAT");
   auto eo = std::make_shared<EONaive>(flat, "FLAT", "EO");
@@ -401,7 +458,9 @@ BOOST_AUTO_TEST_CASE(test_eonaive_apply) {
 }
 BOOST_AUTO_TEST_CASE(test_eonaive_inverse) {
 
-  auto R = std::make_shared<Id>(vector<int>{4, 8, 4, 3},
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4, 3},
                                 vector<std::string>{"X", "Y", "Z", "ROW"});
   auto flat = std::make_shared<Flatten>(R, "X", "Z", "FLAT");
   auto eo = std::make_shared<EONaive>(flat, "FLAT", "EO");

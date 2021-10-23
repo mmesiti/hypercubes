@@ -104,8 +104,9 @@ bool TreeTransformer::check_names_different() {
   return true;
 }
 
-Id::Id(vector<int> dimensions, vector<std::string> dimension_names)
-    : Transformer(generate_nd_tree(dimensions), //
+Id::Id(TreeFactory<bool> f, vector<int> dimensions,
+       vector<std::string> dimension_names)
+    : Transformer(f.generate_nd_tree(dimensions), //
                   dimension_names) {
   if (dimensions.size() != dimension_names.size())
     throw std::invalid_argument("Size of dimensions is not equal"
@@ -182,11 +183,12 @@ vector<Index> LevelRemap::inverse(const Index &in) {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
-Sum::Sum(TreeTransformerP previous,                    //
+Sum::Sum(TreeFactory<bool> f,                          //
+         TreeTransformerP previous,                    //
          const vector<TreeTransformerP> &transformers, //
          std::string name)
     : Transformer(previous, //
-                  tree_sum([&]() {
+                  f.tree_sum([&]() {
                     vector<KVTreePv2<bool>> ts;
                     std::transform(
                         transformers.begin(), //
