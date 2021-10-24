@@ -27,8 +27,6 @@ TreeTransformerP Id::join(TreeFactory<bool> &f, TreeTransformerP previous) {
                                             dimension_names); //
 }
 
-// must be 0
-
 } // namespace transform_requests
 } // namespace internals
 } // namespace slow
