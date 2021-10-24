@@ -83,8 +83,12 @@ target_link_libraries(level_swap partitioners)
 
 # Tree transformation
 add_library(tree_transform src/api_v2/tree_transform.cpp)
+
 add_library(transformer src/api_v2/transformer.cpp)
 target_link_libraries(transformer tree_transform level_swap)
+
+add_library(transform_requests src/api_v2/transform_requests.cpp)
+target_link_libraries(transform_requests transformer)
 
 # API
 add_library(memory_layout src/api/memory_layout.cpp)

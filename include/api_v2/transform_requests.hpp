@@ -86,9 +86,17 @@ public:
   }
 };
 
-using Id = TransformRequestGeneric2Arg<transformers::Id,
-                                       vector<int>,          // dimensions
-                                       vector<std::string>>; // dimension_names
+class Id : public TransformRequest {
+private:
+  vector<int> dimensions;
+  vector<std::string> dimension_names;
+
+public:
+  Id(vector<int> dimensions, vector<std::string> dimension_names,
+     std::string node_name = "");
+  TreeTransformerP join(TreeFactory<bool> &f,
+                        TreeTransformerP previous); // must be 0
+};
 
 using Q = TransformRequestGeneric3Arg<transformers::Q,
                                       std::string,  // level
