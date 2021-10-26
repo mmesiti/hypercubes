@@ -59,11 +59,11 @@ struct TreeTransformer {
                                          const std::string &name_end) const;
 
   int find_level(const std::string &) const;
-  TreeTransformer(TreeTransformerP previous,    //
-                  KVTreePv2<bool> _output_tree, //
-                  const vector<std::string> _output_levelnames);
+  TreeTransformer(TreeTransformerP previous,   //
+                  KVTreePv2<bool> output_tree, //
+                  const vector<std::string> output_levelnames);
   TreeTransformer(KVTreePv2<bool> input_output_tree, //
-                  const vector<std::string> _output_levelnames);
+                  const vector<std::string> output_levelnames);
 
 private:
   bool check_names_different();
@@ -73,6 +73,8 @@ class Transformer : public TreeTransformer, public IIndexTransformer {
 public:
   template <typename... Args>
   Transformer(Args... args) : TreeTransformer(args...) {}
+  virtual vector<Index> apply(const Index &);
+  virtual vector<Index> inverse(const Index &);
 };
 using TransformerP = std::shared_ptr<Transformer>;
 
@@ -91,8 +93,6 @@ public:
     std::string level,         //
     int nparts,                //
     std::string name);
-  vector<Index> apply(const Index &);
-  vector<Index> inverse(const Index &);
 };
 struct BB : public Transformer {
 public:
@@ -100,8 +100,6 @@ public:
      TreeTransformerP previous, //
      std::string level,         //
      int halosize, std::string name);
-  vector<Index> apply(const Index &);
-  vector<Index> inverse(const Index &);
 };
 struct Flatten : public Transformer {
   Flatten(TreeFactory<bool> &f,      //
@@ -109,24 +107,18 @@ struct Flatten : public Transformer {
           std::string level_start,   //
           std::string level_end,     // INCLUSIVE
           std::string name);
-  vector<Index> apply(const Index &);
-  vector<Index> inverse(const Index &);
 };
 struct LevelRemap : public Transformer {
   LevelRemap(TreeFactory<bool> &f,      //
              TreeTransformerP previous, //
              std::string level,         //
              vector<int> index_map);
-  vector<Index> apply(const Index &);
-  vector<Index> inverse(const Index &);
 };
 struct Sum : public Transformer {
   Sum(TreeFactory<bool> &f,                         //
       TreeTransformerP previous,                    //
       const vector<TreeTransformerP> &transformers, //
       std::string name);
-  vector<Index> apply(const Index &);
-  vector<Index> inverse(const Index &);
 };
 
 struct LevelSwap : public Transformer {
@@ -151,8 +143,6 @@ public:
           TreeTransformerP previous, //
           std::string keylevel,      //
           std::string newname);
-  vector<Index> apply(const Index &);
-  vector<Index> inverse(const Index &);
 };
 
 } // namespace transformers

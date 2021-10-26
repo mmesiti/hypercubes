@@ -386,26 +386,36 @@ public:
 
 template <> bool TreeFactory<bool>::make_leaf();
 template <> bool TreeFactory<bool>::make_node();
-
 template <class Value>
 vector<int> index_pullback(const KVTreePv2<Value> &tree,
                            const vector<int> &in) {
+  vector<int> out;
+  _index_pullback(tree, in, out);
+  return out;
+}
+
+template <class Value>
+void _index_pullback(const KVTreePv2<Value> &tree, //
+                     const vector<int> &in,        //
+                     vector<int> &out) {
   if (in.size() == 0)
-    return in;
+    return;
+
   int idx = in[0];
   if (idx >= tree->children.size()) {
     throw KeyNotFoundError("index over bound");
   }
-  vector<int> key;
-  key = tree->children[idx].first;
+
   auto subtree = tree->children[idx].second;
-  auto out_tail = index_pullback(subtree, tail(in));
-  vector<int> out;
-  std::copy(key.begin(), key.end(), //
-            std::back_inserter(out));
-  std::copy(out_tail.begin(), out_tail.end(), //
-            std::back_inserter(out));
-  return out;
+
+  {
+    vector<int> key;
+    key = tree->children[idx].first;
+    std::copy(key.begin(), key.end(), //
+              std::back_inserter(out));
+  }
+
+  _index_pullback(subtree, tail(in), out); // TCO
 }
 /* This function checks the keys in the tree
  * and returns the index that matches that.
@@ -413,31 +423,58 @@ vector<int> index_pullback(const KVTreePv2<Value> &tree,
 template <class Value>
 vector<vector<int>> index_pushforward(const KVTreePv2<Value> &tree,
                                       const vector<int> &in) {
+
+  vector<vector<int>> sub_results;
+  _index_pushforward(tree, in, {}, sub_results);
+  return sub_results;
+}
+
+template <class Value>
+void _index_pushforward(const KVTreePv2<Value> &tree, //
+                        const vector<int> &in,        //
+                        vector<int> &&result,         //
+                        vector<vector<int>> &all_results) {
   if (in.size() == 0)
-    return vector<vector<int>>{{}};
+    all_results.push_back(result);
   else {
     int keylen = tree->children[0].first.size();
     vector<int> key;
-    key.reserve(keylen);
-    std::copy(in.begin(), in.begin() + keylen, //
-              std::back_inserter(key));
     vector<int> other_indices;
-    other_indices.reserve(in.size() - keylen);
-    std::copy(in.begin() + keylen, in.end(), //
-              std::back_inserter(other_indices));
-    vector<vector<int>> sub_results;
+    { // splitting 'in' in key and other_indices
+      key.reserve(keylen);
+      std::copy(in.begin(), in.begin() + keylen, //
+                std::back_inserter(key));
+      other_indices.reserve(in.size() - keylen);
+      std::copy(in.begin() + keylen, in.end(), //
+                std::back_inserter(other_indices));
+    }
+    int matches = 0;
+    for (auto c = tree->children.begin(); c != tree->children.end(); ++c)
+      if (c->first == key)
+        matches++;
+
+    int match_count = 0;
     for (auto c = tree->children.begin(); c != tree->children.end(); ++c) {
       if (c->first == key) {
-        auto subtree = c->second;
-        auto out_tails = index_pushforward(subtree, other_indices);
+        match_count++;
         int idx = (int)(c - tree->children.begin());
-        for (auto &out_tail : out_tails) {
-          vector<int> out = append(idx, out_tail);
-          sub_results.push_back(out);
+        if (match_count < matches) { // need to create new result
+          vector<int> result_copy;
+          result_copy = vector<int>(result);
+          result_copy.push_back(idx);
+          _index_pushforward(c->second,              //
+                             other_indices,          //
+                             std::move(result_copy), //
+                             all_results);
+        } else { // last match: can reuse argument
+          result.push_back(idx);
+          _index_pushforward(c->second,         //
+                             other_indices,     //
+                             std::move(result), //
+                             all_results);
         }
       }
     }
-    return sub_results;
   }
 }
 

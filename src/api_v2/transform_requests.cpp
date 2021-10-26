@@ -5,10 +5,12 @@ namespace hypercubes {
 namespace slow {
 namespace internals {
 namespace transform_requests {
-TransformRequest::TransformRequest(std::string node_name)
-    : node_name(node_name){};
+TransformRequest::TransformRequest(std::string end_node_name)
+    : end_node_name(end_node_name){};
 
-std::string TransformRequest::get_node_name() const { return node_name; }
+std::string TransformRequest::get_end_node_name() const {
+  return end_node_name;
+}
 
 Id::Id(vector<int> dimensions,              //
        vector<std::string> dimension_names, //

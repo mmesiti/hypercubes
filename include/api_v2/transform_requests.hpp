@@ -22,15 +22,16 @@ namespace transform_requests {
 using transformers::TreeTransformerP;
 class TransformRequest {
 protected:
-  std::string node_name;
+  std::string end_node_name;
 
 public:
-  TransformRequest(std::string _node_name);
+  TransformRequest(std::string end_node_name);
   virtual TreeTransformerP join(TreeFactory<bool> &f,
                                 TreeTransformerP previous) = 0;
-  std::string get_node_name() const;
+  std::string get_end_node_name() const;
 };
 
+using TransformRequestP = std::shared_ptr<TransformRequest>;
 /* Attempt at reducing the  */
 template <typename TransformerType, typename... Ts>
 class TransformRequestGeneric1Arg : public TransformRequest {
@@ -93,7 +94,7 @@ private:
 
 public:
   Id(vector<int> dimensions, vector<std::string> dimension_names,
-     std::string node_name = "");
+     std::string end_node_name = "");
   TreeTransformerP join(TreeFactory<bool> &f,
                         TreeTransformerP previous); // must be 0
 };
@@ -124,33 +125,6 @@ using LevelSwap =
 using EONaive = TransformRequestGeneric2Arg<transformers::EONaive,
                                             std::string,  // keylevel
                                             std::string>; // new_level_name
-
-/* This one is different, as it needs to do some non trivial logic.  */
-class Sum : public TransformRequest {
-private:
-  vector<TransformRequest> elements;
-  std::string new_level_name;
-
-public:
-  Sum(const vector<TransformRequest> &elements, //
-      std::string new_level_name,               //
-      std::string node_name = "");
-  TreeTransformerP join(TreeFactory<bool> &f,       //
-                        TreeTransformerP previous); //
-};
-
-/* This one is different, as it needs to do some non trivial logic.  */
-class Composition : public TransformRequest {
-private:
-  vector<TransformRequest> elements;
-
-public:
-  Composition(const vector<TransformRequest> &elements, //
-              std::string node_name = "");
-
-  TreeTransformerP join(TreeFactory<bool> &f,       //
-                        TreeTransformerP previous); //
-};
 
 } // namespace transform_requests
 } // namespace internals
