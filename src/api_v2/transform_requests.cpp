@@ -19,7 +19,8 @@ Id::Id(vector<int> dimensions,              //
       dimensions(dimensions),      //
       dimension_names(dimension_names) {}
 
-TreeTransformerP Id::join(TreeFactory<bool> &f, TreeTransformerP previous) {
+TreeTransformerP Id::join(TreeFactory<bool> &f,
+                          TreeTransformerP previous) const {
 
   if (previous)
     throw std::invalid_argument("Id cannot have a previous tree transformer.");

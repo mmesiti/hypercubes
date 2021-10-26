@@ -22,12 +22,12 @@ namespace transform_requests {
 using transformers::TreeTransformerP;
 class TransformRequest {
 protected:
-  std::string end_node_name;
+  const std::string end_node_name;
 
 public:
   TransformRequest(std::string end_node_name);
   virtual TreeTransformerP join(TreeFactory<bool> &f,
-                                TreeTransformerP previous) = 0;
+                                TreeTransformerP previous) const = 0;
   std::string get_end_node_name() const;
 };
 
@@ -38,13 +38,13 @@ class TransformRequestGeneric1Arg : public TransformRequest {
 private:
   static_assert(sizeof...(Ts) == 1,
                 "This class can be used only with a single parameter.");
-  std::tuple<Ts...> args;
+  const std::tuple<Ts...> args;
 
 public:
   TransformRequestGeneric1Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) {
+  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) const {
     return std::make_shared<TransformerType>(f, previous, //
                                              std::get<0>(args));
   }
@@ -55,13 +55,13 @@ class TransformRequestGeneric2Arg : public TransformRequest {
 private:
   static_assert(sizeof...(Ts) == 2,
                 "This class can be used only with 2 parameters.");
-  std::tuple<Ts...> args;
+  const std::tuple<Ts...> args;
 
 public:
   TransformRequestGeneric2Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) {
+  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) const {
     return std::make_shared<TransformerType>(f, previous,       //
                                              std::get<0>(args), //
                                              std::get<1>(args));
@@ -73,13 +73,13 @@ class TransformRequestGeneric3Arg : public TransformRequest {
 private:
   static_assert(sizeof...(Ts) == 3,
                 "This class can be used only with 2 parameters.");
-  std::tuple<Ts...> args;
+  const std::tuple<Ts...> args;
 
 public:
   TransformRequestGeneric3Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) {
+  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) const {
     return std::make_shared<TransformerType>(f, previous,       //
                                              std::get<0>(args), //
                                              std::get<1>(args), //
@@ -89,14 +89,14 @@ public:
 
 class Id : public TransformRequest {
 private:
-  vector<int> dimensions;
-  vector<std::string> dimension_names;
+  const vector<int> dimensions;
+  const vector<std::string> dimension_names;
 
 public:
   Id(vector<int> dimensions, vector<std::string> dimension_names,
      std::string end_node_name = "");
   TreeTransformerP join(TreeFactory<bool> &f,
-                        TreeTransformerP previous); // must be 0
+                        TreeTransformerP previous) const; // must be 0
 };
 
 using Q = TransformRequestGeneric3Arg<transformers::Q,
