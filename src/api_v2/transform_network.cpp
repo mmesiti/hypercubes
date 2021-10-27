@@ -6,114 +6,37 @@ namespace slow {
 namespace internals {
 namespace transform_networks {
 
-int TransformNetwork::id(TreeTransformerP t) {
+int TransformNetwork::id(TreeTransformerP t) const {
   return nodes.begin() - std::find(nodes.begin(), //
                                    nodes.end(),   //
                                    t);
 }
+int TransformNetwork::nnodes() const { return nodes.size(); }
 
-void Build(TreeFactory<bool> &f,                  //
-           TransformNetwork &network,             //
-           const TransformRequestP &root_request, //
-           const vector<TransformRequestP> &requests) {
-  TreeTransformerP last = root_request->join(f, 0);
-  { // TODO: extract to function
-    auto new_node = last;
-    auto request = root_request;
-    //
-    network.nodes.push_back(new_node);
-    auto end_node_name = request->get_end_node_name();
-    if (end_node_name != "") {
-      network.named_nodes[end_node_name] = new_node;
-    }
-    // Adding entry for arcs
-    network.arcs[new_node] = {};
+void TransformNetwork::add_node(TreeTransformerP new_node, std::string name) {
+  nodes.push_back(new_node);
+  // Adding entry for arcs
+  arcs[new_node] = {};
+
+  if (name != "") {
+    named_nodes[name] = new_node;
   }
-  for (auto request : requests) {
-    TreeTransformerP new_node = request->join(f, last);
-    {
-      // network.nodes
-      network.nodes.push_back(new_node);
-      // network.named_nodes
-      {
-        auto end_node_name = request->get_end_node_name();
-        if (end_node_name != "") {
-          network.named_nodes[end_node_name] = new_node;
-        }
-      }
-      // network.arcs
-      // Adding entry to store arcs
-      network.arcs[new_node] = {};
-      // Adding arc
-      network.arcs[last].push_back({new_node, TransformNetwork::DIRECT});
-      network.arcs[new_node].push_back({last, TransformNetwork::INVERSE});
-    }
-    last = new_node;
-  }
+  // find node that the new_node points at
+  auto source_node =
+      *std::find_if(nodes.begin(), //
+                    nodes.end(),   //
+                    [new_node](auto source_node) {
+                      return source_node->output_tree == new_node->input_tree;
+                    });
+  arcs[source_node].insert({new_node, DIRECT});
+  arcs[new_node].insert({source_node, INVERSE});
 }
 
-Sum::Sum(TransformNetwork &network,  //
-         std::string new_level_name, //
-         std::string end_node_name,  //
-         const vector<TransformRequestP> &elements)
-    : TransformRequest(end_node_name), //
-      elements(elements),              //
-      new_level_name(new_level_name),  //
-      network(network) {}
-
-TreeTransformerP Sum::join(TreeFactory<bool> &f, //
-                           TreeTransformerP previous) {
-  vector<TreeTransformerP> transformers;
-
-  // Assuming "previous" is already in the network.
-  for (auto &request : elements) {
-    TreeTransformerP t = request->join(f, previous);
-    transformers.push_back(t);
-
-    TreeTransformerP new_node = t;
-    TreeTransformerP last = previous;
-    { // TODO: extract to function
-      // network.nodes
-      network.nodes.push_back(new_node);
-      // network.named_nodes
-      {
-        auto end_node_name = request->get_end_node_name();
-        if (end_node_name != "") {
-          network.named_nodes[end_node_name] = new_node;
-        }
-      }
-      // network.arcs
-      // Adding entry to store arcs
-      network.arcs[new_node] = {};
-      // Adding arc
-      network.arcs[last].push_back({new_node, TransformNetwork::DIRECT});
-      network.arcs[new_node].push_back({last, TransformNetwork::INVERSE});
-    }
-  };
-  TreeTransformerP res = std::make_shared<transformers::Sum>(f,            //
-                                                             previous,     //
-                                                             transformers, //
-                                                             end_node_name);
-
-  TreeTransformerP new_node = res;
-  TreeTransformerP last = previous;
-  { // TODO: extract to function
-    // network.nodes
-    network.nodes.push_back(new_node);
-    // network.named_nodes
-    {
-      if (end_node_name != "") {
-        network.named_nodes[end_node_name] = new_node;
-      }
-    }
-    // network.arcs
-    // Adding entry to store arcs
-    network.arcs[new_node] = {};
-    // Adding arc
-    network.arcs[last].push_back({new_node, TransformNetwork::DIRECT});
-    network.arcs[new_node].push_back({last, TransformNetwork::INVERSE});
-  }
-}
+bool operator<(const TransformNetwork::Arc &a, //
+               const TransformNetwork::Arc &b) {
+  auto ta = std::make_tuple(a.destination, (int)a.type);
+  auto tb = std::make_tuple(a.destination, (int)b.type);
+  return ta < tb;
 }
 
 } // namespace transform_networks

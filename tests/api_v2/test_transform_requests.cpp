@@ -1,18 +1,21 @@
+#include "api_v2/transform_network.hpp"
 #include "api_v2/transform_requests.hpp"
 #include "api_v2/transformer.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "utils/print_utils.hpp"
-#include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 
 using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_transform_requests)
 using Tree = KVTreePv2<bool>;
+using transform_networks::TransformNetwork;
+
 BOOST_AUTO_TEST_CASE(test_id_constructor) {
   TreeFactory<bool> f;
+  TransformNetwork n;
   auto idr = transform_requests::Id({2, 2}, {"X", "Y"});
-  auto id = idr.join(f, 0);
+  auto id = idr.join(f, 0, n);
 
   Tree leaf = mtkv(true, {});
   Tree subtree = mtkv(false, {{{0}, leaf}, //
@@ -31,19 +34,21 @@ BOOST_AUTO_TEST_CASE(test_id_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_id_join_throws) {
   TreeFactory<bool> f;
+  TransformNetwork n;
   auto idr = transform_requests::Id({2, 2}, {"X", "Y"});
-  auto id = idr.join(f, 0);
+  auto id = idr.join(f, 0, n);
 
-  BOOST_CHECK_THROW(idr.join(f, id), std::invalid_argument);
+  BOOST_CHECK_THROW(idr.join(f, id, n), std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(test_q_constructor) {
   TreeFactory<bool> f;
+  TransformNetwork n;
   auto idr = transform_requests::Id({2, 4}, {"X", "Y"});
-  auto id = idr.join(f, 0);
+  auto id = idr.join(f, 0, n);
 
   auto qr = transform_requests::Q("Y", 2, "MPI Y");
-  auto q = qr.join(f, id);
+  auto q = qr.join(f, id, n);
   Tree leaf = mtkv(true, {});
   Tree subsubtree1 = mtkv(false, {{{0}, leaf}, //
                                   {{1}, leaf}});
@@ -65,11 +70,12 @@ BOOST_AUTO_TEST_CASE(test_q_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_bb_constructor) {
   TreeFactory<bool> f;
+  TransformNetwork n;
   auto idr = transform_requests::Id({2, 4}, {"X", "Y"});
-  auto id = idr.join(f, 0);
+  auto id = idr.join(f, 0, n);
 
   auto bbr = transform_requests::BB("Y", 1, "BB Y");
-  auto bb = bbr.join(f, id);
+  auto bb = bbr.join(f, id, n);
   Tree leaf = mtkv(true, {});
 
   Tree subtree = mtkv(false, {{{},                          //
@@ -93,11 +99,12 @@ BOOST_AUTO_TEST_CASE(test_bb_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_flatten_constructor) {
   TreeFactory<bool> f;
+  TransformNetwork n;
   auto idr = transform_requests::Id({2, 2, 2, 2}, {"X", "Y", "Z", "T"});
-  auto id = idr.join(f, 0);
+  auto id = idr.join(f, 0, n);
 
   auto flattenr = transform_requests::Flatten("Y", "Z", "YZ");
-  auto flatten = flattenr.join(f, id);
+  auto flatten = flattenr.join(f, id, n);
 
   Tree leaf = mtkv(true, {});
   Tree T = mtkv(false, {{{0}, leaf}, //
@@ -119,11 +126,12 @@ BOOST_AUTO_TEST_CASE(test_flatten_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_level_remap_constructor) {
   TreeFactory<bool> f;
+  TransformNetwork n;
   auto idr = transform_requests::Id({2, 4, 2}, {"X", "Y", "Z"});
-  auto id = idr.join(f, 0);
+  auto id = idr.join(f, 0, n);
 
   auto level_remap_r = transform_requests::LevelRemap("Y", {2, 3, 0, 1});
-  auto level_remap = level_remap_r.join(f, id);
+  auto level_remap = level_remap_r.join(f, id, n);
 
   Tree leaf = mtkv(true, {});
   Tree Z = mtkv(false, {{{0}, leaf}, //
@@ -145,11 +153,12 @@ BOOST_AUTO_TEST_CASE(test_level_remap_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_level_swap_constructor) {
   TreeFactory<bool> f;
+  TransformNetwork n;
   auto idr = transform_requests::Id({3, 2, 1}, {"X", "Y", "Z"});
-  auto id = idr.join(f, 0);
+  auto id = idr.join(f, 0, n);
 
   auto level_swap_r = transform_requests::LevelSwap({"Z", "Y", "X"});
-  auto level_swap = level_swap_r.join(f, id);
+  auto level_swap = level_swap_r.join(f, id, n);
 
   Tree leaf = mtkv(true, {});
   Tree X = mtkv(false, {{{0}, leaf}, //

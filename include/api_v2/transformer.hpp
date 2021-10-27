@@ -99,7 +99,8 @@ public:
   BB(TreeFactory<bool> &f,      //
      TreeTransformerP previous, //
      std::string level,         //
-     int halosize, std::string name);
+     int halosize,              //
+     std::string name);
 };
 struct Flatten : public Transformer {
   Flatten(TreeFactory<bool> &f,      //

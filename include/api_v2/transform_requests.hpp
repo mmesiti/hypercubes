@@ -7,8 +7,12 @@
 namespace hypercubes {
 namespace slow {
 namespace internals {
+namespace transform_networks {
+class TransformNetwork;
+}
 namespace transform_requests {
 
+using transform_networks::TransformNetwork;
 /* A lot of boilerplate.
  * All the following classes represent
  * the result of partial function applications
@@ -26,8 +30,9 @@ protected:
 
 public:
   TransformRequest(std::string end_node_name);
-  virtual TreeTransformerP join(TreeFactory<bool> &f,
-                                TreeTransformerP previous) const = 0;
+  virtual TreeTransformerP join(TreeFactory<bool> &f,      //
+                                TreeTransformerP previous, //
+                                TransformNetwork &network) const = 0;
   std::string get_end_node_name() const;
 };
 
@@ -44,7 +49,9 @@ public:
   TransformRequestGeneric1Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) const {
+  TreeTransformerP join(TreeFactory<bool> &f,      //
+                        TreeTransformerP previous, //
+                        TransformNetwork &_) const {
     return std::make_shared<TransformerType>(f, previous, //
                                              std::get<0>(args));
   }
@@ -61,7 +68,9 @@ public:
   TransformRequestGeneric2Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) const {
+  TreeTransformerP join(TreeFactory<bool> &f,      //
+                        TreeTransformerP previous, //
+                        TransformNetwork &_) const {
     return std::make_shared<TransformerType>(f, previous,       //
                                              std::get<0>(args), //
                                              std::get<1>(args));
@@ -72,14 +81,16 @@ template <typename TransformerType, typename... Ts>
 class TransformRequestGeneric3Arg : public TransformRequest {
 private:
   static_assert(sizeof...(Ts) == 3,
-                "This class can be used only with 2 parameters.");
+                "This class can be used only with 3 parameters.");
   const std::tuple<Ts...> args;
 
 public:
   TransformRequestGeneric3Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f, TreeTransformerP previous) const {
+  TreeTransformerP join(TreeFactory<bool> &f,      //
+                        TreeTransformerP previous, //
+                        TransformNetwork &_) const {
     return std::make_shared<TransformerType>(f, previous,       //
                                              std::get<0>(args), //
                                              std::get<1>(args), //
@@ -93,10 +104,12 @@ private:
   const vector<std::string> dimension_names;
 
 public:
-  Id(vector<int> dimensions, vector<std::string> dimension_names,
+  Id(vector<int> dimensions,              //
+     vector<std::string> dimension_names, //
      std::string end_node_name = "");
-  TreeTransformerP join(TreeFactory<bool> &f,
-                        TreeTransformerP previous) const; // must be 0
+  TreeTransformerP join(TreeFactory<bool> &f,       //
+                        TreeTransformerP previous,  //
+                        TransformNetwork &_) const; // must be 0
 };
 
 using Q = TransformRequestGeneric3Arg<transformers::Q,
@@ -125,6 +138,69 @@ using LevelSwap =
 using EONaive = TransformRequestGeneric2Arg<transformers::EONaive,
                                             std::string,  // keylevel
                                             std::string>; // new_level_name
+
+/** Represents a graph of the kind
+ *    R
+ *  / | \
+ *  a b c
+ *  \ | /
+ *    S
+ *  Where S corresponds to a Sum transformer.
+ * */
+class Sum : public TransformRequest {
+private:
+  vector<TransformRequestP> requests;
+  std::string new_level_name;
+
+public:
+  Sum(std::string new_level_name, //
+      std::string end_node_name,  //
+      const vector<TransformRequestP> &requests);
+  TreeTransformerP join(TreeFactory<bool> &f,       //
+                        TreeTransformerP previous,  //
+                        TransformNetwork &network); //
+};
+
+/** Represents a graph of the kind
+ *    R
+ *  / | \
+ *  a b c
+ *  Where S corresponds to a Sum transformer.
+ * */
+class Fork : public TransformRequest {
+private:
+  vector<TransformRequestP> requests;
+
+public:
+  Fork(const vector<TransformRequestP> &requests); //
+
+  // This returns NULL
+  TreeTransformerP join(TreeFactory<bool> &f,       //
+                        TreeTransformerP previous,  //
+                        TransformNetwork &network); //
+};
+
+/* Represents a graph of the kind
+ * R - (a - b - c)
+ * Where (a - b - c) corresponds to a Composition transformer
+ * */
+class Composition : public TransformRequest {
+private:
+  vector<TransformRequestP> requests;
+
+public:
+  Composition(const vector<TransformRequestP> &requests, //
+              std::string node_name = "");
+
+  TreeTransformerP join(TreeFactory<bool> &f,       //
+                        TreeTransformerP previous,  //
+                        TransformNetwork &network); //
+};
+
+void Build(TreeFactory<bool> &f,         //
+           TransformNetwork &network,    //
+           const TransformRequestP root, //
+           const vector<TransformRequestP>);
 
 } // namespace transform_requests
 } // namespace internals

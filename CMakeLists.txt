@@ -90,6 +90,8 @@ target_link_libraries(transformer tree_transform level_swap)
 add_library(transform_requests src/api_v2/transform_requests.cpp)
 target_link_libraries(transform_requests transformer)
 
+add_library(transform_network src/api_v2/transform_network.cpp)
+
 # API
 add_library(memory_layout src/api/memory_layout.cpp)
 target_link_libraries(memory_layout geometry
