@@ -17,8 +17,6 @@ target_link_libraries(test_transformer facade_v2)
 add_executable(test_transform_requests test_transform_requests.cpp)
 target_link_libraries(test_transform_requests facade_v2)
 
-add_executable(test_composite_transform_requests test_composite_transform_requests.cpp)
-target_link_libraries(test_composite_transform_requests facade_v2)
 
 
 set(CMAKE_CXX_STANDARDS 14)

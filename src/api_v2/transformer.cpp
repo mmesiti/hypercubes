@@ -11,12 +11,21 @@ namespace transformers {
 
 // Inverse
 Inverse::Inverse(const IndexTransformerP other) : wrapped(other){};
-vector<Index> Inverse::apply(const Index &idx) { return wrapped->inverse(idx); }
-vector<Index> Inverse::inverse(const Index &idx) { return wrapped->apply(idx); }
+vector<Index> Inverse::apply(const Index &idx) const {
+  return wrapped->inverse(idx);
+}
+vector<Index> Inverse::inverse(const Index &idx) const {
+  return wrapped->apply(idx);
+}
+int TreeTransformer::find_level(const std::string &key) const {
+  return std::find(output_levelnames.begin(), //
+                   output_levelnames.end(), key) -
+         output_levelnames.begin();
+}
 // Product
 Composition::Composition(const std::vector<IndexTransformerP> _steps)
     : steps(_steps) {}
-vector<Index> Composition::apply(const Index &idx) {
+vector<Index> Composition::apply(const Index &idx) const {
   vector<Index> outs{idx};
   for (const auto &s : steps) {
     vector<Index> tmp;
@@ -27,7 +36,7 @@ vector<Index> Composition::apply(const Index &idx) {
   }
   return outs;
 }
-vector<Index> Composition::inverse(const Index &idx) {
+vector<Index> Composition::inverse(const Index &idx) const {
   vector<Index> outs{idx};
   for (auto is = steps.rbegin(); is != steps.rend(); ++is) {
     vector<Index> tmp;
@@ -37,12 +46,6 @@ vector<Index> Composition::inverse(const Index &idx) {
     outs = tmp;
   }
   return outs;
-}
-
-int TreeTransformer::find_level(const std::string &key) const {
-  return std::find(output_levelnames.begin(), //
-                   output_levelnames.end(), key) -
-         output_levelnames.begin();
 }
 
 vector<std::string>
@@ -78,7 +81,7 @@ TreeTransformer::replace_name_range(const std::string &name,       //
   return out_names;
 }
 
-TreeTransformer::TreeTransformer(TreeTransformerP previous,   //
+TreeTransformer::TreeTransformer(TransformerP previous,       //
                                  KVTreePv2<bool> output_tree, //
                                  const vector<std::string> output_levelnames)
     : input_tree(previous->output_tree), //
@@ -105,11 +108,11 @@ bool TreeTransformer::check_names_different() {
   return true;
 }
 
-vector<Index> Transformer::apply(const Index &in) {
+vector<Index> Transformer::apply(const Index &in) const {
   return index_pushforward(output_tree, in);
 }
 
-vector<Index> Transformer::inverse(const Index &in) {
+vector<Index> Transformer::inverse(const Index &in) const {
   return vector<Index>{index_pullback(output_tree, in)};
 }
 
@@ -122,13 +125,13 @@ Id::Id(TreeFactory<bool> &f, vector<int> dimensions,
                                 " to size of dimension_names");
 }
 
-vector<Index> Id::apply(const Index &idx) { return vector<Index>{idx}; }
-vector<Index> Id::inverse(const Index &idx) { return vector<Index>{idx}; }
+vector<Index> Id::apply(const Index &idx) const { return vector<Index>{idx}; }
+vector<Index> Id::inverse(const Index &idx) const { return vector<Index>{idx}; }
 
-Q::Q(TreeFactory<bool> &f,      //
-     TreeTransformerP previous, //
-     std::string level,         //
-     int nparts,                //
+Q::Q(TreeFactory<bool> &f,  //
+     TransformerP previous, //
+     std::string level,     //
+     int nparts,            //
      std::string name)
     : Transformer(previous,
                   f.q(previous->output_tree,       //
@@ -137,10 +140,10 @@ Q::Q(TreeFactory<bool> &f,      //
                   previous->emplace_name(name, //
                                          level)) {}
 
-BB::BB(TreeFactory<bool> &f,      //
-       TreeTransformerP previous, //
-       std::string level,         //
-       int halosize,              //
+BB::BB(TreeFactory<bool> &f,  //
+       TransformerP previous, //
+       std::string level,     //
+       int halosize,          //
        std::string name)
     : Transformer(previous,
                   f.bb(previous->output_tree,       //
@@ -149,10 +152,10 @@ BB::BB(TreeFactory<bool> &f,      //
                   previous->emplace_name(name, //
                                          level)) {}
 
-Flatten::Flatten(TreeFactory<bool> &f,      //
-                 TreeTransformerP previous, //
-                 std::string level_start,   //
-                 std::string level_end,     //
+Flatten::Flatten(TreeFactory<bool> &f,    //
+                 TransformerP previous,   //
+                 std::string level_start, //
+                 std::string level_end,   //
                  std::string name)
     : Transformer(
           previous,
@@ -163,9 +166,9 @@ Flatten::Flatten(TreeFactory<bool> &f,      //
                                        level_start,       //
                                        level_end)) {}
 
-LevelRemap::LevelRemap(TreeFactory<bool> &f,      //
-                       TreeTransformerP previous, //
-                       std::string level,         //
+LevelRemap::LevelRemap(TreeFactory<bool> &f,  //
+                       TransformerP previous, //
+                       std::string level,     //
                        vector<int> index_map)
     : Transformer(previous,
                   f.remap_level(previous->output_tree,       //
@@ -173,18 +176,18 @@ LevelRemap::LevelRemap(TreeFactory<bool> &f,      //
                                 index_map),                  //
                   previous->output_levelnames) {}
 
-Sum::Sum(TreeFactory<bool> &f,                         //
-         TreeTransformerP previous,                    //
-         const vector<TreeTransformerP> &transformers, //
+Sum::Sum(TreeFactory<bool> &f,                     //
+         TransformerP previous,                    //
+         const vector<TransformerP> &transformers, //
          std::string name)
     : Transformer(previous, //
                   f.tree_sum([&]() {
                     vector<KVTreePv2<bool>> ts;
-                    std::transform(
-                        transformers.begin(), //
-                        transformers.end(),   //
-                        std::back_inserter(ts),
-                        [](TreeTransformerP T) { return T->output_tree; });
+                    std::transform(transformers.begin(), //
+                                   transformers.end(),   //
+                                   std::back_inserter(ts), [](TransformerP T) {
+                                     return T->output_tree;
+                                   });
                     return ts;
                   }()),
                   append(name, previous->output_levelnames)) {
@@ -196,8 +199,8 @@ Sum::Sum(TreeFactory<bool> &f,                         //
   }
 }
 
-LevelSwap::LevelSwap(TreeFactory<bool> &f,      //
-                     TreeTransformerP previous, //
+LevelSwap::LevelSwap(TreeFactory<bool> &f,  //
+                     TransformerP previous, //
                      vector<std::string> names)
     : Transformer(
           previous, //
@@ -238,14 +241,14 @@ bool LevelSwap::check_is_permutation(vector<std::string> oldnames,
   }();
 }
 
-vector<Index> LevelSwap::apply(const Index &in) {
+vector<Index> LevelSwap::apply(const Index &in) const {
   vector<int> out;
   out.reserve(in.size());
   for (int i : permutation_apply)
     out.push_back(in[i]);
   return {out};
 }
-vector<Index> LevelSwap::inverse(const Index &in) {
+vector<Index> LevelSwap::inverse(const Index &in) const {
   vector<int> out;
   out.reserve(in.size());
   for (int i : permutation_inverse)
@@ -253,15 +256,37 @@ vector<Index> LevelSwap::inverse(const Index &in) {
   return {out};
 }
 
-EONaive::EONaive(TreeFactory<bool> &f,      //
-                 TreeTransformerP previous, //
-                 std::string keylevel,      //
+EONaive::EONaive(TreeFactory<bool> &f,  //
+                 TransformerP previous, //
+                 std::string keylevel,  //
                  std::string newname)
     : Transformer(
           previous,
           f.eo_naive(previous->output_tree, previous->find_level(keylevel)),
           previous->emplace_name(newname, keylevel)) {}
 
+TreeComposition::TreeComposition(TreeFactory<bool> &f,  //
+                                 TransformerP previous, //
+                                 const vector<TransformerP> &transformers)
+    : Transformer(previous,                                           //
+                  transformers[transformers.size() - 1]->output_tree, //
+                  transformers[transformers.size() - 1]->output_levelnames),
+      composition([&transformers]() {
+        std::vector<IndexTransformerP> index_transformers;
+        std::transform(transformers.begin(),                   //
+                       transformers.end(),                     //
+                       std::back_inserter(index_transformers), //
+                       [](const TransformerP t) {
+                         return std::static_pointer_cast<IIndexTransformer>(t);
+                       });
+        return index_transformers;
+      }()) {}
+vector<Index> TreeComposition::apply(const Index &in) const {
+  return composition.apply(in);
+}
+vector<Index> TreeComposition::inverse(const Index &in) const {
+  return composition.inverse(in);
+}
 } // namespace transformers
 } // namespace internals
 } // namespace slow

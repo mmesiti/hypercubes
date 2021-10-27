@@ -11,30 +11,33 @@ namespace transform_networks {
 
 using transform_requests::TransformRequest;
 using transform_requests::TransformRequestP;
-using transformers::TreeTransformerP;
+using transformers::TransformerP;
 
+// TODO: test everything
 class TransformNetwork {
 public:
   enum ArcType { DIRECT, INVERSE };
   struct Arc {
-    TreeTransformerP destination;
+    TransformerP destination;
     ArcType type;
   };
 
-  // returns an integer identifier for a given TreeTransformerP
+  // returns an integer identifier for a given TransformerP
   // if it is in the network
-  int id(TreeTransformerP t) const;
+  int id(TransformerP t) const;
   int nnodes() const;
-  void add_node(TreeTransformerP node, std::string name = "");
+  void add_node(TransformerP node, std::string name = "");
+  TransformerP operator[](const std::string &);
 
 private:
-  std::vector<TreeTransformerP> nodes;
+  bool contains_output_tree(const TransformerP &node) const;
+  std::vector<TransformerP> nodes;
 
   // Map between names of nodes and actual nodes
-  std::map<std::string, TreeTransformerP> named_nodes;
+  std::map<std::string, TransformerP> named_nodes;
 
   // the adjacency matrix
-  std::map<TreeTransformerP, std::set<Arc>> arcs;
+  std::map<TransformerP, std::set<Arc>> arcs;
 };
 
 bool operator<(const TransformNetwork::Arc &, //

@@ -23,16 +23,16 @@ using transform_networks::TransformNetwork;
  * as the real constructor needs a TreeFactory object
  * and a "previous" TreeTransformer.
  */
-using transformers::TreeTransformerP;
+using transformers::TransformerP;
 class TransformRequest {
 protected:
   const std::string end_node_name;
 
 public:
   TransformRequest(std::string end_node_name);
-  virtual TreeTransformerP join(TreeFactory<bool> &f,      //
-                                TreeTransformerP previous, //
-                                TransformNetwork &network) const = 0;
+  virtual TransformerP join(TreeFactory<bool> &f,  //
+                            TransformerP previous, //
+                            TransformNetwork &network) const = 0;
   std::string get_end_node_name() const;
 };
 
@@ -49,9 +49,9 @@ public:
   TransformRequestGeneric1Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f,      //
-                        TreeTransformerP previous, //
-                        TransformNetwork &_) const {
+  TransformerP join(TreeFactory<bool> &f,  //
+                    TransformerP previous, //
+                    TransformNetwork &_) const {
     return std::make_shared<TransformerType>(f, previous, //
                                              std::get<0>(args));
   }
@@ -68,9 +68,9 @@ public:
   TransformRequestGeneric2Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f,      //
-                        TreeTransformerP previous, //
-                        TransformNetwork &_) const {
+  TransformerP join(TreeFactory<bool> &f,  //
+                    TransformerP previous, //
+                    TransformNetwork &_) const {
     return std::make_shared<TransformerType>(f, previous,       //
                                              std::get<0>(args), //
                                              std::get<1>(args));
@@ -88,9 +88,9 @@ public:
   TransformRequestGeneric3Arg(Ts... args, std::string node_name = "")
       : TransformRequest(node_name), args(args...){};
 
-  TreeTransformerP join(TreeFactory<bool> &f,      //
-                        TreeTransformerP previous, //
-                        TransformNetwork &_) const {
+  TransformerP join(TreeFactory<bool> &f,  //
+                    TransformerP previous, //
+                    TransformNetwork &_) const {
     return std::make_shared<TransformerType>(f, previous,       //
                                              std::get<0>(args), //
                                              std::get<1>(args), //
@@ -107,9 +107,9 @@ public:
   Id(vector<int> dimensions,              //
      vector<std::string> dimension_names, //
      std::string end_node_name = "");
-  TreeTransformerP join(TreeFactory<bool> &f,       //
-                        TreeTransformerP previous,  //
-                        TransformNetwork &_) const; // must be 0
+  TransformerP join(TreeFactory<bool> &f,       //
+                    TransformerP previous,      //
+                    TransformNetwork &_) const; // must be 0
 };
 
 using Q = TransformRequestGeneric3Arg<transformers::Q,
@@ -156,16 +156,15 @@ public:
   Sum(std::string new_level_name, //
       std::string end_node_name,  //
       const vector<TransformRequestP> &requests);
-  TreeTransformerP join(TreeFactory<bool> &f,       //
-                        TreeTransformerP previous,  //
-                        TransformNetwork &network); //
+  TransformerP join(TreeFactory<bool> &f,             //
+                    TransformerP previous,            //
+                    TransformNetwork &network) const; //
 };
 
 /** Represents a graph of the kind
  *    R
  *  / | \
  *  a b c
- *  Where S corresponds to a Sum transformer.
  * */
 class Fork : public TransformRequest {
 private:
@@ -175,32 +174,31 @@ public:
   Fork(const vector<TransformRequestP> &requests); //
 
   // This returns NULL
-  TreeTransformerP join(TreeFactory<bool> &f,       //
-                        TreeTransformerP previous,  //
-                        TransformNetwork &network); //
+  TransformerP join(TreeFactory<bool> &f,             //
+                    TransformerP previous,            //
+                    TransformNetwork &network) const; //
 };
 
 /* Represents a graph of the kind
  * R - (a - b - c)
- * Where (a - b - c) corresponds to a Composition transformer
+ * The output transformer is the composition of all the transformers.
  * */
-class Composition : public TransformRequest {
+class TreeComposition : public TransformRequest {
 private:
   vector<TransformRequestP> requests;
 
 public:
-  Composition(const vector<TransformRequestP> &requests, //
-              std::string node_name = "");
+  TreeComposition(const vector<TransformRequestP> &requests);
 
-  TreeTransformerP join(TreeFactory<bool> &f,       //
-                        TreeTransformerP previous,  //
-                        TransformNetwork &network); //
+  TransformerP join(TreeFactory<bool> &f,             //
+                    TransformerP previous,            //
+                    TransformNetwork &network) const; //
 };
 
-void Build(TreeFactory<bool> &f,         //
-           TransformNetwork &network,    //
-           const TransformRequestP root, //
-           const vector<TransformRequestP>);
+void Build(TreeFactory<bool> &f,          //
+           TransformNetwork &network,     //
+           const TransformRequestP &root, //
+           const vector<TransformRequestP> &requests);
 
 } // namespace transform_requests
 } // namespace internals

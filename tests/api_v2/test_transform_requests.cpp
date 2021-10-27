@@ -4,6 +4,8 @@
 #include "trees/kvtree_data_structure.hpp"
 #include "utils/print_utils.hpp"
 #include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_suite.hpp>
+#include <memory>
 
 using namespace hypercubes::slow::internals;
 
@@ -174,6 +176,146 @@ BOOST_AUTO_TEST_CASE(test_level_swap_constructor) {
                                 level_swap->output_levelnames.end(),   //
                                 exp_out_names.begin(),                 //
                                 exp_out_names.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_ro_naive_constructor) {
+  TreeFactory<bool> f;
+  TransformNetwork n;
+  auto idr = transform_requests::Id({3, 2, 2}, {"X", "Y", "Z"});
+  transformers::TransformerP id = idr.join(f, 0, n);
+
+  auto flattenr = transform_requests::Flatten("Y", "Z", "YZ");
+  transformers::TransformerP flatten = flattenr.join(f, id, n);
+
+  auto eor = transform_requests::EONaive("YZ", "EO");
+  transformers::TransformerP eo = eor.join(f, flatten, n);
+
+  Tree leaf = mtkv(true, {});
+  Tree YZE = mtkv(false, {{{0}, leaf}, //
+                          {{3}, leaf}});
+  Tree YZO = mtkv(false, {{{1}, leaf}, //
+                          {{2}, leaf}});
+  Tree EOYZ = mtkv(false, {{{}, YZE}, //
+                           {{}, YZO}});
+  Tree XEOYZ = mtkv(false, {{{0}, EOYZ}, //
+                            {{1}, EOYZ}, //
+                            {{2}, EOYZ}});
+  BOOST_TEST(*XEOYZ == *(eo->output_tree));
+  vector<std::string> exp_out_names{"X", "EO", "YZ"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(eo->output_levelnames.begin(), //
+                                eo->output_levelnames.end(),   //
+                                exp_out_names.begin(),         //
+                                exp_out_names.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_sum_constructor) {
+  TreeFactory<bool> f;
+  TransformNetwork n;
+  auto idr = transform_requests::Id({3, 3}, {"X", "Y"}, "ROOT");
+  transformers::TransformerP id = idr.join(f, 0, n);
+  n.add_node(id, idr.get_end_node_name());
+
+  using transform_requests::LevelRemap;
+  auto level_remap_r1 = std::make_shared<LevelRemap>(std::string("Y"), //
+                                                     vector<int>{2, 0, 1});
+  auto level_remap_r2 = std::make_shared<LevelRemap>(std::string("Y"), //
+                                                     vector<int>{2});
+  auto sumr = transform_requests::Sum("SUM",           //
+                                      "SUM",           //
+                                      {level_remap_r1, //
+                                       level_remap_r2});
+  transformers::TransformerP sum = sumr.join(f, id, n);
+
+  BOOST_TEST(n.nnodes() == 3);
+
+  Tree leaf = mtkv(true, {});
+  Tree Yrmp1 = mtkv(false, {{{2}, leaf}, //
+                            {{0}, leaf}, //
+                            {{1}, leaf}});
+  Tree Yrmp2 = mtkv(false, {{{2}, leaf}});
+  Tree XYrmp1 = mtkv(false, {{{0}, Yrmp1},   //
+                             {{1}, Yrmp1},   //
+                             {{2}, Yrmp1}}); //
+  Tree XYrmp2 = mtkv(false, {{{0}, Yrmp2},   //
+                             {{1}, Yrmp2},   //
+                             {{2}, Yrmp2}}); //
+
+  Tree SumXY = mtkv(false, {{{}, XYrmp1}, //
+                            {{}, XYrmp2}});
+  BOOST_TEST(*SumXY == *(sum->output_tree));
+
+  vector<std::string> exp_out_names{"SUM", "X", "Y"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(sum->output_levelnames.begin(), //
+                                sum->output_levelnames.end(),   //
+                                exp_out_names.begin(),          //
+                                exp_out_names.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_fork_constructor) {
+  TreeFactory<bool> f;
+  TransformNetwork n;
+  auto idr = transform_requests::Id({3, 3}, {"X", "Y"});
+  transformers::TransformerP id = idr.join(f, 0, n);
+  n.add_node(id, idr.get_end_node_name());
+
+  using transform_requests::LevelRemap;
+  auto level_remap_r1 = std::make_shared<LevelRemap>(std::string("Y"), //
+                                                     vector<int>{2, 0, 1});
+
+  auto level_remap_r2 = std::make_shared<LevelRemap>(std::string("Y"), //
+                                                     vector<int>{2});
+  auto forkr = transform_requests::Fork({level_remap_r1, //
+                                         level_remap_r2});
+  transformers::TransformerP fork = forkr.join(f, id, n);
+
+  BOOST_TEST(n.nnodes() == 3);
+  BOOST_TEST(fork == transformers::TransformerP(0));
+}
+
+BOOST_AUTO_TEST_CASE(test_composition_constructor) {
+  TreeFactory<bool> f;
+  TransformNetwork n;
+  auto idr = transform_requests::Id({4, 8}, {"X", "Y"});
+  transformers::TransformerP id = idr.join(f, 0, n);
+  n.add_node(id, idr.get_end_node_name());
+  using transform_requests::BB;
+  using transform_requests::Q;
+  using transform_requests::TreeComposition;
+  auto qr = std::make_shared<Q>(std::string("Y"),     //
+                                2,                    //
+                                std::string("MPI Y"), //
+                                "QY");
+  auto bbr = std::make_shared<BB>(std::string("Y"),    //
+                                  1,                   //
+                                  std::string("BB Y"), //
+                                  "BBY");
+  TreeComposition compositionr({qr, bbr});
+  auto composition = compositionr.join(f, id, n);
+  BOOST_TEST(n.nnodes() == 3);
+  BOOST_TEST(n["BBY"]->output_tree == composition->output_tree);
+}
+
+BOOST_AUTO_TEST_CASE(test_build) {
+  TreeFactory<bool> f;
+  TransformNetwork n;
+  using transform_requests::BB;
+  using transform_requests::Id;
+  using transform_requests::Q;
+  auto idr = std::make_shared<Id>(vector<int>{4, 8}, //
+                                  vector<std::string>{"X", "Y"});
+  auto qr = std::make_shared<Q>(std::string("Y"),     //
+                                2,                    //
+                                std::string("MPI Y"), //
+                                "QY");
+  auto bbr = std::make_shared<BB>(std::string("Y"),    //
+                                  1,                   //
+                                  std::string("BB Y"), //
+                                  "BBY");
+  transform_requests::Build(f,   //
+                            n,   //
+                            idr, //
+                            {qr, bbr});
+  BOOST_TEST(n.nnodes() == 3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

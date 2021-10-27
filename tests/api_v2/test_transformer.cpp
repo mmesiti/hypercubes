@@ -24,11 +24,13 @@ BOOST_AUTO_TEST_CASE(test_tree_transformer_check_names_different) {
                     std::invalid_argument);
 }
 BOOST_AUTO_TEST_CASE(test_tree_transformer_check_names_different_3args) {
-  auto t = std::make_shared<TreeTransformer>(
-      (KVTreePv2<bool>)0, //
+  auto t = std::make_shared<Transformer>( //
+      (KVTreePv2<bool>)0,                 //
       vector<std::string>{"X", "Y", "Z", "T"});
 
-  BOOST_CHECK_THROW(TreeTransformer(t, 0, {"X", "Y", "Z", "Z"}),
+  BOOST_CHECK_THROW(TreeTransformer(t, //
+                                    0, //
+                                    {"X", "Y", "Z", "Z"}),
                     std::invalid_argument);
 }
 
@@ -171,6 +173,20 @@ BOOST_AUTO_TEST_CASE(test_composition_apply) {
                                 out_exp.begin(), out_exp.end());
 }
 
+BOOST_AUTO_TEST_CASE(test_tree_composition_apply) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+  auto part = std::make_shared<BB>(f, split, "Y", 1, "BB Y");
+  TreeComposition all(f, R, {split, part});
+  Index out = all.apply({2, 5, 3})[0];
+  Index out_exp{2, 1, 1, 0, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
 BOOST_AUTO_TEST_CASE(test_composition_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -179,6 +195,20 @@ BOOST_AUTO_TEST_CASE(test_composition_inverse) {
   auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
   auto part = std::make_shared<BB>(f, split, "Y", 1, "BB Y");
   Composition all({split, part});
+  Index out = all.inverse({2, 1, 1, 0, 3})[0];
+  Index out_exp{2, 5, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_tree_composition_inverse) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+  auto part = std::make_shared<BB>(f, split, "Y", 1, "BB Y");
+  TreeComposition all(f, R, {split, part});
   Index out = all.inverse({2, 1, 1, 0, 3})[0];
   Index out_exp{2, 5, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
@@ -287,11 +317,11 @@ BOOST_AUTO_TEST_CASE(test_sum_constructor) {
       std::make_shared<LevelRemap>(f, R, "Y", std::vector<int>{3, 4});
 
   vector<std::string> output_levelnames{"SUM", "X", "Y"};
-  auto sum = std::make_shared<Sum>(f,                                  //
-                                   R,                                  //
-                                   vector<TreeTransformerP>{remapped0, //
-                                                            remapped1, //
-                                                            remapped2},
+  auto sum = std::make_shared<Sum>(f,                              //
+                                   R,                              //
+                                   vector<TransformerP>{remapped0, //
+                                                        remapped1, //
+                                                        remapped2},
                                    "SUM");
   BOOST_CHECK_EQUAL_COLLECTIONS(
       sum->output_levelnames.begin(), sum->output_levelnames.end(),
@@ -325,11 +355,11 @@ BOOST_AUTO_TEST_CASE(test_sum_apply) {
   auto remapped2 =
       std::make_shared<LevelRemap>(f, R, "Y", std::vector<int>{3, 4});
 
-  auto sum = std::make_shared<Sum>(f,                                  //
-                                   R,                                  //
-                                   vector<TreeTransformerP>{remapped0, //
-                                                            remapped1, //
-                                                            remapped2},
+  auto sum = std::make_shared<Sum>(f,                              //
+                                   R,                              //
+                                   vector<TransformerP>{remapped0, //
+                                                        remapped1, //
+                                                        remapped2},
                                    "SUM");
 
   auto outs = sum->apply({0, 3});
@@ -353,11 +383,11 @@ BOOST_AUTO_TEST_CASE(test_sum_inverse) {
   auto remapped2 =
       std::make_shared<LevelRemap>(f, R, "Y", std::vector<int>{3, 4});
 
-  auto sum = std::make_shared<Sum>(f,                                  //
-                                   R,                                  //
-                                   vector<TreeTransformerP>{remapped0, //
-                                                            remapped1, //
-                                                            remapped2},
+  auto sum = std::make_shared<Sum>(f,                              //
+                                   R,                              //
+                                   vector<TransformerP>{remapped0, //
+                                                        remapped1, //
+                                                        remapped2},
                                    "SUM");
 
   auto out = sum->inverse({2, 0, 0})[0]; // in remapped2
