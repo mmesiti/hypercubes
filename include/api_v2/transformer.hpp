@@ -138,15 +138,18 @@ public:
 struct LevelSwap : public Transformer {
   LevelSwap(TreeFactory<bool> &f,  //
             TransformerP previous, //
-            vector<std::string> names);
+            vector<std::string> level_names);
+  LevelSwap(TreeFactory<bool> &f,                      //
+            TransformerP previous,                     //
+            vector<std::string> reference_level_names, //
+            vector<std::string> reordered_level_names);
+
   vector<Index> apply(const Index &) const;
   vector<Index> inverse(const Index &) const;
 
 private:
   vector<int> permutation_apply;
   vector<int> permutation_inverse;
-  static bool check_is_permutation(vector<std::string> oldnames,
-                                   vector<std::string> newnames);
 };
 struct EONaive : public Transformer {
 private:

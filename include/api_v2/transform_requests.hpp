@@ -131,9 +131,13 @@ using LevelRemap = TransformRequestGeneric2Arg<transformers::LevelRemap,
                                                std::string,  // level
                                                vector<int>>; // index_map
 
-using LevelSwap =
+using LevelSwap1 =
     TransformRequestGeneric1Arg<transformers::LevelSwap,
                                 vector<std::string>>; // level_names
+using LevelSwap2 =
+    TransformRequestGeneric2Arg<transformers::LevelSwap,
+                                vector<std::string>,  // reference_level_names
+                                vector<std::string>>; // reordered_level_names
 
 using EONaive = TransformRequestGeneric2Arg<transformers::EONaive,
                                             std::string,  // keylevel
@@ -195,9 +199,8 @@ public:
                     TransformNetwork &network) const; //
 };
 
-void Build(TreeFactory<bool> &f,          //
-           TransformNetwork &network,     //
-           const TransformRequestP &root, //
+void Build(TreeFactory<bool> &f,      //
+           TransformNetwork &network, //
            const vector<TransformRequestP> &requests);
 
 } // namespace transform_requests

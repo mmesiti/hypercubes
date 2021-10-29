@@ -91,29 +91,30 @@ TransformerP TreeComposition::join(TreeFactory<bool> &f,  //
   vector<TransformerP> transformers;
 
   // Assuming "previous" is already in the network.
-  for (auto &request : requests) {
+  for (int i = 0; i < requests.size(); ++i) {
+    auto request = requests[i];
     TransformerP t = request->join(f, last, network);
     transformers.push_back(t);
 
-    network.add_node(t, request->get_end_node_name());
+    if (i < requests.size() - 1) {
+      network.add_node(t, request->get_end_node_name());
+    }
     last = t;
   };
-  TransformerP res =
-      std::make_shared<transformers::TreeComposition>(f,        //
-                                                      previous, //
-                                                      transformers);
-
-  return res;
+  return last;
 }
 
-void Build(TreeFactory<bool> &f,                  //
-           TransformNetwork &network,             //
-           const TransformRequestP &root_request, //
+void Build(TreeFactory<bool> &f,      //
+           TransformNetwork &network, //
            const vector<TransformRequestP> &requests) {
+  auto root_request = requests[0];
   TransformerP last = root_request->join(f, 0, network);
   network.add_node(last, root_request->get_end_node_name());
 
-  for (auto request : requests) {
+  for (auto request_it = requests.begin() + 1; //
+       request_it != requests.end();           //
+       ++request_it) {
+    auto request = *request_it;
     TransformerP new_node = request->join(f, last, network);
     network.add_node(new_node, request->get_end_node_name());
     last = new_node;

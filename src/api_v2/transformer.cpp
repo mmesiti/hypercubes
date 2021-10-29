@@ -2,6 +2,8 @@
 #include "api_v2/tree_transform.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/level_swap.hpp"
+#include "utils/print_utils.hpp"
+#include <iostream>
 #include <stdexcept>
 
 namespace hypercubes {
@@ -201,7 +203,7 @@ Sum::Sum(TreeFactory<bool> &f,                     //
 
 LevelSwap::LevelSwap(TreeFactory<bool> &f,  //
                      TransformerP previous, //
-                     vector<std::string> names)
+                     vector<std::string> level_names)
     : Transformer(
           previous, //
           f.swap_levels(
@@ -209,51 +211,63 @@ LevelSwap::LevelSwap(TreeFactory<bool> &f,  //
               [&]() {
                 // names must be a permutation of
                 // previous->output_levelnames
-                if (not check_is_permutation(names,
+                if (not check_is_permutation(level_names,
                                              previous->output_levelnames))
                   throw std::invalid_argument(
                       "New names are not a permutation of the old ones.");
 
                 vector<int> levels;
                 levels.reserve(previous->output_levelnames.size());
-                std::transform(names.begin(), names.end(),
+                std::transform(level_names.begin(), level_names.end(),
                                std::back_inserter(levels),
                                [&](const std::string &name) {
                                  return previous->find_level(name);
                                });
-                return levels;
+                return find_permutation(previous->output_levelnames,
+                                        level_names);
               }()),
-          names),
+          level_names),
       permutation_apply(
-          find_permutation(names, previous->output_levelnames)), //
+          find_permutation(previous->output_levelnames, level_names)), //
       permutation_inverse(
-          find_permutation(previous->output_levelnames, names)) {}
+          find_permutation(level_names, previous->output_levelnames)) {}
 
-bool LevelSwap::check_is_permutation(vector<std::string> oldnames,
-                                     vector<std::string> newnames) {
-  return oldnames.size() == newnames.size() and
-             [&oldnames, &newnames]() -> bool {
-    return std::all_of(oldnames.begin(), oldnames.end(),
-                       [&newnames](const std::string &n) {
-                         return std::find(newnames.begin(), newnames.end(),
-                                          n) != newnames.end();
-                       });
-  }();
-}
+LevelSwap::LevelSwap(TreeFactory<bool> &f,                      //
+                     TransformerP previous,                     //
+                     vector<std::string> reference_level_names, //
+                     vector<std::string> reordered_level_names)
+    : Transformer(
+          previous, //
+          f.swap_levels(
+              previous->output_tree, //
+              [&]() {
+                // reordered_level_names must be a permutation of
+                // reference_level_names
+                if (not check_is_permutation(reference_level_names,
+                                             reordered_level_names))
+                  throw std::invalid_argument(
+                      "New level names are not a permutation of the old ones.");
+
+                return find_permutation(previous->output_levelnames,
+                                        reference_level_names,
+                                        reordered_level_names);
+              }()),
+          apply_permutation(find_permutation(previous->output_levelnames, //
+                                             reference_level_names,       //
+                                             reordered_level_names),      //
+                            previous->output_levelnames)),
+      permutation_apply(find_permutation(previous->output_levelnames,   //
+                                         reference_level_names,         //
+                                         reordered_level_names)),       //
+      permutation_inverse(find_permutation(previous->output_levelnames, //
+                                           reordered_level_names,       //
+                                           reference_level_names)) {}
 
 vector<Index> LevelSwap::apply(const Index &in) const {
-  vector<int> out;
-  out.reserve(in.size());
-  for (int i : permutation_apply)
-    out.push_back(in[i]);
-  return {out};
+  return {apply_permutation(permutation_apply, in)};
 }
 vector<Index> LevelSwap::inverse(const Index &in) const {
-  vector<int> out;
-  out.reserve(in.size());
-  for (int i : permutation_inverse)
-    out.push_back(in[i]);
-  return {out};
+  return {apply_permutation(permutation_inverse, in)};
 }
 
 EONaive::EONaive(TreeFactory<bool> &f,  //

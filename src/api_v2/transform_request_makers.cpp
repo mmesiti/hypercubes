@@ -16,7 +16,7 @@ TransformRequestP Id(vector<int> dimensions,              //
 TransformRequestP Q(std::string level,          //
                     int nparts,                 //
                     std::string new_level_name, //
-                    std::string end_node_name = "") {
+                    std::string end_node_name) {
 
   return std::make_shared<transform_requests::Q>(level,          //
                                                  nparts,         //
@@ -27,12 +27,11 @@ TransformRequestP Q(std::string level,          //
 TransformRequestP BB(std::string level,          //
                      int halosize,               //
                      std::string new_level_name, //
-                     std::string end_node_name){
-    return std::make_shared<transform_requests::BB>(level,          //
-                                                    halosize,       //
-                                                    new_level_name, //
-                                                    end_node_name)
-
+                     std::string end_node_name) {
+  return std::make_shared<transform_requests::BB>(level,          //
+                                                  halosize,       //
+                                                  new_level_name, //
+                                                  end_node_name);
 }
 
 TransformRequestP Flatten(std::string level_start,    //
@@ -54,11 +53,21 @@ TransformRequestP LevelRemap(std::string level,     //
                                                           end_node_name);
 }
 
-TransformRequestP LevelSwap(vector<std::string> names, //
+TransformRequestP LevelSwap(vector<std::string> level_names, //
                             std::string end_node_name) {
 
-  return std::make_shared<transform_requests::LevelSwap>(names, //
-                                                         end_node_name);
+  return std::make_shared<transform_requests::LevelSwap1>(level_names, //
+                                                          end_node_name);
+}
+
+TransformRequestP LevelSwap(vector<std::string> reference_level_names, //
+                            vector<std::string> reordered_level_names, //
+                            std::string end_node_name) {
+
+  return std::make_shared<transform_requests::LevelSwap2>(
+      reference_level_names, //
+      reordered_level_names, //
+      end_node_name);
 }
 
 TransformRequestP EONaive(std::string keylevel,       //
@@ -69,12 +78,12 @@ TransformRequestP EONaive(std::string keylevel,       //
                                                        end_node_name);
 }
 
-TransformRequestP Sum(const vector<TransformRequestP> &requests, //
-                      std::string new_level_name,                //
-                      std::string end_node_name) {
-  return std::make_shared<transform_requests::Sum>(requests,       //
-                                                   new_level_name, //
-                                                   end_node_name);
+TransformRequestP Sum(std::string new_level_name, //
+                      std::string end_node_name,  //
+                      const vector<TransformRequestP> &requests) {
+  return std::make_shared<transform_requests::Sum>(new_level_name, //
+                                                   end_node_name,  //
+                                                   requests);
 }
 
 TransformRequestP Fork(const vector<TransformRequestP> &requests) {

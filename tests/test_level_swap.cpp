@@ -10,7 +10,7 @@ using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_level_swap)
 
-BOOST_AUTO_TEST_CASE(test_list_permutation) {
+BOOST_AUTO_TEST_CASE(test_find_permutation1) {
 
   std::vector<int> in{4, 3, 5, 2, 1, 0, 8, 7, 6};
   std::vector<int> out{0, 1, 2, 3, 4, 5, 6, 7, 8};
@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(test_list_permutation) {
   BOOST_TEST(res == in);
 }
 
-BOOST_AUTO_TEST_CASE(test_list_permutation_different_lenghts) {
+BOOST_AUTO_TEST_CASE(test_find_permutation1_different_lenghts) {
 
   std::vector<int> in{4, 3, 5, 2, 1, 0, 8, 7, 6};
   std::vector<int> out{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -27,12 +27,67 @@ BOOST_AUTO_TEST_CASE(test_list_permutation_different_lenghts) {
   BOOST_CHECK_THROW(find_permutation(in, out), std::invalid_argument);
 }
 
-BOOST_AUTO_TEST_CASE(test_list_permutation_missing_case) {
+BOOST_AUTO_TEST_CASE(test_find_permutation1_missing_case) {
 
   std::vector<int> in{4, 3, 5, 2, 1, 0, 8, 7, 6};
   std::vector<int> out{0, 1, 2, 3, 4, 5, 6, 7, 9};
 
   BOOST_CHECK_THROW(find_permutation(in, out), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_find_permutation2) {
+  // In this case the second overload of find_permutation
+  // needs to behave exactly as the first one.
+
+  std::vector<int> in{4, 3, 5, 2, 1, 0, 8, 7, 6};
+  std::vector<int> out{0, 1, 2, 3, 4, 5, 6, 7, 8};
+
+  auto res = find_permutation(in, in, out);
+  BOOST_TEST(res == in);
+}
+
+BOOST_AUTO_TEST_CASE(test_find_permutation2_different_lenghts) {
+  // In this case the second overload of find_permutation
+  // needs to behave exactly as the first one.
+
+  std::vector<int> in{4, 3, 5, 2, 1, 0, 8, 7, 6};
+  std::vector<int> out{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+  BOOST_CHECK_THROW(find_permutation(in, in, out), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_find_permutation2_missing_case) {
+  // In this case the second overload of find_permutation
+  // needs to behave exactly as the first one.
+
+  std::vector<int> in{4, 3, 5, 2, 1, 0, 8, 7, 6};
+  std::vector<int> out{0, 1, 2, 3, 4, 5, 6, 7, 9};
+
+  BOOST_CHECK_THROW(find_permutation(in, in, out), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_find_permutation1_apply_permutation) {
+
+  std::vector<int> in{1, 5, 4, 3, 6, 2};
+  std::vector<int> out{6, 4, 5, 3, 2, 1};
+
+  auto permutation = find_permutation(in, out);
+  auto res = apply_permutation(permutation, in);
+  BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), //
+                                out.begin(), out.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_find_permutation2_apply_permutation) {
+
+  std::vector<int> original{1, 5, 4, 3, 6, 2};
+  std::vector<int> reference{1, 4, 2, 3};
+  std::vector<int> out{4, 2, 1, 3};
+  std::vector<int> fullout{4, 5, 2, 3, 6, 1};
+
+  auto permutation = find_permutation(original, reference, out);
+  auto res = apply_permutation(permutation, original);
+  BOOST_CHECK_EQUAL_COLLECTIONS(res.begin(), res.end(), //
+                                fullout.begin(), fullout.end());
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_partitioners_names, Part1D42) {

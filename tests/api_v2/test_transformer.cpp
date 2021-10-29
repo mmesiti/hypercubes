@@ -405,9 +405,58 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor) {
       std::make_shared<LevelSwap>(f, R, vector<std::string>{"Y", "Z", "X"});
 }
 
+BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{2, 3, 4, 5},
+                                vector<std::string>{"X", "Y", "Z", "T"});
+  auto swapped1 = std::make_shared<LevelSwap>(
+      f, R, vector<std::string>{"X", "Z", "T", "Y"});
+  auto swapped2 =
+      std::make_shared<LevelSwap>(f, R,                               //
+                                  vector<std::string>{"Y", "Z", "T"}, //
+                                  vector<std::string>{"Z", "T", "Y"});
+  auto levelnames1 = swapped1->output_levelnames;
+  auto levelnames2 = swapped2->output_levelnames;
+  BOOST_CHECK_EQUAL_COLLECTIONS(levelnames1.begin(), levelnames1.end(), //
+                                levelnames2.begin(), levelnames2.end());
+  BOOST_TEST(*(swapped1->output_tree) == *(swapped2->output_tree));
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2_throws_non_existing_level) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4, 4},
+                                vector<std::string>{"X", "Y", "Z", "T"});
+  BOOST_CHECK_THROW(
+      std::make_shared<LevelSwap>(f, R,                               //
+                                  vector<std::string>{"F", "Z", "T"}, //
+                                  vector<std::string>{"Z", "T", "F"}),
+      std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2_throws_wrong_reorder) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4, 4},
+                                vector<std::string>{"X", "Y", "Z", "T"});
+  BOOST_CHECK_THROW(
+      std::make_shared<LevelSwap>(f, R,                               //
+                                  vector<std::string>{"Y", "Z", "T"}, //
+                                  vector<std::string>{"Z", "T", "X"}),
+      std::invalid_argument);
+}
+
 BOOST_AUTO_TEST_CASE(test_levelswap_check_names_wrong_length) {
   vector<std::string> oldnames{"X", "Y", "Z"};
   vector<std::string> newnames{"X", "Y", "Z", "T"};
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                    //
+                                vector<int>{4, 8, 4}, //
+                                oldnames);
+
+  BOOST_CHECK_THROW(std::make_shared<LevelSwap>(f, R, newnames),
+                    std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_too_few_names) {
@@ -486,9 +535,7 @@ BOOST_AUTO_TEST_CASE(test_eonaive_apply) {
 
   Index in{3, 2, 2, 1};
   auto out1 = flat->apply(in)[0];
-  std::cout << out1 << std::endl;
   auto out = eo->apply(out1)[0];
-  std::cout << out << std::endl;
   decltype(out) exp_out{1, (3 * 8 * 4 + 2 * 4 + 2) / 2, 1};
 
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(),     //
@@ -507,9 +554,7 @@ BOOST_AUTO_TEST_CASE(test_eonaive_inverse) {
 
   Index in{1, (3 * 8 * 4 + 2 * 4 + 2) / 2, 1};
   auto out1 = eo->inverse(in)[0];
-  std::cout << out1 << std::endl;
   auto out = flat->inverse(out1)[0];
-  std::cout << out << std::endl;
   decltype(out) exp_out{3, 2, 2, 1};
 
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(),     //

@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(test_level_swap_constructor) {
   auto idr = transform_requests::Id({3, 2, 1}, {"X", "Y", "Z"});
   auto id = idr.join(f, 0, n);
 
-  auto level_swap_r = transform_requests::LevelSwap({"Z", "Y", "X"});
+  auto level_swap_r = transform_requests::LevelSwap1({"Z", "Y", "X"});
   auto level_swap = level_swap_r.join(f, id, n);
 
   Tree leaf = mtkv(true, {});
@@ -291,7 +291,11 @@ BOOST_AUTO_TEST_CASE(test_composition_constructor) {
                                   "BBY");
   TreeComposition compositionr({qr, bbr});
   auto composition = compositionr.join(f, id, n);
-  BOOST_TEST(n.nnodes() == 3);
+  // Last node in the chain is the output node,
+  // and is not added to the tree:
+  // this is caller responsibility.
+  BOOST_TEST(n.nnodes() == 2);
+  n.add_node(composition, "BBY");
   BOOST_TEST(n["BBY"]->output_tree == composition->output_tree);
 }
 
@@ -311,10 +315,9 @@ BOOST_AUTO_TEST_CASE(test_build) {
                                   1,                   //
                                   std::string("BB Y"), //
                                   "BBY");
-  transform_requests::Build(f,   //
-                            n,   //
-                            idr, //
-                            {qr, bbr});
+  transform_requests::Build(f, //
+                            n, //
+                            {idr, qr, bbr});
   BOOST_TEST(n.nnodes() == 3);
 }
 
