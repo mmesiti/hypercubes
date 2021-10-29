@@ -20,9 +20,11 @@ vector<Index> Inverse::inverse(const Index &idx) const {
   return wrapped->apply(idx);
 }
 int TreeTransformer::find_level(const std::string &key) const {
-  return std::find(output_levelnames.begin(), //
-                   output_levelnames.end(), key) -
-         output_levelnames.begin();
+  auto found_it = std::find(output_levelnames.begin(), //
+                            output_levelnames.end(), key);
+  if (found_it == output_levelnames.end())
+    throw std::invalid_argument("Level not found!");
+  return found_it - output_levelnames.begin();
 }
 // Product
 Composition::Composition(const std::vector<IndexTransformerP> _steps)
@@ -130,6 +132,11 @@ Id::Id(TreeFactory<bool> &f, vector<int> dimensions,
 vector<Index> Id::apply(const Index &idx) const { return vector<Index>{idx}; }
 vector<Index> Id::inverse(const Index &idx) const { return vector<Index>{idx}; }
 
+Renumber::Renumber(TreeFactory<bool> &f, //
+                   TransformerP previous)
+    : Transformer(previous, f.renumber_children(previous->output_tree),
+                  previous->output_levelnames) {}
+
 Q::Q(TreeFactory<bool> &f,  //
      TransformerP previous, //
      std::string level,     //
@@ -216,15 +223,9 @@ LevelSwap::LevelSwap(TreeFactory<bool> &f,  //
                   throw std::invalid_argument(
                       "New names are not a permutation of the old ones.");
 
-                vector<int> levels;
-                levels.reserve(previous->output_levelnames.size());
-                std::transform(level_names.begin(), level_names.end(),
-                               std::back_inserter(levels),
-                               [&](const std::string &name) {
-                                 return previous->find_level(name);
-                               });
-                return find_permutation(previous->output_levelnames,
-                                        level_names);
+                auto res =
+                    find_permutation(level_names, previous->output_levelnames);
+                return res;
               }()),
           level_names),
       permutation_apply(
@@ -249,8 +250,8 @@ LevelSwap::LevelSwap(TreeFactory<bool> &f,                      //
                       "New level names are not a permutation of the old ones.");
 
                 return find_permutation(previous->output_levelnames,
-                                        reference_level_names,
-                                        reordered_level_names);
+                                        reordered_level_names,
+                                        reference_level_names);
               }()),
           apply_permutation(find_permutation(previous->output_levelnames, //
                                              reference_level_names,       //

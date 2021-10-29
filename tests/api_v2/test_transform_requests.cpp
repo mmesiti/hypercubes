@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(test_level_swap_constructor) {
                                 exp_out_names.end());
 }
 
-BOOST_AUTO_TEST_CASE(test_ro_naive_constructor) {
+BOOST_AUTO_TEST_CASE(test_eo_naive_constructor) {
   TreeFactory<bool> f;
   TransformNetwork n;
   auto idr = transform_requests::Id({3, 2, 2}, {"X", "Y", "Z"});
@@ -221,9 +221,9 @@ BOOST_AUTO_TEST_CASE(test_sum_constructor) {
   auto level_remap_r2 = std::make_shared<LevelRemap>(std::string("Y"), //
                                                      vector<int>{2});
   auto sumr = transform_requests::Sum("SUM",           //
-                                      "SUM",           //
                                       {level_remap_r1, //
-                                       level_remap_r2});
+                                       level_remap_r2},
+                                      "SUM");
   transformers::TransformerP sum = sumr.join(f, id, n);
 
   BOOST_TEST(n.nnodes() == 3);
@@ -254,21 +254,24 @@ BOOST_AUTO_TEST_CASE(test_sum_constructor) {
 BOOST_AUTO_TEST_CASE(test_fork_constructor) {
   TreeFactory<bool> f;
   TransformNetwork n;
-  auto idr = transform_requests::Id({3, 3}, {"X", "Y"});
+  auto idr = transform_requests::Id({3, 3}, {"X", "Y"}, "ROOT");
   transformers::TransformerP id = idr.join(f, 0, n);
   n.add_node(id, idr.get_end_node_name());
 
   using transform_requests::LevelRemap;
-  auto level_remap_r1 = std::make_shared<LevelRemap>(std::string("Y"), //
-                                                     vector<int>{2, 0, 1});
+  auto level_remap_r1 = std::make_shared<LevelRemap>(std::string("Y"),     //
+                                                     vector<int>{2, 0, 1}, //
+                                                     "Yremap1");
 
   auto level_remap_r2 = std::make_shared<LevelRemap>(std::string("Y"), //
-                                                     vector<int>{2});
+                                                     vector<int>{2},   //
+                                                     "Yremap2");
   auto forkr = transform_requests::Fork({level_remap_r1, //
                                          level_remap_r2});
   transformers::TransformerP fork = forkr.join(f, id, n);
 
   BOOST_TEST(n.nnodes() == 3);
+  // forkr.join is the null pointer (as there is no single 'end')
   BOOST_TEST(fork == transformers::TransformerP(0));
 }
 
@@ -289,14 +292,15 @@ BOOST_AUTO_TEST_CASE(test_composition_constructor) {
                                   1,                   //
                                   std::string("BB Y"), //
                                   "BBY");
-  TreeComposition compositionr({qr, bbr});
+  TreeComposition compositionr({qr, bbr}, "COMPOSITION");
   auto composition = compositionr.join(f, id, n);
-  // Last node in the chain is the output node,
-  // and is not added to the tree:
-  // this is caller responsibility.
-  BOOST_TEST(n.nnodes() == 2);
-  n.add_node(composition, "BBY");
+  // Last node in the chain is the output node.
+  // It is added to the network by compositionr.join
+  // because it is the only one.
+  n.add_node(composition, "COMPOSITION");
+  BOOST_TEST(n.nnodes() == 3);
   BOOST_TEST(n["BBY"]->output_tree == composition->output_tree);
+  BOOST_TEST(n["COMPOSITION"] == n["BBY"]);
 }
 
 BOOST_AUTO_TEST_CASE(test_build) {

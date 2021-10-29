@@ -1,4 +1,5 @@
 #include "api_v2/transform_request_makers.hpp"
+#include "api_v2/transform_requests.hpp"
 
 namespace hypercubes {
 namespace slow {
@@ -13,6 +14,11 @@ TransformRequestP Id(vector<int> dimensions,              //
                                                   dimension_names, //
                                                   end_node_name);
 }
+
+TransformRequestP Renumber(std::string end_node_name) {
+  return std::make_shared<transform_requests::Renumber>(end_node_name);
+}
+
 TransformRequestP Q(std::string level,          //
                     int nparts,                 //
                     std::string new_level_name, //
@@ -78,20 +84,22 @@ TransformRequestP EONaive(std::string keylevel,       //
                                                        end_node_name);
 }
 
-TransformRequestP Sum(std::string new_level_name, //
-                      std::string end_node_name,  //
-                      const vector<TransformRequestP> &requests) {
+TransformRequestP Sum(std::string new_level_name,                //
+                      const vector<TransformRequestP> &requests, //
+                      std::string end_node_name) {
   return std::make_shared<transform_requests::Sum>(new_level_name, //
-                                                   end_node_name,  //
-                                                   requests);
+                                                   requests,       //
+                                                   end_node_name);
 }
 
 TransformRequestP Fork(const vector<TransformRequestP> &requests) {
   return std::make_shared<transform_requests::Fork>(requests);
 }
-TransformRequestP TreeComposition(const vector<TransformRequestP> &requests) {
+TransformRequestP TreeComposition(const vector<TransformRequestP> &requests,
+                                  std::string end_node_name) {
 
-  return std::make_shared<transform_requests::TreeComposition>(requests);
+  return std::make_shared<transform_requests::TreeComposition>(requests,
+                                                               end_node_name);
 }
 
 } // namespace trms

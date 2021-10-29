@@ -19,6 +19,12 @@ BOOST_AUTO_TEST_CASE(test_tree_transformer_find_level) {
   BOOST_TEST(ilevel == 2);
 }
 
+BOOST_AUTO_TEST_CASE(test_tree_transformer_find_level_notfound_throws) {
+
+  TreeTransformer t{0, {"X", "Y", "Z", "T"}};
+  BOOST_CHECK_THROW(t.find_level("Q"), std::invalid_argument);
+}
+
 BOOST_AUTO_TEST_CASE(test_tree_transformer_check_names_different) {
   BOOST_CHECK_THROW(TreeTransformer(0, {"X", "Y", "Z", "Z"}),
                     std::invalid_argument);
@@ -480,7 +486,31 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_no_permutation) {
       std::invalid_argument);
 }
 
-BOOST_AUTO_TEST_CASE(test_levelswap_apply) {
+BOOST_AUTO_TEST_CASE(test_levelswap_constructor_complex) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //)
+                                vector<int>{4, 4}, //
+                                vector<std::string>{"X", "Y"});
+  auto part = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+  // we need renumbering between Q/BB and LevelSwap
+  auto renumbered = std::make_shared<Renumber>(f, part);
+  auto swapped =
+      std::make_shared<LevelSwap>(f, renumbered, //
+                                  vector<std::string>{"MPI Y", "X", "Y"});
+  auto leaf = mtkv(true, {});
+  auto Y = mtkv(false, {{{0}, leaf}, //
+                        {{1}, leaf}});
+  auto XY = mtkv(false, {{{0}, Y}, //
+                         {{1}, Y}, //
+                         {{2}, Y}, //
+                         {{3}, Y}});
+  auto MPIY_XY = mtkv(false, {{{0}, XY}, //
+                              {{1}, XY}});
+
+  BOOST_TEST(*swapped->output_tree == *MPIY_XY);
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_apply_simple) {
 
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -494,7 +524,44 @@ BOOST_AUTO_TEST_CASE(test_levelswap_apply) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 outexp.begin(), outexp.end());
 }
-BOOST_AUTO_TEST_CASE(test_levelswap_inverse) {
+BOOST_AUTO_TEST_CASE(test_levelswap_inverse_simple) {
+
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  auto swapped =
+      std::make_shared<LevelSwap>(f, R, vector<std::string>{"Y", "Z", "X"});
+  auto out = swapped->inverse({2, 3, 1})[0];
+  decltype(out) outexp{1, 2, 3};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                outexp.begin(), outexp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_levelswap_apply_afterq) {
+
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  auto part = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+
+  auto swapped = std::make_shared<LevelSwap>(
+      f, part, vector<std::string>{"MPI Y", "Z", "Y", "X"});
+
+  Index v0{1, 5, 3};
+  Index v1 = part->apply(v0)[0];
+  Index v2 = swapped->apply(v1)[0];
+  Index v2exp{1,                                      // MPI Y
+              3,                                      // Z
+              1,                                      // Y
+              1};                                     // X
+  BOOST_CHECK_EQUAL_COLLECTIONS(v2.begin(), v2.end(), //
+                                v2exp.begin(), v2exp.end());
+}
+BOOST_AUTO_TEST_CASE(test_levelswap_inverse_afterq) {
 
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //

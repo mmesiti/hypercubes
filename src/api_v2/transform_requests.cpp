@@ -2,6 +2,7 @@
 #include "api_v2/transform_network.hpp"
 #include "api_v2/transformer.hpp"
 #include "api_v2/tree_transform.hpp"
+#include <iostream>
 #include <stdexcept>
 
 namespace hypercubes {
@@ -33,9 +34,9 @@ TransformerP Id::join(TreeFactory<bool> &f, //
                                             dimension_names); //
 }
 
-Sum::Sum(std::string new_level_name, //
-         std::string end_node_name,  //
-         const vector<TransformRequestP> &requests)
+Sum::Sum(std::string new_level_name,                //
+         const vector<TransformRequestP> &requests, //
+         std::string end_node_name)
     : TransformRequest(end_node_name), //
       requests(requests),              //
       new_level_name(new_level_name) {}
@@ -46,6 +47,7 @@ TransformerP Sum::join(TreeFactory<bool> &f, //
 
   // Assuming "previous" is already in the network.
   for (auto &request : requests) {
+    f.print_diagnostics(); // DEBUG
     TransformerP t = request->join(f, previous, network);
     transformers.push_back(t);
 
@@ -69,36 +71,40 @@ TransformerP Fork::join(TreeFactory<bool> &f,  //
                         TransformerP previous, //
                         TransformNetwork &network) const {
 
+  std::cout << "Forking\n"; // DEBUG
   // Assuming "previous" is already in the network.
   for (auto &request : requests) {
+    std::cout << "Adding node " << request->get_end_node_name()
+              << std::endl; // DEBUG
     TransformerP t = request->join(f, previous, network);
-
     network.add_node(t, request->get_end_node_name());
   };
 
   return 0;
 }
 
-TreeComposition::TreeComposition(const vector<TransformRequestP> &requests)
-    : TransformRequest(""), //
+TreeComposition::TreeComposition(const vector<TransformRequestP> &requests,
+                                 std::string end_node_name)
+    : TransformRequest(end_node_name), //
       requests(requests) {}
 
 TransformerP TreeComposition::join(TreeFactory<bool> &f,  //
                                    TransformerP previous, //
                                    TransformNetwork &network) const {
 
+  std::cout << "Composing " << end_node_name << "\n";
   TransformerP last = previous;
   vector<TransformerP> transformers;
 
   // Assuming "previous" is already in the network.
   for (int i = 0; i < requests.size(); ++i) {
     auto request = requests[i];
+    std::cout << "Adding node " << request->get_end_node_name()
+              << std::endl; // DEBUG
     TransformerP t = request->join(f, last, network);
     transformers.push_back(t);
 
-    if (i < requests.size() - 1) {
-      network.add_node(t, request->get_end_node_name());
-    }
+    network.add_node(t, request->get_end_node_name());
     last = t;
   };
   return last;
@@ -114,6 +120,7 @@ void Build(TreeFactory<bool> &f,      //
   for (auto request_it = requests.begin() + 1; //
        request_it != requests.end();           //
        ++request_it) {
+    f.print_diagnostics(); // DEBUG
     auto request = *request_it;
     TransformerP new_node = request->join(f, last, network);
     network.add_node(new_node, request->get_end_node_name());

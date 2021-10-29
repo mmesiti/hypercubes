@@ -8,13 +8,13 @@ namespace internals {
 namespace trms { // Transform request makers
 
 // SOOOO much boilerplate code
-// TODO: (check that the arguments are in the correct order)
-// TODO: write implementation
 using transform_requests::TransformRequestP;
 
 TransformRequestP Id(vector<int> dimensions,              //
                      vector<std::string> dimension_names, //
                      std::string end_node_name = "");
+
+TransformRequestP Renumber(std::string end_node_name = "");
 
 TransformRequestP Q(std::string level,          //
                     int nparts,                 //
@@ -46,12 +46,13 @@ TransformRequestP EONaive(std::string keylevel,       //
                           std::string new_level_name, //
                           std::string end_node_name = "");
 
-TransformRequestP Sum(std::string new_level_name, //
-                      std::string end_node_name,  //
-                      const vector<TransformRequestP> &requests);
+TransformRequestP Sum(std::string new_level_name,                //
+                      const vector<TransformRequestP> &requests, //
+                      std::string end_node_name = "");
 
 TransformRequestP Fork(const vector<TransformRequestP> &requests);
-TransformRequestP TreeComposition(const vector<TransformRequestP> &requests);
+TransformRequestP TreeComposition(const vector<TransformRequestP> &requests, //
+                                  std::string end_node_name = "");
 
 } // namespace trms
 

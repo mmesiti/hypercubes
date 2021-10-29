@@ -37,7 +37,22 @@ public:
 };
 
 using TransformRequestP = std::shared_ptr<TransformRequest>;
-/* Attempt at reducing the  */
+/* Attempt at reducing the boilerplate */
+
+template <typename TransformerType>
+class TransformRequestGeneric0Arg : public TransformRequest {
+private:
+public:
+  TransformRequestGeneric0Arg(std::string end_node_name = "")
+      : TransformRequest(end_node_name){};
+
+  TransformerP join(TreeFactory<bool> &f,  //
+                    TransformerP previous, //
+                    TransformNetwork &_) const {
+    return std::make_shared<TransformerType>(f, previous);
+  }
+};
+
 template <typename TransformerType, typename... Ts>
 class TransformRequestGeneric1Arg : public TransformRequest {
 private:
@@ -46,8 +61,8 @@ private:
   const std::tuple<Ts...> args;
 
 public:
-  TransformRequestGeneric1Arg(Ts... args, std::string node_name = "")
-      : TransformRequest(node_name), args(args...){};
+  TransformRequestGeneric1Arg(Ts... args, std::string end_node_name = "")
+      : TransformRequest(end_node_name), args(args...){};
 
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
@@ -65,8 +80,8 @@ private:
   const std::tuple<Ts...> args;
 
 public:
-  TransformRequestGeneric2Arg(Ts... args, std::string node_name = "")
-      : TransformRequest(node_name), args(args...){};
+  TransformRequestGeneric2Arg(Ts... args, std::string end_node_name = "")
+      : TransformRequest(end_node_name), args(args...){};
 
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
@@ -85,16 +100,17 @@ private:
   const std::tuple<Ts...> args;
 
 public:
-  TransformRequestGeneric3Arg(Ts... args, std::string node_name = "")
-      : TransformRequest(node_name), args(args...){};
+  TransformRequestGeneric3Arg(Ts... args, std::string end_node_name = "")
+      : TransformRequest(end_node_name), args(args...){};
 
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
                     TransformNetwork &_) const {
-    return std::make_shared<TransformerType>(f, previous,       //
-                                             std::get<0>(args), //
-                                             std::get<1>(args), //
-                                             std::get<2>(args));
+    auto res = std::make_shared<TransformerType>(f, previous,       //
+                                                 std::get<0>(args), //
+                                                 std::get<1>(args), //
+                                                 std::get<2>(args));
+    return res;
   }
 };
 
@@ -111,6 +127,8 @@ public:
                     TransformerP previous,      //
                     TransformNetwork &_) const; // must be 0
 };
+
+using Renumber = TransformRequestGeneric0Arg<transformers::Renumber>;
 
 using Q = TransformRequestGeneric3Arg<transformers::Q,
                                       std::string,  // level
@@ -157,9 +175,9 @@ private:
   std::string new_level_name;
 
 public:
-  Sum(std::string new_level_name, //
-      std::string end_node_name,  //
-      const vector<TransformRequestP> &requests);
+  Sum(std::string new_level_name,                //
+      const vector<TransformRequestP> &requests, //
+      std::string end_node_name = "");
   TransformerP join(TreeFactory<bool> &f,             //
                     TransformerP previous,            //
                     TransformNetwork &network) const; //
@@ -192,8 +210,12 @@ private:
   vector<TransformRequestP> requests;
 
 public:
-  TreeComposition(const vector<TransformRequestP> &requests);
+  TreeComposition(const vector<TransformRequestP> &requests,
+                  std::string end_node_name = "");
 
+  // Adds all the subnodes to the network,
+  // and return the last node as result.
+  // (This is the only object that knows the name of the sub nodes).
   TransformerP join(TreeFactory<bool> &f,             //
                     TransformerP previous,            //
                     TransformNetwork &network) const; //

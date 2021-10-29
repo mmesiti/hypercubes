@@ -6,6 +6,7 @@
 #include "utils/utils.hpp"
 #include <cassert>
 #include <cmath>
+#include <iostream>
 #include <map>
 #include <numeric>
 #include <vector>
@@ -48,16 +49,16 @@ private:
     return res;
   }
   void partition_children_into_subtrees(
-      decltype(KVTree<bool>::children) &children, //
+      decltype(KVTree<Node>::children) &children, //
       const vector<int> &starts,                  //
       const vector<int> &ends,                    //
-      const decltype(KVTree<bool>::children) &t_children) {
+      const decltype(KVTree<Node>::children) &t_children) {
 
     children.reserve(ends.size());
     for (int child = 0; child < ends.size(); child++) {
       int i_grandchildren_start = starts[child];
       int i_grandchildren_end = ends[child];
-      decltype(KVTree<bool>::children) grandchildren;
+      decltype(KVTree<Node>::children) grandchildren;
       grandchildren.reserve(i_grandchildren_end - i_grandchildren_start);
 
       for (auto i = i_grandchildren_start; i < i_grandchildren_end; ++i)
@@ -83,24 +84,6 @@ private:
     return mtkv(t->n, children);
   }
 
-  /** Renumbers subtrees recursively.
-   *  Helper functions to deal with recursion.
-   *  Recursive function. */
-  KVTreePv2<Node> renumber_children(const KVTreePv2<Node> t) {
-
-    if (renumber_children_cache.find(t) == renumber_children_cache.end()) {
-      decltype(KVTree<bool>::children) children;
-      auto tchildren = t->children;
-      children.reserve(tchildren.size());
-      for (auto i = 0; i != tchildren.size(); ++i) {
-        children.push_back({{i}, renumber_children(tchildren[i].second)});
-      }
-      auto res = mtkv(t->n, children);
-      renumber_children_cache[t] = res;
-      renumber_children_cache[res] = res; // It is idempotent
-    }
-    return renumber_children_cache[t];
-  }
   // Caches for memoisation
   std::map<KVTreePv2<Node>, KVTreePv2<Node>> renumber_children_cache;
 
@@ -133,12 +116,27 @@ private:
            KVTreePv2<Node>>
       remap_level_cache;
 
+  // Note: this might be
   std::map<std::tuple<KVTreePv2<Node>, // t
                       vector<int>>,    // new_level_ordering
            KVTreePv2<Node>>
       swap_levels_cache;
 
 public:
+  void print_diagnostics() {
+    std::cout << "+++++++++++++++++" << std::endl;
+    std::cout << "+ CACHE COUNTS: +" << std::endl;
+    std::cout << "+++++++++++++++++" << std::endl;
+    std::cout << "Renumber children: " << renumber_children_cache.size()
+              << std::endl;
+    std::cout << "q: " << q_cache.size() << std::endl;
+    std::cout << "bb: " << bb_cache.size() << std::endl;
+    std::cout << "flatten: " << flatten_cache.size() << std::endl;
+    std::cout << "eo_naive: " << eo_naive_cache.size() << std::endl;
+    std::cout << "remap_level: " << remap_level_cache.size() << std::endl;
+    std::cout << "swap_levels: " << swap_levels_cache.size() << std::endl;
+    std::cout << "+++++++++++++++++++++++++" << std::endl;
+  }
   KVTreePv2<Node> generate_flat_level(int size) {
     auto leaf = mtkv(make_leaf(), {});
     decltype(KVTree<Node>::children) children;
@@ -147,6 +145,27 @@ public:
       children.push_back({{i}, leaf});
     }
     return mtkv(make_node(), children);
+  }
+
+  /** Renumbers subtrees recursively.
+   *  Helper functions to deal with recursion,
+   *  but also for those cases where the keys must be renumbered
+   *  (e.g., before swap_levels and after q or bb)
+   *  Recursive function. */
+  KVTreePv2<Node> renumber_children(const KVTreePv2<Node> t) {
+
+    if (renumber_children_cache.find(t) == renumber_children_cache.end()) {
+      decltype(KVTree<Node>::children) children;
+      auto tchildren = t->children;
+      children.reserve(tchildren.size());
+      for (auto i = 0; i != tchildren.size(); ++i) {
+        children.push_back({{i}, renumber_children(tchildren[i].second)});
+      }
+      auto res = mtkv(t->n, children);
+      renumber_children_cache[t] = res;
+      renumber_children_cache[res] = res; // It is idempotent
+    }
+    return renumber_children_cache[t];
   }
 
   KVTreePv2<Node> tree_product(const vector<KVTreePv2<Node>> &trees) {
@@ -195,7 +214,7 @@ public:
     if (q_cache.find({t, level, nparts}) == q_cache.end()) {
 
       KVTreePv2<Node> res;
-      decltype(KVTree<bool>::children) children;
+      decltype(KVTree<Node>::children) children;
       int size = t->children.size();
       if (level == 0) {
         float quotient = (float)size / nparts;
@@ -226,7 +245,7 @@ public:
     if (bb_cache.find({t, level, halosize}) == bb_cache.end()) {
 
       KVTreePv2<Node> res;
-      decltype(KVTree<bool>::children) children;
+      decltype(KVTree<Node>::children) children;
       int size = t->children.size();
       if (level == 0) {
         std::vector<int> limits = {0,               //
@@ -257,7 +276,7 @@ public:
     if (flatten_cache.find({t, levelstart, levelend}) == flatten_cache.end()) {
 
       KVTreePv2<Node> res;
-      decltype(KVTree<bool>::children) children;
+      decltype(KVTree<Node>::children) children;
       if (levelstart == 0) {
         if (levelend > 1) {
           for (auto i = 0; i != t->children.size(); ++i) {
@@ -301,7 +320,7 @@ public:
     if (eo_naive_cache.find({t, level}) == eo_naive_cache.end()) {
 
       KVTreePv2<Node> res;
-      decltype(KVTree<bool>::children) children;
+      decltype(KVTree<Node>::children) children;
       if (level == 0) {
         children.reserve(2);
         decltype(children) E, O;

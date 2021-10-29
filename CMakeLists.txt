@@ -92,7 +92,6 @@ target_link_libraries(transformer tree_transform level_swap transform_network)
 add_library(transform_requests src/api_v2/transform_requests.cpp)
 target_link_libraries(transform_requests transformer)
 
-
 add_library(transform_request_makers src/api_v2/transform_request_makers.cpp)
 target_link_libraries(transform_request_makers transform_network
   transformer transform_requests)

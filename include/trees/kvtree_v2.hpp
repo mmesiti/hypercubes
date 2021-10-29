@@ -90,6 +90,8 @@ void _throw_different_nodes_error(const std::set<Value> &nodes) {
   for (auto &n : nodes) {
     message << n << ", ";
   }
+  message << std::endl;
+  message << "(" << nodes.size() << " nodes)" << std::endl;
   throw TreeLevelPermutationError(message.str().c_str());
 }
 

@@ -518,4 +518,27 @@ BOOST_AUTO_TEST_CASE(test_swap_levels_by_key) {
   BOOST_TEST(*newt == *newt_exp);
 }
 
+BOOST_AUTO_TEST_CASE(test_renumber_children) {
+  TreeFactory<int> f;
+
+  auto t = mtkv(1, {{{10},
+                     mtkv(2, {{{12},
+                               mtkv(3, {{{14}, mtkv(5, {})},       //
+                                        {{15}, mtkv(6, {})}})}})}, //
+                    {{11},
+                     mtkv(4, {{{13},
+                               mtkv(3, {{{14}, mtkv(7, {})}, //
+                                        {{15}, mtkv(8, {})}})}})}});
+
+  auto expren = mtkv(1, {{{0},
+                          mtkv(2, {{{0},
+                                    mtkv(3, {{{0}, mtkv(5, {})},       //
+                                             {{1}, mtkv(6, {})}})}})}, //
+                         {{1},
+                          mtkv(4, {{{0},
+                                    mtkv(3, {{{0}, mtkv(7, {})}, //
+                                             {{1}, mtkv(8, {})}})}})}});
+  auto ren = f.renumber_children(t);
+  BOOST_TEST(*ren == *expren);
+}
 BOOST_AUTO_TEST_SUITE_END()

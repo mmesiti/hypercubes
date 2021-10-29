@@ -89,6 +89,13 @@ public:
   vector<Index> apply(const Index &) const;
   vector<Index> inverse(const Index &) const;
 };
+
+struct Renumber : public Transformer{      
+  public:
+    Renumber(TreeFactory<bool> &f,
+             TransformerP previous);
+};
+
 struct Q : public Transformer {
 public:
   Q(TreeFactory<bool> &f,  //
