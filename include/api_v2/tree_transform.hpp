@@ -6,6 +6,7 @@
 #include "utils/utils.hpp"
 #include <cassert>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <numeric>
@@ -85,57 +86,93 @@ private:
   }
 
   // Caches for memoisation
-  std::map<KVTreePv2<Node>, KVTreePv2<Node>> renumber_children_cache;
+  struct Cache {
+    std::map<KVTreePv2<Node>, KVTreePv2<Node>> renumber;
 
-  std::map<std::tuple<KVTreePv2<Node>, // t
-                      int,             // level
-                      int>,            // nparts
-           KVTreePv2<Node>>
-      q_cache;
+    std::map<std::tuple<KVTreePv2<Node>, // t
+                        int,             // level
+                        int>,            // nparts
+             KVTreePv2<Node>>
+        q;
 
-  std::map<std::tuple<KVTreePv2<Node>, // t
-                      int,             // level
-                      int>,            // halosize
-           KVTreePv2<Node>>
-      bb_cache;
+    std::map<std::tuple<KVTreePv2<Node>, // t
+                        int,             // level
+                        int>,            // halosize
+             KVTreePv2<Node>>
+        bb;
 
-  std::map<std::tuple<KVTreePv2<Node>, // t
-                      int,             // levelstart
-                      int>,            // levelend
-           KVTreePv2<Node>>
-      flatten_cache;
+    std::map<std::tuple<KVTreePv2<Node>, // t
+                        int,             // levelstart
+                        int>,            // levelend
+             KVTreePv2<Node>>
+        flatten;
 
-  std::map<std::tuple<KVTreePv2<Node>, // t
-                      int>,            // level
-           KVTreePv2<Node>>
-      eo_naive_cache;
+    std::map<std::tuple<KVTreePv2<Node>, // t
+                        int>,            // level
+             KVTreePv2<Node>>
+        eo_naive;
 
-  std::map<std::tuple<KVTreePv2<Node>, // t
-                      int,             // level
-                      vector<int>>,    // index_map
-           KVTreePv2<Node>>
-      remap_level_cache;
+    std::map<std::tuple<KVTreePv2<Node>, // t
+                        int,             // level
+                        vector<int>>,    // index_map
+             KVTreePv2<Node>>
+        remap_level;
 
-  // Note: this might be
-  std::map<std::tuple<KVTreePv2<Node>, // t
-                      vector<int>>,    // new_level_ordering
-           KVTreePv2<Node>>
-      swap_levels_cache;
+    // Note: this might be
+    std::map<std::tuple<KVTreePv2<Node>, // t
+                        vector<int>>,    // new_level_ordering
+             KVTreePv2<Node>>
+        swap_levels;
+  } cache;
+
+  struct CallCounter {
+    struct Counts {
+      int renumber = 0;
+      int q = 0;
+      int bb = 0;
+      int flatten = 0;
+      int eo_naive = 0;
+      int remap_level = 0;
+      int swap_levels = 0;
+    } total, cached;
+
+  } callcounter;
 
 public:
   void print_diagnostics() {
-    std::cout << "+++++++++++++++++" << std::endl;
-    std::cout << "+ CACHE COUNTS: +" << std::endl;
-    std::cout << "+++++++++++++++++" << std::endl;
-    std::cout << "Renumber children: " << renumber_children_cache.size()
-              << std::endl;
-    std::cout << "q: " << q_cache.size() << std::endl;
-    std::cout << "bb: " << bb_cache.size() << std::endl;
-    std::cout << "flatten: " << flatten_cache.size() << std::endl;
-    std::cout << "eo_naive: " << eo_naive_cache.size() << std::endl;
-    std::cout << "remap_level: " << remap_level_cache.size() << std::endl;
-    std::cout << "swap_levels: " << swap_levels_cache.size() << std::endl;
-    std::cout << "+++++++++++++++++++++++++" << std::endl;
+    int colsize = 15;
+    std::cout << std::string(5 * colsize, '+') << std::endl;
+    // std::cout.width(4 * colsize);
+    std::cout << "CACHE COUNTS" << std::endl;
+    std::cout << std::string(5 * colsize, '+') << std::endl;
+    std::cout << std::setw(colsize) << "TYPE"          //
+              << std::setw(colsize) << "Cache Size"    //
+              << std::setw(colsize) << "Calls: cached" //
+              << std::setw(colsize) << "Calls: total"  //
+              << std::setw(colsize) << "Cached/Total" << std::endl;
+
+#define PRINTLINE(FUNC_TYPE)                                      /**/         \
+  std::cout << std::setw(colsize) << #FUNC_TYPE                   /**/         \
+            << std::setw(colsize) << cache.FUNC_TYPE.size()       /**/         \
+            << std::setw(colsize) << callcounter.cached.FUNC_TYPE /**/         \
+            << std::setw(colsize) << callcounter.total.FUNC_TYPE  /**/         \
+            << std::setw(colsize)                                              \
+            << (callcounter.total.FUNC_TYPE == 0                               \
+                    ? 0                                                        \
+                    : (float)callcounter.cached.FUNC_TYPE /                    \
+                          callcounter.total.FUNC_TYPE)                         \
+            << std::endl;
+
+    PRINTLINE(renumber)
+    PRINTLINE(q)
+    PRINTLINE(bb)
+    PRINTLINE(flatten)
+    PRINTLINE(eo_naive)
+    PRINTLINE(remap_level)
+    PRINTLINE(swap_levels)
+
+#undef PRINTLINE
+    std::cout << std::string(4 * colsize, '+') << std::endl;
   }
   KVTreePv2<Node> generate_flat_level(int size) {
     auto leaf = mtkv(make_leaf(), {});
@@ -153,8 +190,8 @@ public:
    *  (e.g., before swap_levels and after q or bb)
    *  Recursive function. */
   KVTreePv2<Node> renumber_children(const KVTreePv2<Node> t) {
-
-    if (renumber_children_cache.find(t) == renumber_children_cache.end()) {
+    callcounter.total.renumber++;
+    if (cache.renumber.find(t) == cache.renumber.end()) {
       decltype(KVTree<Node>::children) children;
       auto tchildren = t->children;
       children.reserve(tchildren.size());
@@ -162,10 +199,11 @@ public:
         children.push_back({{i}, renumber_children(tchildren[i].second)});
       }
       auto res = mtkv(t->n, children);
-      renumber_children_cache[t] = res;
-      renumber_children_cache[res] = res; // It is idempotent
-    }
-    return renumber_children_cache[t];
+      cache.renumber[t] = res;
+      cache.renumber[res] = res; // It is idempotent
+    } else
+      callcounter.cached.renumber++;
+    return cache.renumber[t];
   }
 
   KVTreePv2<Node> tree_product(const vector<KVTreePv2<Node>> &trees) {
@@ -211,7 +249,8 @@ public:
    * Affects only level and level+1.
    * Uses recursion. */
   KVTreePv2<Node> q(KVTreePv2<Node> t, int level, int nparts) {
-    if (q_cache.find({t, level, nparts}) == q_cache.end()) {
+    callcounter.total.q++;
+    if (cache.q.find({t, level, nparts}) == cache.q.end()) {
 
       KVTreePv2<Node> res;
       decltype(KVTree<Node>::children) children;
@@ -232,9 +271,10 @@ public:
           return q(subtree, level - 1, nparts);
         });
       }
-      q_cache[{t, level, nparts}] = res;
-    }
-    return q_cache[{t, level, nparts}];
+      cache.q[{t, level, nparts}] = res;
+    } else
+      callcounter.cached.q++;
+    return cache.q[{t, level, nparts}];
   }
   /** Splits a level in 3 parts,
    * representing the first border,
@@ -242,7 +282,8 @@ public:
    * Affects only level and level+1.
    * Uses recursion. */
   KVTreePv2<Node> bb(KVTreePv2<Node> t, int level, int halosize) {
-    if (bb_cache.find({t, level, halosize}) == bb_cache.end()) {
+    callcounter.total.bb++;
+    if (cache.bb.find({t, level, halosize}) == cache.bb.end()) {
 
       KVTreePv2<Node> res;
       decltype(KVTree<Node>::children) children;
@@ -261,9 +302,10 @@ public:
           return bb(subtree, level - 1, halosize);
         });
       }
-      bb_cache[{t, level, halosize}] = res;
-    }
-    return bb_cache[{t, level, halosize}];
+      cache.bb[{t, level, halosize}] = res;
+    } else
+      callcounter.cached.bb++;
+    return cache.bb[{t, level, halosize}];
   }
   /** Level collapsing function.
    * Collapses the levels in the range [levelstart,levelend),
@@ -273,8 +315,8 @@ public:
    * Affects only the levels in said range.
    * Uses recursion. */
   KVTreePv2<Node> flatten(KVTreePv2<Node> t, int levelstart, int levelend) {
-    if (flatten_cache.find({t, levelstart, levelend}) == flatten_cache.end()) {
-
+    callcounter.total.flatten++;
+    if (cache.flatten.find({t, levelstart, levelend}) == cache.flatten.end()) {
       KVTreePv2<Node> res;
       decltype(KVTree<Node>::children) children;
       if (levelstart == 0) {
@@ -300,9 +342,10 @@ public:
                                                  levelend - 1);
                                 });
       }
-      flatten_cache[{t, levelstart, levelend}] = res;
-    }
-    return flatten_cache[{t, levelstart, levelend}];
+      cache.flatten[{t, levelstart, levelend}] = res;
+    } else
+      callcounter.cached.flatten++;
+    return cache.flatten[{t, levelstart, levelend}];
   }
 
   /** Assumes that the relevant dimensions (levels)
@@ -317,7 +360,9 @@ public:
    * (that will be different for each subtree).
    * Uses recursion. */
   KVTreePv2<Node> eo_naive(const KVTreePv2<Node> t, int level) {
-    if (eo_naive_cache.find({t, level}) == eo_naive_cache.end()) {
+
+    callcounter.total.eo_naive++;
+    if (cache.eo_naive.find({t, level}) == cache.eo_naive.end()) {
 
       KVTreePv2<Node> res;
       decltype(KVTree<Node>::children) children;
@@ -339,9 +384,10 @@ public:
                                   return eo_naive(subtree, level - 1);
                                 });
       }
-      eo_naive_cache[{t, level}] = res;
-    }
-    return eo_naive_cache[{t, level}];
+      cache.eo_naive[{t, level}] = res;
+    } else
+      callcounter.cached.eo_naive++;
+    return cache.eo_naive[{t, level}];
   }
 
   /** Where all these functions transform an input tree into an output tree,
@@ -351,8 +397,9 @@ public:
   /** Reshuffles the keys in a level.*/
   KVTreePv2<Node> remap_level(const KVTreePv2<Node> t, int level,
                               vector<int> index_map) {
-    if (remap_level_cache.find({t, level, index_map}) ==
-        remap_level_cache.end()) {
+    callcounter.total.remap_level++;
+    if (cache.remap_level.find({t, level, index_map}) ==
+        cache.remap_level.end()) {
       KVTreePv2<Node> res;
       decltype(KVTree<Node>::children) children;
       children.reserve(t->children.size());
@@ -368,15 +415,17 @@ public:
           return remap_level(subtree, level - 1, index_map);
         });
       }
-      remap_level_cache[{t, level, index_map}] = res;
-    }
-    return remap_level_cache[{t, level, index_map}];
+      cache.remap_level[{t, level, index_map}] = res;
+    } else
+      callcounter.cached.remap_level++;
+    return cache.remap_level[{t, level, index_map}];
   }
 
   const KVTreePv2<Node> swap_levels(const KVTreePv2<Node> &tree,
                                     const vector<int> &new_level_ordering) {
-    if (swap_levels_cache.find({tree, new_level_ordering}) ==
-        swap_levels_cache.end()) {
+    callcounter.total.swap_levels++;
+    if (cache.swap_levels.find({tree, new_level_ordering}) ==
+        cache.swap_levels.end()) {
 
       KVTreePv2<Node> res;
       if (new_level_ordering.size() == 0)
@@ -396,10 +445,11 @@ public:
 
         res = mtkv(new_tree->n, new_children);
       }
-      swap_levels_cache[{tree, new_level_ordering}] = res;
-    }
+      cache.swap_levels[{tree, new_level_ordering}] = res;
+    } else
+      callcounter.cached.swap_levels++;
 
-    return swap_levels_cache[{tree, new_level_ordering}];
+    return cache.swap_levels[{tree, new_level_ordering}];
   }
 };
 

@@ -68,10 +68,6 @@ BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
 }
 
 BOOST_AUTO_TEST_CASE(test_network_build_fork) {
-  // TODO: exception if I am doing something stupid
-  //       e.g., having partitions long 2 sites
-  //       and doing BB on them.
-  //       BB and Q must protest in such cases.
   TreeFactory<bool> f;
   TransformNetwork n;
   Build(f, n,
@@ -86,25 +82,80 @@ BOOST_AUTO_TEST_CASE(test_network_build_fork) {
                                         "X", "Y"})},
                             "domain decomposition"),
 
-            Fork({TreeComposition({BB("X", 1, "BB X", "BB X"), //
-                                   BB("Y", 1, "BB Y", "BB Y"), //
-                                   Renumber(),                 //
-                                   LevelSwap({"BB X", "X",     //
-                                              "BB Y", "Y"},    //
-                                             {"BB X", "BB Y",  //
+            Fork({TreeComposition({BB("X", 1, "BB X", "bbx"), //
+                                   BB("Y", 1, "BB Y", "bby"), //
+                                   Renumber(),                //
+                                   LevelSwap({"BB X", "X",    //
+                                              "BB Y", "Y"},   //
+                                             {"BB X", "BB Y", //
                                               "X", "Y"},
                                              "vector level swap")},
                                   "mpi-border-bulk"),
-                  TreeComposition({Q("X", 2, "Vec X"),       //
-                                   Q("Y", 2, "Vec Y"),       //
-                                   Renumber(),               //
-                                   LevelSwap({"Vec X", "X",  //
-                                              "Vec Y", "Y"}, //
-                                             {"X", "Y",      //
+                  TreeComposition({Q("X", 2, "Vec X", "vecX"), //
+                                   Q("Y", 2, "Vec Y", "vecY"), //
+                                   Renumber(),                 //
+                                   LevelSwap({"Vec X", "X",    //
+                                              "Vec Y", "Y"},   //
+                                             {"X", "Y",        //
                                               "Vec X", "Vec Y"})},
                                   "vector")}) //
         });
 
   BOOST_TEST(n.nnodes() == 13);
+  f.print_diagnostics();
 }
+
+BOOST_AUTO_TEST_CASE(test_network_build_fork_4D) {
+  // Ok but SLOW! ~12s
+  TreeFactory<bool> f;
+  TransformNetwork n;
+  Build(f, n,
+        {
+            Id({42, 42, 42, 42},                 //
+               {"X", "Y", "Z", "T"},             //
+               "root"),                          //
+            TreeComposition({Q("X", 4, "MPI X"), //
+                             Q("Y", 4, "MPI Y"), //
+                             Q("Z", 4, "MPI Z"), //
+                             Q("T", 4, "MPI T"), //
+                             Renumber(),
+                             LevelSwap({"MPI X", "MPI Y", //
+                                        "MPI Z", "MPI T", //
+                                        "X", "Y",         //
+                                        "Z", "T"})},
+                            "domain decomposition"),
+            Fork({TreeComposition({BB("X", 1, "BB X", "BB X"), //
+                                   BB("Y", 1, "BB Y", "BB Y"), //
+                                   BB("Z", 1, "BB Z", "BB Z"), //
+                                   BB("T", 1, "BB T", "BB T"), //
+                                   Renumber(),                 //
+                                   LevelSwap({"BB X", "X",     //
+                                              "BB Y", "Y",     //
+                                              "BB Z", "Z",     //
+                                              "BB T", "T"},    //
+                                             {"BB X", "BB Y",  //
+                                              "BB Z", "BB T",  //
+                                              "X", "Y",        //
+                                              "Z", "T"},
+                                             "vector level swap")},
+                                  "mpi-border-bulk"),
+                  TreeComposition({Q("X", 2, "Vec X"),            //
+                                   Q("Y", 2, "Vec Y"),            //
+                                   Q("Z", 2, "Vec Z"),            //
+                                   Q("T", 2, "Vec T"),            //
+                                   Renumber(),                    //
+                                   LevelSwap({"Vec X", "X",       //
+                                              "Vec Y", "Y",       //
+                                              "Vec Z", "Z",       //
+                                              "Vec T", "T"},      //
+                                             {"X", "Y", "Z", "T", //
+                                              "Vec X", "Vec Y",   //
+                                              "Vec Z", "Vec T"})},
+                                  "vector")}) //
+        });
+
+  BOOST_TEST(n.nnodes() == 19);
+  f.print_diagnostics();
+}
+
 BOOST_AUTO_TEST_SUITE_END()

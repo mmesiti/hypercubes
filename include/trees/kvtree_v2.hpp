@@ -86,12 +86,21 @@ void _collect_nodes_at_level(std::set<Value> &nodes,       //
 template <class Value>
 void _throw_different_nodes_error(const std::set<Value> &nodes) {
   std::stringstream message;
-  message << "Not all nodes are equivalent:" << std::endl;
-  for (auto &n : nodes) {
-    message << n << ", ";
+
+  switch (nodes.size()) {
+  case 0:
+    message << "No nodes found." << std::endl;
+    break;
+  case 1:
+    // all ok
+    return;
+  default:
+    message << "Not all nodes are equivalent:" << std::endl;
+    for (auto &n : nodes) {
+      message << n << ", ";
+    }
+    message << std::endl;
   }
-  message << std::endl;
-  message << "(" << nodes.size() << " nodes)" << std::endl;
   throw TreeLevelPermutationError(message.str().c_str());
 }
 

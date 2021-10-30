@@ -71,11 +71,8 @@ TransformerP Fork::join(TreeFactory<bool> &f,  //
                         TransformerP previous, //
                         TransformNetwork &network) const {
 
-  std::cout << "Forking\n"; // DEBUG
   // Assuming "previous" is already in the network.
   for (auto &request : requests) {
-    std::cout << "Adding node " << request->get_end_node_name()
-              << std::endl; // DEBUG
     TransformerP t = request->join(f, previous, network);
     network.add_node(t, request->get_end_node_name());
   };
@@ -92,15 +89,12 @@ TransformerP TreeComposition::join(TreeFactory<bool> &f,  //
                                    TransformerP previous, //
                                    TransformNetwork &network) const {
 
-  std::cout << "Composing " << end_node_name << "\n";
   TransformerP last = previous;
   vector<TransformerP> transformers;
 
   // Assuming "previous" is already in the network.
   for (int i = 0; i < requests.size(); ++i) {
     auto request = requests[i];
-    std::cout << "Adding node " << request->get_end_node_name()
-              << std::endl; // DEBUG
     TransformerP t = request->join(f, last, network);
     transformers.push_back(t);
 
