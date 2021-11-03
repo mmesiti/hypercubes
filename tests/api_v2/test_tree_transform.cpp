@@ -7,6 +7,9 @@
 #include <boost/test/unit_test_suite.hpp>
 
 using namespace hypercubes::slow::internals;
+template <class A, class B> std::pair<A, B> mp(A a, B b) {
+  return std::make_pair(a, b);
+}
 
 BOOST_AUTO_TEST_SUITE(test_tree_transform)
 
@@ -136,6 +139,19 @@ BOOST_AUTO_TEST_CASE(test_partition_q_dimension_0_as_equal_as_possible) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(test_partition_q_no_empty_trees) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({4});
+  auto t_partitioned = f.q(t, 0, 5);
+  auto leaf = mtkv(true, {});
+  auto t_partitioned_expected = mtkv(false, {{{}, mtkv(false, {{{0}, leaf}})},
+                                             {{}, mtkv(false, {{{1}, leaf}})},
+                                             {{}, mtkv(false, {{{2}, leaf}})},
+                                             {{}, mtkv(false, {{{3}, leaf}})}});
+
+  BOOST_TEST(*t_partitioned == *t_partitioned_expected);
+}
+
 BOOST_AUTO_TEST_CASE(test_bb_dimension_0) {
   TreeFactory<bool> f;
   auto t = f.generate_nd_tree({7});
@@ -174,6 +190,16 @@ BOOST_AUTO_TEST_CASE(test_bb_dimension_1) {
   auto t_partitioned_expected = mtkv(false, {{{0}, subtree}, //
                                              {{1}, subtree}, //
                                              {{2}, subtree}});
+  BOOST_TEST(*t_partitioned == *t_partitioned_expected);
+}
+BOOST_AUTO_TEST_CASE(test_partition_bb_no_empty_trees) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({2});
+  auto t_partitioned = f.bb(t, 0, 1);
+  auto leaf = mtkv(true, {});
+  auto t_partitioned_expected = mtkv(false, {{{}, mtkv(false, {{{0}, leaf}})},
+                                             {{}, mtkv(false, {{{1}, leaf}})}});
+
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
 
@@ -243,6 +269,15 @@ BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
   auto t_partitioned = f.eo_naive(t_nested, 1);
   auto t_expected = mtkv(false, {{{0}, t_sub_expected}});
   BOOST_TEST(*t_partitioned == *t_expected);
+}
+
+BOOST_AUTO_TEST_CASE(test_eo_naive_no_empty_tree) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({1});
+  auto t_partitioned = f.eo_naive(t, 0);
+  auto leaf = mtkv(true, {});
+  auto t_partitioned_expected = mtkv(false, {{{}, mtkv(false, {{{0}, leaf}})}});
+  BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
 
 BOOST_AUTO_TEST_CASE(test_index_pullback_id) {
@@ -541,4 +576,90 @@ BOOST_AUTO_TEST_CASE(test_renumber_children) {
   auto ren = f.renumber_children(t);
   BOOST_TEST(*ren == *expren);
 }
+
+BOOST_AUTO_TEST_CASE(test_bring_level_on_top_key) {
+  TreeFactory<int> f;
+  auto _t =
+      mt(mp(0, 1), {mt(mp(20, 2), {mt(mp(22, 3), {mt(mp(24, 4), {}), //
+                                                  mt(mp(25, 5), {})})}),
+                    mt(mp(21, 9), {mt(mp(23, 3), {mt(mp(24, 11), {}), //
+                                                  mt(mp(26, 12), {})})})});
+
+  auto _transf_expected =
+      mt(mp(0, 3), {mt(mp(24, 1), {mt(mp(20, 2), {mt(mp(22, 4), {})}), //
+                                   mt(mp(21, 9), {mt(mp(23, 11), {})})}),
+                    mt(mp(25, 1), {mt(mp(20, 2), {mt(mp(22, 5), {})}), //
+                                   mt(mp(21, 9), {})}),                //
+                    mt(mp(26, 1), {mt(mp(20, 2), {}),                  //
+                                   mt(mp(21, 9), {mt(mp(23, 12), {})})})});
+  auto t = pull_keys_up(_t);
+  auto transf_expected = pull_keys_up(_transf_expected);
+
+  auto transf = f.bring_level_on_top(t, 2);
+
+  BOOST_TEST(*transf_expected == *transf);
+}
+
+BOOST_AUTO_TEST_CASE(test_bring_level_on_top_key_throws) {
+  TreeFactory<int> f;
+  auto _t =
+      mt(mp(0, 1),
+         {mt(mp(20, 2), {mt(mp(22, 3 /*different*/), {mt(mp(24, 4), {}), //
+                                                      mt(mp(25, 5), {})})}),
+          mt(mp(21, 9), {mt(mp(23, 4 /*different*/), {mt(mp(24, 11), {}), //
+                                                      mt(mp(26, 12), {})})})});
+
+  auto t = pull_keys_up(_t);
+  BOOST_CHECK_THROW(f.bring_level_on_top(t, 2), TreeLevelPermutationError);
+}
+BOOST_AUTO_TEST_CASE(test_collapse_level_by_key_all_there) {
+
+  TreeFactory<int> f;
+  auto _t = mt(mp(0, 1), {mt(mp(3, 2), {mt(mp(5, 3), {mt(mp(1, 4), {}),     //
+                                                      mt(mp(2, 5), {})}),   //
+                                        mt(mp(6, 6), {mt(mp(3, 7), {}),     //
+                                                      mt(mp(4, 8), {})})}), //
+                          mt(mp(4, 9), {mt(mp(5, 10), {mt(mp(5, 11), {}),   //
+                                                       mt(mp(7, 12), {})}), //
+                                        mt(mp(8, 13), {mt(mp(8, 14), {}),   //
+                                                       mt(mp(9, 15), {})})})});
+
+  auto _tcollapsed_exp = mt(mp(0, 1), {mt(mp(3, 3), {mt(mp(1, 4), {}),   //
+                                                     mt(mp(2, 5), {})}), //
+                                       mt(mp(4, 10), {mt(mp(5, 11), {}), //
+                                                      mt(mp(7, 12), {})})});
+
+  auto t = pull_keys_up(_t);
+  auto tcollapsed_exp = pull_keys_up(_tcollapsed_exp);
+
+  auto tcollapsed = f.collapse_level(t,                       //
+                                     1 /*level to collapse*/, //
+                                     {5} /*child key to replace*/);
+
+  BOOST_TEST(*tcollapsed_exp == *tcollapsed);
+}
+BOOST_AUTO_TEST_CASE(test_collapse_level_by_key_missing) {
+
+  TreeFactory<int> f;
+  auto _t = mt(mp(0, 1), {mt(mp(3, 2), {mt(mp(5, 3), {mt(mp(1, 4), {}),     //
+                                                      mt(mp(2, 5), {})}),   //
+                                        mt(mp(6, 6), {mt(mp(3, 7), {}),     //
+                                                      mt(mp(4, 8), {})})}), //
+                          mt(mp(4, 9), {mt(mp(6, 10), {mt(mp(5, 11), {}),   //
+                                                       mt(mp(7, 12), {})}), //
+                                        mt(mp(8, 13), {mt(mp(8, 14), {}),   //
+                                                       mt(mp(9, 15), {})})})});
+
+  auto _tcollapsed_exp = mt(mp(0, 1), {mt(mp(3, 3), {mt(mp(1, 4), {}), //
+                                                     mt(mp(2, 5), {})})});
+  auto t = pull_keys_up(_t);
+  auto tcollapsed_exp = pull_keys_up(_tcollapsed_exp);
+
+  auto tcollapsed = f.collapse_level(t,                       //
+                                     1 /*level to collapse*/, //
+                                     {5} /*child key to replace*/);
+
+  BOOST_TEST(*tcollapsed_exp == *tcollapsed);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

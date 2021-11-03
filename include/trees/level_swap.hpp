@@ -59,14 +59,16 @@ std::vector<int> find_permutation(const std::vector<T> &in,
     throw std::invalid_argument(
         std::string("Error, in and out have different lengths."));
 
-  return vtransform(in, [&out](const T &in_el) { //
-    auto found = std::find(out.begin(),          //
-                           out.end(),            //
+  return vtransform(in, [&out, &in](const T &in_el) { //
+    auto found = std::find(out.begin(),               //
+                           out.end(),                 //
                            in_el);
     if (found == out.end()) {
-      throw std::invalid_argument(std::string("Error, ") +
-                                  std::to_string(in_el) +
-                                  " . not found in out vector.");
+      std::stringstream ss;
+      ss << "Error, " << in_el << "not found in out vector.\n";
+      ss << "in vector: " << in << std::endl;
+      ss << "out vector: " << out << std::endl;
+      throw std::invalid_argument(ss.str());
     }
     return int(found - out.begin());
 
@@ -81,6 +83,17 @@ std::vector<int> find_permutation(const std::vector<T> &original, //
   if (in.size() != out.size())
     throw std::invalid_argument(
         std::string("Error, in and out have different lengths."));
+
+  // check that all elements in 'in' and 'out'
+  // are present in 'original'
+  for (auto &i : in)
+    if (std::find(original.begin(), original.end(), i) == original.end())
+      throw std::invalid_argument(std::string("Element ") + std::to_string(i) +
+                                  " from 'in' not found in original vector.");
+  for (auto &i : out)
+    if (std::find(original.begin(), original.end(), i) == original.end())
+      throw std::invalid_argument(std::string("Element ") + std::to_string(i) +
+                                  " from 'out' not found in original vector.");
 
   decltype(in) fullout = vtransform(original, [&in, &out](T o) {
     for (int i = 0; i < in.size(); ++i)

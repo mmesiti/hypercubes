@@ -10,6 +10,7 @@ BOOST_AUTO_TEST_SUITE(test_transform_request_makers)
 using transform_networks::TransformNetwork;
 using transform_requests::Build;
 using namespace trms;
+
 BOOST_AUTO_TEST_CASE(test_network_build_nodenames) {
   TreeFactory<bool> f;
   TransformNetwork n;
@@ -19,6 +20,7 @@ BOOST_AUTO_TEST_CASE(test_network_build_nodenames) {
                           Q("Y", 2, "MPI Y", "YMPI")}, //
                          "MPI_DOMAIN_DECOMPOSITION")});
   BOOST_TEST(n.nnodes() == 3);
+  BOOST_TEST(n.narcs() == 5);
   std::set<std::string> expnames{"ROOT", //
                                  "XMPI", //
                                  "YMPI", //
@@ -26,6 +28,7 @@ BOOST_AUTO_TEST_CASE(test_network_build_nodenames) {
   auto names = n.nodenames();
   BOOST_CHECK_EQUAL_COLLECTIONS(expnames.begin(), expnames.end(), //
                                 names.begin(), names.end());
+  f.print_diagnostics();
 }
 
 BOOST_AUTO_TEST_CASE(test_network_build_repeated_names_throws) {
@@ -34,6 +37,7 @@ BOOST_AUTO_TEST_CASE(test_network_build_repeated_names_throws) {
   BOOST_CHECK_THROW(
       Build(f, n, {Id({4, 4}, {"X", "Y"}, "ROOT"), Q("X", 2, "MPI X", "ROOT")}),
       std::invalid_argument);
+  f.print_diagnostics();
 }
 // TODO: convert this into a test for LevelSwap,
 //       which is obviously fucked up
@@ -54,6 +58,7 @@ BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
         });
 
   BOOST_TEST(n.nnodes() == 5);
+  BOOST_TEST(n.narcs() == 9);
   auto leaf = mtkv(true, {});
   auto Y = mtkv(false, {{{0}, leaf}, //
                         {{1}, leaf}});
@@ -65,6 +70,7 @@ BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
                                    {{1}, MPIY_XY}});
 
   BOOST_TEST(*(n["domain decomposition"]->output_tree) == *MPIX_MPIY_XY);
+  f.print_diagnostics();
 }
 
 BOOST_AUTO_TEST_CASE(test_network_build_fork) {
@@ -72,7 +78,7 @@ BOOST_AUTO_TEST_CASE(test_network_build_fork) {
   TransformNetwork n;
   Build(f, n,
         {
-            Id({8, 8},                           //
+            Id({12, 12},                         //
                {"X", "Y"},                       //
                "root"),                          //
             TreeComposition({Q("X", 2, "MPI X"), //
@@ -98,32 +104,43 @@ BOOST_AUTO_TEST_CASE(test_network_build_fork) {
                                               "Vec Y", "Y"},   //
                                              {"X", "Y",        //
                                               "Vec X", "Vec Y"})},
-                                  "vector")}) //
+                                  "vector"),
+                  TreeComposition({Q("X", 3, "Vec X", "vecX3"), //
+                                   Q("Y", 3, "Vec Y", "vecY3"), //
+                                   Renumber(),                  //
+                                   LevelSwap({"Vec X", "X",     //
+                                              "Vec Y", "Y"},    //
+                                             {"X", "Y",         //
+                                              "Vec X", "Vec Y"})},
+                                  "vector3")}) //
         });
 
-  BOOST_TEST(n.nnodes() == 13);
+  BOOST_TEST(n.nnodes() == 17);
+  BOOST_TEST(n.narcs() == 32);
   f.print_diagnostics();
 }
 
 BOOST_AUTO_TEST_CASE(test_network_build_fork_4D) {
-  // Ok but SLOW! ~12s
   TreeFactory<bool> f;
   TransformNetwork n;
   Build(f, n,
         {
-            Id({42, 42, 42, 42},                 //
-               {"X", "Y", "Z", "T"},             //
-               "root"),                          //
-            TreeComposition({Q("X", 4, "MPI X"), //
-                             Q("Y", 4, "MPI Y"), //
-                             Q("Z", 4, "MPI Z"), //
-                             Q("T", 4, "MPI T"), //
-                             Renumber(),
-                             LevelSwap({"MPI X", "MPI Y", //
-                                        "MPI Z", "MPI T", //
-                                        "X", "Y",         //
-                                        "Z", "T"})},
-                            "domain decomposition"),
+            Id({42, 42, 42, 42},     //
+               {"X", "Y", "Z", "T"}, //
+               "root"),              //
+            TreeComposition(
+                {
+                    Q("X", 4, "MPI X"), //
+                    Q("Y", 4, "MPI Y"), //
+                    Q("Z", 4, "MPI Z"), //
+                    Q("T", 4, "MPI T"), //
+                    Renumber(),
+                    //                  LevelSwap({"MPI X", "MPI Y", //
+                    //                             "MPI Z", "MPI T", //
+                    //                             "X", "Y",         //
+                    //                             "Z", "T"})
+                },
+                "domain decomposition"),
             Fork({TreeComposition({BB("X", 1, "BB X", "BB X"), //
                                    BB("Y", 1, "BB Y", "BB Y"), //
                                    BB("Z", 1, "BB Z", "BB Z"), //
@@ -136,8 +153,9 @@ BOOST_AUTO_TEST_CASE(test_network_build_fork_4D) {
                                              {"BB X", "BB Y",  //
                                               "BB Z", "BB T",  //
                                               "X", "Y",        //
-                                              "Z", "T"},
-                                             "vector level swap")},
+                                              "Z", "T"}),
+                                   Flatten("X", "T", "XYZT"),
+                                   EONaive("XYZT", "EO")},
                                   "mpi-border-bulk"),
                   TreeComposition({Q("X", 2, "Vec X"),            //
                                    Q("Y", 2, "Vec Y"),            //
@@ -148,13 +166,16 @@ BOOST_AUTO_TEST_CASE(test_network_build_fork_4D) {
                                               "Vec Y", "Y",       //
                                               "Vec Z", "Z",       //
                                               "Vec T", "T"},      //
-                                             {"X", "Y", "Z", "T", //
+                                             {"X", "Y",           //
+                                              "Z", "T",           //
                                               "Vec X", "Vec Y",   //
-                                              "Vec Z", "Vec T"})},
+                                              "Vec Z", "Vec T"}), //
+                                   Flatten("X", "T", "XYZT"),     //
+                                   EONaive("XYZT", "EO")},
                                   "vector")}) //
         });
 
-  BOOST_TEST(n.nnodes() == 19);
+  BOOST_TEST(n.nnodes() == 23);
   f.print_diagnostics();
 }
 

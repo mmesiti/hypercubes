@@ -26,6 +26,7 @@ public:
   // if it is in the network
   int id(TransformerP t) const;
   int nnodes() const;
+  int narcs() const;
 
   void add_node(TransformerP node, std::string name = "");
   TransformerP operator[](const std::string &);

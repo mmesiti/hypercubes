@@ -3,6 +3,7 @@
 #include "exceptions/exceptions.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
+#include "utils/print_utils.hpp"
 #include "utils/utils.hpp"
 #include <cassert>
 #include <cmath>
@@ -62,11 +63,16 @@ private:
       decltype(KVTree<Node>::children) grandchildren;
       grandchildren.reserve(i_grandchildren_end - i_grandchildren_start);
 
-      for (auto i = i_grandchildren_start; i < i_grandchildren_end; ++i)
+      for (auto i = i_grandchildren_start; i < i_grandchildren_end; ++i) {
+
         grandchildren.push_back({{i}, //
                                  renumber_children(t_children[i].second)});
+      }
 
-      children.push_back({{}, mtkv(false, grandchildren)});
+      if (grandchildren.size() > 0)
+        children.push_back(
+            {{}, // The new level has no correspondence in the old tree
+             mtkv(false, grandchildren)});
     }
   }
 
@@ -118,11 +124,23 @@ private:
              KVTreePv2<Node>>
         remap_level;
 
-    // Note: this might be
     std::map<std::tuple<KVTreePv2<Node>, // t
                         vector<int>>,    // new_level_ordering
              KVTreePv2<Node>>
         swap_levels;
+
+    // THIS MIGHT NOT BE USEFUL AT ALL
+    std::map<std::tuple<KVTreePv2<Node>, // t
+                        int>,            // level
+             KVTreePv2<Node>>
+        bring_level_on_top;
+
+    std::map<std::tuple<KVTreePv2<Node>,  // tree
+                        int,              // level to collapse
+                        const vector<int> // child key to replace
+                        >,
+             KVTreePv2<Node>>
+        collapse_level;
   } cache;
 
   struct CallCounter {
@@ -134,25 +152,91 @@ private:
       int eo_naive = 0;
       int remap_level = 0;
       int swap_levels = 0;
+      int bring_level_on_top = 0;
+      int collapse_level = 0;
     } total, cached;
 
   } callcounter;
 
 public:
+  // TODO: check that memoisation is useful here. Likely not.
+  KVTreePv2<Node> bring_level_on_top(const KVTreePv2<Node> tree,
+                                     int next_level) {
+    callcounter.total.bring_level_on_top++;                  // REMOVE?
+    if (cache.bring_level_on_top.find({tree, next_level}) == // REMOVE?
+        cache.bring_level_on_top.end()) {                    // REMOVE?
+      std::set<vector<int>> keys;
+      _collect_keys_at_level(keys, tree, next_level);
+      std::set<Node> nodes;
+      _collect_nodes_at_level(nodes, tree, next_level);
+      if (nodes.size() != 1)
+        _throw_different_nodes_error(nodes, std::string("level:") +
+                                                std::to_string(next_level));
+      decltype(KVTree<Node>::children) children;
+      for (auto key : keys) {
+        children.push_back({key, collapse_level(tree, next_level, key)});
+      }
+
+      // return mtkv(*nodes.begin(), children); // UNCOMMENT
+      cache.bring_level_on_top[{tree, next_level}] =     // REMOVE?
+          mtkv(*nodes.begin(), children);                // REMOVE?
+    } else                                               // REMOVE?
+      callcounter.cached.bring_level_on_top++;           // REMOVE?
+                                                         // REMOVE?
+    return cache.bring_level_on_top[{tree, next_level}]; // REMOVE?
+  }
+  // NOTE: Key must be unique between siblings.
+  const KVTreePv2<Node>                       //
+  collapse_level(const KVTreePv2<Node> &tree, //
+                 int level_to_collapse,       //
+                 const vector<int> &child_key_to_replace) {
+
+    callcounter.total.collapse_level++;
+    if (cache.collapse_level.find(
+            {tree, level_to_collapse, child_key_to_replace}) ==
+        cache.collapse_level.end()) {
+      KVTreePv2<Node> res = 0;
+      if (level_to_collapse == 0) {
+        for (auto c : tree->children) {
+          if (c.first == child_key_to_replace)
+            res = c.second;
+        }
+      } else {
+        decltype(KVTree<Node>::children) children;
+        children.reserve(tree->children.size());
+        for (auto ktree : tree->children) {
+          const vector<int> k = ktree.first;
+          KVTreePv2<Node> v = collapse_level(
+              ktree.second, level_to_collapse - 1, child_key_to_replace);
+          if (v)
+            children.push_back({k, v});
+        }
+        res = mtkv(tree->n, children);
+      }
+      cache.collapse_level[{tree, level_to_collapse, child_key_to_replace}] =
+          res;
+    } else
+      callcounter.cached.collapse_level++;
+    return cache
+        .collapse_level[{tree, level_to_collapse, child_key_to_replace}];
+  }
+
   void print_diagnostics() {
+    int start_colsize = 20;
     int colsize = 15;
-    std::cout << std::string(5 * colsize, '+') << std::endl;
+    int len = start_colsize + 4 * colsize;
+    std::cout << std::string(len, '+') << std::endl;
     // std::cout.width(4 * colsize);
     std::cout << "CACHE COUNTS" << std::endl;
-    std::cout << std::string(5 * colsize, '+') << std::endl;
-    std::cout << std::setw(colsize) << "TYPE"          //
+    std::cout << std::string(len, '+') << std::endl;
+    std::cout << std::setw(start_colsize) << "TYPE"    //
               << std::setw(colsize) << "Cache Size"    //
               << std::setw(colsize) << "Calls: cached" //
               << std::setw(colsize) << "Calls: total"  //
               << std::setw(colsize) << "Cached/Total" << std::endl;
 
 #define PRINTLINE(FUNC_TYPE)                                      /**/         \
-  std::cout << std::setw(colsize) << #FUNC_TYPE                   /**/         \
+  std::cout << std::setw(start_colsize) << #FUNC_TYPE             /**/         \
             << std::setw(colsize) << cache.FUNC_TYPE.size()       /**/         \
             << std::setw(colsize) << callcounter.cached.FUNC_TYPE /**/         \
             << std::setw(colsize) << callcounter.total.FUNC_TYPE  /**/         \
@@ -170,6 +254,8 @@ public:
     PRINTLINE(eo_naive)
     PRINTLINE(remap_level)
     PRINTLINE(swap_levels)
+    PRINTLINE(bring_level_on_top)
+    PRINTLINE(collapse_level)
 
 #undef PRINTLINE
     std::cout << std::string(4 * colsize, '+') << std::endl;
@@ -375,8 +461,10 @@ public:
           EO[std::accumulate(keys.begin(), keys.end(), 0) % 2].push_back(
               {{i}, t->children[i].second});
         }
-        children.push_back({{}, mtkv(false, EO[0])});
-        children.push_back({{}, mtkv(false, EO[1])});
+        for (auto eo : EO) {
+          if (eo.size() > 0)
+            children.push_back({{}, mtkv(false, eo)});
+        }
         res = mtkv(false, children);
       } else {
         res = renumber_children(t, //
@@ -432,7 +520,7 @@ public:
         res = tree;
       else {
         int next_level = new_level_ordering[0];
-        auto new_tree = bring_level_on_top_by_key(tree, next_level);
+        auto new_tree = bring_level_on_top(tree, next_level);
 
         auto sub_new_level_ordering = sub_level_ordering(new_level_ordering);
 
@@ -446,8 +534,9 @@ public:
         res = mtkv(new_tree->n, new_children);
       }
       cache.swap_levels[{tree, new_level_ordering}] = res;
-    } else
+    } else {
       callcounter.cached.swap_levels++;
+    }
 
     return cache.swap_levels[{tree, new_level_ordering}];
   }

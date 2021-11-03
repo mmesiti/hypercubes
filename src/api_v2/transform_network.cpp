@@ -2,6 +2,7 @@
 #include "api_v2/transform_requests.hpp"
 #include "api_v2/transformer.hpp"
 #include <iostream>
+#include <numeric>
 #include <stdexcept>
 namespace hypercubes {
 namespace slow {
@@ -14,6 +15,12 @@ int TransformNetwork::id(TransformerP t) const {
                                    t);
 }
 int TransformNetwork::nnodes() const { return nodes.size(); }
+int TransformNetwork::narcs() const {
+  int n = 0;
+  for (auto a : arcs)
+    n += a.second.size();
+  return n;
+}
 
 TransformerP TransformNetwork::search_transformers_with_same_output_tree(
     const TransformerP &new_node) const //
