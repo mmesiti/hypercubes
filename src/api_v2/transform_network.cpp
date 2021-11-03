@@ -1,6 +1,7 @@
 #include "api_v2/transform_network.hpp"
 #include "api_v2/transform_requests.hpp"
 #include "api_v2/transformer.hpp"
+#include "trees/kvtree_data_structure.hpp"
 #include <iostream>
 #include <numeric>
 #include <stdexcept>
@@ -16,6 +17,8 @@ int TransformNetwork::id(TransformerP t) const {
 }
 int TransformNetwork::nnodes() const { return nodes.size(); }
 int TransformNetwork::narcs() const {
+  // Given how much
+  // The result of this needs always to be nnodes*2
   int n = 0;
   for (auto a : arcs)
     n += a.second.size();
@@ -105,11 +108,61 @@ std::set<std::string> TransformNetwork::nodenames() const {
 bool operator<(const TransformNetwork::Arc &a, //
                const TransformNetwork::Arc &b) {
   auto ta = std::make_tuple(a.destination, (int)a.type);
-  auto tb = std::make_tuple(a.destination, (int)b.type);
+  auto tb = std::make_tuple(b.destination, (int)b.type);
   return ta < tb;
+}
+
+std::vector<TransformNetwork::Arc>
+TransformNetwork::find_transform(std::string node_name_start,
+                                 std::string node_name_end) {
+  const auto node_start = find_node(node_name_start);
+  const auto node_end = find_node(node_name_end);
+  bool found;
+  std::vector<TransformNetwork::Arc> res;
+
+  std::vector<TransformerP> visited_nodes{node_start};
+  std::tie(found, res) = _find_transform(node_start, node_end, visited_nodes);
+  return res;
+}
+std::tuple<bool, std::vector<TransformNetwork::Arc>>
+TransformNetwork::_find_transform(const TransformerP node_start, //
+                                  const TransformerP node_end,   //
+                                  std::vector<TransformerP> visited_nodes) {
+  if (node_start == node_end)
+    return std::make_tuple(true, //
+                           std::vector<TransformNetwork::Arc>{});
+
+  for (auto arc : arcs[node_start]) {
+    auto node = arc.destination;
+    if (std::find(visited_nodes.begin(), // Node is not already visited
+                  visited_nodes.end(),   //
+                  node) == visited_nodes.end()) {
+      visited_nodes.push_back(node);
+      bool found;
+      std::vector<TransformNetwork::Arc> res;
+      std::tie(found, res) = _find_transform(node, node_end, visited_nodes);
+      if (found) {
+        return std::make_tuple(true, append(arc, res));
+      }
+    }
+  }
+  return std::make_tuple(false, //
+                         std::vector<TransformNetwork::Arc>{});
 }
 
 } // namespace transform_networks
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes
+
+namespace std {
+using TransformNetwork =
+    hypercubes::slow::internals::transform_networks::TransformNetwork;
+std::ostream &operator<<(std::ostream &os, const TransformNetwork::Arc &a) {
+  os << "destination: " << a.destination << " "
+     << (a.type == TransformNetwork::ArcType::DIRECT ? "DIRECT" : "INVERSE")
+     << std::endl;
+  return os;
+}
+
+} // namespace std

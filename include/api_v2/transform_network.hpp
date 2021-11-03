@@ -33,6 +33,8 @@ public:
   std::vector<std::string> operator[](const TransformerP &);
 
   std::set<std::string> nodenames() const;
+  std::vector<Arc> find_transform(std::string node_name_start,
+                                  std::string node_name_end);
 
 private:
   TransformerP
@@ -48,6 +50,11 @@ private:
 
   // the adjacency matrix
   std::map<TransformerP, std::set<Arc>> arcs;
+
+  std::tuple<bool, std::vector<TransformNetwork::Arc>>
+  _find_transform(const TransformerP node_start, //
+                  const TransformerP node_end,   //
+                  std::vector<TransformerP> visited_nodes);
 };
 
 bool operator<(const TransformNetwork::Arc &, //
@@ -57,5 +64,10 @@ bool operator<(const TransformNetwork::Arc &, //
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes
+namespace std {
+using TransformNetwork =
+    hypercubes::slow::internals::transform_networks::TransformNetwork;
+std::ostream &operator<<(std::ostream &os, const TransformNetwork::Arc &a);
+} // namespace std
 
 #endif // TRANSFORM_NETWORK_H_

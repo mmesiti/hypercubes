@@ -169,17 +169,22 @@ public:
       _collect_keys_at_level(keys, tree, next_level);
       std::set<Node> nodes;
       _collect_nodes_at_level(nodes, tree, next_level);
-      if (nodes.size() != 1)
+      if (nodes.size() == 0) {
+        // return 0;
+        cache.bring_level_on_top[{tree, next_level}] = 0; // REMOVE?
+      } else if (nodes.size() != 1)
         _throw_different_nodes_error(nodes, std::string("level:") +
                                                 std::to_string(next_level));
-      decltype(KVTree<Node>::children) children;
-      for (auto key : keys) {
-        children.push_back({key, collapse_level(tree, next_level, key)});
-      }
+      else {
+        decltype(KVTree<Node>::children) children;
+        for (auto key : keys) {
+          children.push_back({key, collapse_level(tree, next_level, key)});
+        }
 
-      // return mtkv(*nodes.begin(), children); // UNCOMMENT
-      cache.bring_level_on_top[{tree, next_level}] =     // REMOVE?
-          mtkv(*nodes.begin(), children);                // REMOVE?
+        // return mtkv(*nodes.begin(), children); // UNCOMMENT
+        cache.bring_level_on_top[{tree, next_level}] = // REMOVE?
+            mtkv(*nodes.begin(), children);            // REMOVE?
+      }
     } else                                               // REMOVE?
       callcounter.cached.bring_level_on_top++;           // REMOVE?
                                                          // REMOVE?
@@ -521,14 +526,17 @@ public:
       else {
         int next_level = new_level_ordering[0];
         auto new_tree = bring_level_on_top(tree, next_level);
+        if (new_tree == 0)
+          return 0;
 
         auto sub_new_level_ordering = sub_level_ordering(new_level_ordering);
 
         decltype(tree->children) new_children;
         new_children.reserve(tree->children.size());
         for (const auto &c : new_tree->children) {
-          new_children.push_back(
-              {c.first, swap_levels(c.second, sub_new_level_ordering)});
+          auto new_child = swap_levels(c.second, sub_new_level_ordering);
+          if (new_child != 0)
+            new_children.push_back({c.first, new_child});
         }
 
         res = mtkv(new_tree->n, new_children);
