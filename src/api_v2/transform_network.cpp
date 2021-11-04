@@ -120,7 +120,7 @@ TransformNetwork::find_transform(std::string node_name_start,
   bool found;
   std::vector<TransformNetwork::Arc> res;
 
-  std::vector<TransformerP> visited_nodes{node_start};
+  std::vector<TransformerP> visited_nodes{};
   std::tie(found, res) = _find_transform(node_start, node_end, visited_nodes);
   return res;
 }
@@ -132,12 +132,12 @@ TransformNetwork::_find_transform(const TransformerP node_start, //
     return std::make_tuple(true, //
                            std::vector<TransformNetwork::Arc>{});
 
+  visited_nodes.push_back(node_start);
   for (auto arc : arcs[node_start]) {
     auto node = arc.destination;
     if (std::find(visited_nodes.begin(), // Node is not already visited
                   visited_nodes.end(),   //
                   node) == visited_nodes.end()) {
-      visited_nodes.push_back(node);
       bool found;
       std::vector<TransformNetwork::Arc> res;
       std::tie(found, res) = _find_transform(node, node_end, visited_nodes);
