@@ -207,13 +207,16 @@ BOOST_FIXTURE_TEST_CASE(test_network_build_fork_4D, BuildFork4) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_network_find_transform_chain, BuildFork1) {
-  BOOST_TEST(n.find_transform("root", "domain decomposition").size() == 4);
-  BOOST_TEST(n.find_transform("domain decomposition", "root").size() == 4);
-  BOOST_TEST(n.find_transform("root", "vector").size() == 8);
-  BOOST_TEST(n.find_transform("root", "mpi-border-bulk").size() == 8);
-  BOOST_TEST(n.find_transform("vector", "domain decomposition").size() == 4);
-  BOOST_TEST(n.find_transform("vector", "bbx").size() == 5);
-  BOOST_TEST(n.find_transform("vector", "bby").size() == 6);
+  BOOST_TEST(n.find_transformations("root", "domain decomposition").size() ==
+             4);
+  BOOST_TEST(n.find_transformations("domain decomposition", "root").size() ==
+             4);
+  BOOST_TEST(n.find_transformations("root", "vector").size() == 8);
+  BOOST_TEST(n.find_transformations("root", "mpi-border-bulk").size() == 8);
+  BOOST_TEST(n.find_transformations("vector", "domain decomposition").size() ==
+             4);
+  BOOST_TEST(n.find_transformations("vector", "bbx").size() == 5);
+  BOOST_TEST(n.find_transformations("vector", "bby").size() == 6);
 }
 
 BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_direct) {
@@ -279,6 +282,16 @@ BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_inverse) {
     BOOST_CHECK_EQUAL_COLLECTIONS(should_be_in.begin(), should_be_in.end(), //
                                   in.begin(), in.end());
   }
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_transform, BuildFork1) {
+
+  auto transform = n.get_transform("root", "mpi-border-bulk");
+  vector<int> in{6, 1};
+  vector<int> exp_out{1, 0, 0, 1, 0, 0};
+  auto out = transform->apply(in)[0];
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                exp_out.begin(), exp_out.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -113,8 +113,8 @@ bool operator<(const TransformNetwork::Arc &a, //
 }
 
 std::vector<TransformNetwork::Arc>
-TransformNetwork::find_transform(std::string node_name_start,
-                                 std::string node_name_end) {
+TransformNetwork::find_transformations(std::string node_name_start,
+                                       std::string node_name_end) {
   const auto node_start = find_node(node_name_start);
   const auto node_end = find_node(node_name_end);
   bool found;
@@ -157,6 +157,19 @@ transformers::IndexTransformerP TransformNetwork::get_transformer(Arc a) {
   case INVERSE:
     return std::make_shared<transformers::Inverse>(a.destination);
   }
+}
+transformers::IndexTransformerP
+TransformNetwork::get_transform(const std::string &node_name_start,
+                                const std::string &node_name_end) {
+
+  auto arcs = find_transformations(node_name_start, //
+                                   node_name_end);
+  vector<transformers::IndexTransformerP> transformers;
+  std::transform(arcs.begin(),                     //
+                 arcs.end(),                       //
+                 std::back_inserter(transformers), //
+                 [](auto arc) { return get_transformer(arc); });
+  return std::make_shared<transformers::Composition>(transformers);
 }
 } // namespace transform_networks
 } // namespace internals

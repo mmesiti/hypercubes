@@ -11,6 +11,7 @@ namespace transform_networks {
 
 using transform_requests::TransformRequest;
 using transform_requests::TransformRequestP;
+using transformers::IndexTransformerP;
 using transformers::TransformerP;
 
 // TODO: test everything
@@ -33,12 +34,15 @@ public:
   std::vector<std::string> operator[](const TransformerP &);
 
   std::set<std::string> nodenames() const;
-  std::vector<Arc> find_transform(std::string node_name_start,
-                                  std::string node_name_end);
+  std::vector<Arc> find_transformations(std::string node_name_start,
+                                        std::string node_name_end);
 
   // Returns the transformer or its inverse
   // based on the type of the arc
   static transformers::IndexTransformerP get_transformer(Arc a);
+
+  IndexTransformerP get_transform(const std::string &node_name_start,
+                                  const std::string &node_name_end);
 
 private:
   TransformerP
