@@ -3,6 +3,7 @@
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
+#include <memory>
 #include <stdexcept>
 
 using namespace hypercubes::slow::internals;
@@ -213,6 +214,71 @@ BOOST_FIXTURE_TEST_CASE(test_network_find_transform_chain, BuildFork1) {
   BOOST_TEST(n.find_transform("vector", "domain decomposition").size() == 4);
   BOOST_TEST(n.find_transform("vector", "bbx").size() == 5);
   BOOST_TEST(n.find_transform("vector", "bby").size() == 6);
+}
+
+BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_direct) {
+  TreeFactory<bool> f;
+
+  using transformers::Id;
+  using transformers::Q;
+
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 4, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  auto q = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+
+  TransformNetwork::Arc a{q, TransformNetwork::ArcType::DIRECT};
+
+  auto q2 = TransformNetwork::get_transformer(a);
+
+  // Check that q2 is the same as q1
+
+  for (int I = 0; I < 4 * 4 * 4; ++I) {
+    int is, js, ks;
+    is = I % 4;
+    js = (I / 4) % 4;
+    ks = (I / 16);
+
+    vector<int> in{is, js, ks};
+    auto qout = q->apply(in);
+    auto q2out = q2->apply(in);
+    BOOST_CHECK_EQUAL_COLLECTIONS(qout.begin(), qout.end(), //
+                                  q2out.begin(), q2out.end());
+    auto should_be_in = q2->inverse(q->apply(in)[0])[0];
+    BOOST_CHECK_EQUAL_COLLECTIONS(should_be_in.begin(), should_be_in.end(), //
+                                  in.begin(), in.end());
+  }
+}
+BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_inverse) {
+  TreeFactory<bool> f;
+
+  using transformers::Id;
+  using transformers::Q;
+
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 4, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+
+  auto q = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+
+  TransformNetwork::Arc a{q, TransformNetwork::ArcType::INVERSE};
+
+  auto q2 = TransformNetwork::get_transformer(a);
+
+  // Check that q2 is the inverse of q1
+
+  for (int I = 0; I < 4 * 4 * 4; ++I) {
+    int is, js, ks;
+    is = I % 4;
+    js = (I / 4) % 4;
+    ks = (I / 16);
+
+    vector<int> in{is, js, ks};
+    auto should_be_in = q2->apply(q->apply(in)[0])[0];
+    BOOST_CHECK_EQUAL_COLLECTIONS(should_be_in.begin(), should_be_in.end(), //
+                                  in.begin(), in.end());
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

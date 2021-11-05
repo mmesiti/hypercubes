@@ -36,6 +36,10 @@ public:
   std::vector<Arc> find_transform(std::string node_name_start,
                                   std::string node_name_end);
 
+  // Returns the transformer or its inverse
+  // based on the type of the arc
+  static transformers::IndexTransformerP get_transformer(Arc a);
+
 private:
   TransformerP
   search_transformers_with_same_output_tree(const TransformerP &node) const;

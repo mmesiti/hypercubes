@@ -150,6 +150,14 @@ TransformNetwork::_find_transform(const TransformerP node_start, //
                          std::vector<TransformNetwork::Arc>{});
 }
 
+transformers::IndexTransformerP TransformNetwork::get_transformer(Arc a) {
+  switch (a.type) {
+  case DIRECT:
+    return a.destination;
+  case INVERSE:
+    return std::make_shared<transformers::Inverse>(a.destination);
+  }
+}
 } // namespace transform_networks
 } // namespace internals
 } // namespace slow
