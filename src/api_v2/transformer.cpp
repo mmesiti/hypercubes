@@ -71,9 +71,25 @@ TreeTransformer::replace_name_range(const std::string &name,       //
                                     const std::string &name_start, //
                                     const std::string &name_end) const {
 
-  vector<std::string> out_names;
   int level_start = find_level(name_start);
   int level_end = find_level(name_end);
+  return _replace_name_range(name, level_start, level_end);
+}
+
+vector<std::string>
+TreeTransformer::replace_name_range(const std::string &name, //
+                                    const std::string &name_start) const {
+
+  int level_start = find_level(name_start);
+  int level_end = output_levelnames.size() - 1;
+  return _replace_name_range(name, level_start, level_end);
+}
+
+vector<std::string>
+TreeTransformer::_replace_name_range(const std::string &name, //
+                                     int level_start,         //
+                                     int level_end) const {
+  vector<std::string> out_names;
   out_names.reserve(output_levelnames.size() + 1 -
                     (level_end + 1 - level_start));
   for (int l = 0; l < output_levelnames.size(); ++l) {
@@ -174,6 +190,23 @@ Flatten::Flatten(TreeFactory<bool> &f,    //
           previous->replace_name_range(name,              //
                                        level_start,       //
                                        level_end)) {}
+CollectLeaves::CollectLeaves(TreeFactory<bool> &f,       //
+                             TransformerP previous,      //
+                             std::string level_start,    //
+                             std::string new_level_name, //
+                             int pad_to)
+    : Transformer(previous,                                           //
+                  f.collect_leaves(previous->output_tree,             //
+                                   previous->find_level(level_start), //
+                                   pad_to),                           //
+                  previous->replace_name_range(new_level_name,        //
+                                               level_start))
+
+{}
+vector<Index> CollectLeaves::inverse(const Index &in) const {
+
+  return index_pullback_pad(output_tree, in);
+}
 
 LevelRemap::LevelRemap(TreeFactory<bool> &f,  //
                        TransformerP previous, //

@@ -357,12 +357,10 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_throws) {
   BOOST_CHECK_THROW(index_pullback(t, {1, 4, 3}), KeyNotFoundError);
 }
 
-BOOST_AUTO_TEST_CASE(test_index_pullback_throws_with_level_below_error) {
-  /// in this case, the index out of bound is above the level
-  /// at which keys are considered.
+BOOST_AUTO_TEST_CASE(test_index_pullback_throws_negative) {
   TreeFactory<bool> f;
   auto t = f.generate_nd_tree({2, 4, 4});
-  BOOST_CHECK_THROW(index_pullback(t, {1, 4, 3}), KeyNotFoundError);
+  BOOST_CHECK_THROW(index_pullback(t, {1, 1, -1}), KeyNotFoundError);
 }
 
 BOOST_AUTO_TEST_CASE(test_index_pushforward_noresults) {
@@ -545,6 +543,8 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding) {
 
   auto leaf = mtkv(true, {});
 
+  auto nkc = TreeFactory<bool>::no_key_component;
+
   auto t_collapsed_expected = mtkv(false, {{{0, 0}, leaf}, //
                                            {{0, 1}, leaf}, //
                                            {{0, 2}, leaf}, //
@@ -553,14 +553,36 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding) {
                                            {{1, 2}, leaf}, //
                                            // these do not exist
                                            // in the original tree
-                                           {{-1, -1}, leaf}, //
-                                           {{-1, -1}, leaf}});
+                                           {{nkc, nkc}, leaf}, //
+                                           {{nkc, nkc}, leaf}});
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
 }
 
-BOOST_AUTO_TEST_CASE(test_collect_leaves_pullback) { BOOST_TEST(false); }
+BOOST_AUTO_TEST_CASE(test_collect_leaves_pullback_pad) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({2, 3});
+  auto t_collapsed = f.collect_leaves(t, 0, 8);
 
-BOOST_AUTO_TEST_CASE(test_collect_leaves_pushforward) { BOOST_TEST(false); }
+  auto nkc = TreeFactory<bool>::no_key_component;
+  auto out_wrong = index_pullback(t_collapsed, {7});
+  vector<int> out_wrong_expected{nkc, nkc};
+  BOOST_TEST(out_wrong == out_wrong_expected);
+  auto out = index_pullback_pad(t_collapsed, {7});
+  BOOST_TEST(out.size() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_pushforward) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({2, 3});
+  auto t_collapsed = f.collect_leaves(t, 0, 8);
+
+  for (int i = 0; i < 2; ++i)
+    for (int j = 0; j < 3; ++j) {
+      auto out = index_pushforward(t_collapsed, {i, j})[0];
+      auto in = index_pullback_pad(t_collapsed, out)[0];
+      BOOST_TEST(in == vector<int>({i, j}));
+    }
+}
 
 // TODO: Test that instead of crashes meaningful exceptions are thrown
 //       (is this a good thing?)

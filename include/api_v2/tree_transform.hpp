@@ -18,6 +18,8 @@ namespace slow {
 namespace internals {
 
 template <class Node> class TreeFactory {
+  // TODO: make copy constructor
+  //       and copy assignment operator private?
 private:
   Node make_leaf();
   Node make_node();
@@ -448,6 +450,10 @@ public:
       callcounter.cached.flatten++;
     return cache.flatten[{t, levelstart, levelend}];
   }
+
+  /* If a leaf was created as a result of padding,
+   * all the components of its key will be this value. */
+  static const int no_key_component = -1;
   /** Collects leaves of all subtree
    * having a root at level "levelstart-1".
    * The level "levelstart" is then replaced
@@ -488,17 +494,22 @@ public:
         }
         if (levelstart == 0) {
           auto leaf = mtkv(make_leaf(), {});
+          // TODO: This may cause problems
+          //                    V
           int keylen = children[0].first.size();
-          std::vector<int> key(keylen, -1);
+          std::vector<int> key(keylen, no_key_component);
           children.reserve(pad_to);
           while (children.size() < pad_to)
             children.push_back({key, leaf});
         }
         res = mtkv(false, children);
       } else {
-        res = renumber_children(t, //
-                                [this, levelstart, pad_to](auto subtree) {
-                                  return collect_leaves(subtree, levelstart - 1,
+        res = renumber_children(t,           //
+                                [this,       //
+                                 levelstart, //
+                                 pad_to](auto subtree) {
+                                  return collect_leaves(subtree, //
+                                                        levelstart - 1,
                                                         pad_to - 1);
                                 });
       }
@@ -621,12 +632,36 @@ public:
 
 template <> bool TreeFactory<bool>::make_leaf();
 template <> bool TreeFactory<bool>::make_node();
+
 template <class Value>
 vector<int> index_pullback(const KVTreePv2<Value> &tree,
                            const vector<int> &in) {
   vector<int> out;
   _index_pullback(tree, in, out);
   return out;
+}
+
+/* This function covers the case
+ * where padding creates some new leaves
+ * that have no correspondence in the old tree.
+ * In that case we return an empty vector.  */
+template <class Value>
+vector<vector<int>> index_pullback_pad(const KVTreePv2<Value> &tree,
+                                       const vector<int> &in) {
+  vector<vector<int>> out;
+  auto out_temp = index_pullback(tree, in);
+  if (std::find(out_temp.begin(), //
+                out_temp.end(),   //
+                TreeFactory<Value>::no_key_component) == out_temp.end()) {
+    out.push_back(out_temp);
+  }
+  return out;
+}
+
+inline void throw_index_pullback_error(int key, int size) {
+  std::stringstream ss;
+  ss << "Index over bound: (unsigned)" << key << "<" << size;
+  throw KeyNotFoundError(ss.str());
 }
 
 template <class Value>
@@ -637,8 +672,9 @@ void _index_pullback(const KVTreePv2<Value> &tree, //
     return;
 
   int idx = in[0];
-  if (idx >= tree->children.size()) {
-    throw KeyNotFoundError("index over bound");
+  if (idx == TreeFactory<Value>::no_key_component or
+      idx >= tree->children.size()) {
+    throw_index_pullback_error(idx, tree->children.size());
   }
 
   auto subtree = tree->children[idx].second;

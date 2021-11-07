@@ -61,6 +61,10 @@ struct TreeTransformer {
                                          const std::string &name_start, //
                                          const std::string &name_end) const;
 
+  // Until the end
+  vector<std::string> replace_name_range(const std::string &name, //
+                                         const std::string &name_start) const;
+
   int find_level(const std::string &) const;
   TreeTransformer(TransformerP previous,       //
                   KVTreePv2<bool> output_tree, //
@@ -70,6 +74,9 @@ struct TreeTransformer {
 
 private:
   bool check_names_different();
+  vector<std::string> _replace_name_range(const std::string &name, //
+                                          int lstart,              //
+                                          int lend) const;         // inclusive
 };
 
 class Transformer : public TreeTransformer, public IIndexTransformer {
@@ -90,10 +97,9 @@ public:
   vector<Index> inverse(const Index &) const;
 };
 
-struct Renumber : public Transformer{      
-  public:
-    Renumber(TreeFactory<bool> &f,
-             TransformerP previous);
+struct Renumber : public Transformer {
+public:
+  Renumber(TreeFactory<bool> &f, TransformerP previous);
 };
 
 struct Q : public Transformer {
@@ -118,6 +124,15 @@ struct Flatten : public Transformer {
           std::string level_start, //
           std::string level_end,   // INCLUSIVE
           std::string new_level_name);
+};
+struct CollectLeaves : public Transformer {
+  CollectLeaves(TreeFactory<bool> &f,       //
+                TransformerP previous,      //
+                std::string level_start,    //
+                std::string new_level_name, //
+                int pad_to);
+
+  vector<Index> inverse(const Index &) const;
 };
 struct LevelRemap : public Transformer {
   LevelRemap(TreeFactory<bool> &f,  //

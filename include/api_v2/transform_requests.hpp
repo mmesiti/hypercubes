@@ -145,6 +145,11 @@ using Flatten = TransformRequestGeneric3Arg<transformers::Flatten,
                                             std::string,  // level_end
                                             std::string>; // new_level_name
 
+using CollectLeaves = TransformRequestGeneric3Arg<transformers::CollectLeaves,
+                                                  std::string, // level_start
+                                                  std::string, // new_level_name
+                                                  int>;        // pad_to
+
 using LevelRemap = TransformRequestGeneric2Arg<transformers::LevelRemap,
                                                std::string,  // level
                                                vector<int>>; // index_map

@@ -50,6 +50,16 @@ TransformRequestP Flatten(std::string level_start,    //
                                                        end_node_name);
 }
 
+TransformRequestP CollectLeaves(std::string level_start,    //
+                                std::string new_level_name, //
+                                int pad_to,                 //
+                                std::string end_node_name) {
+  return std::make_shared<transform_requests::CollectLeaves>(level_start,    //
+                                                             new_level_name, //
+                                                             pad_to,         //
+                                                             end_node_name);
+}
+
 TransformRequestP LevelRemap(std::string level,     //
                              vector<int> index_map, //
                              std::string end_node_name) {
