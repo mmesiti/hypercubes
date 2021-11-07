@@ -503,7 +503,6 @@ BOOST_AUTO_TEST_CASE(test_flatten_pullback) {
                                            {{0, 1}, subtree}, //
                                            {{1, 0}, subtree}, //
                                            {{1, 1}, subtree}});
-
   auto out = index_pullback(t_collapsed, {2, 0});
   decltype(out) out_expected{1, 0, 0};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
@@ -524,6 +523,44 @@ BOOST_AUTO_TEST_CASE(test_flatten_pushforward) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_expected.begin(), out_expected.end());
 }
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({2, 2});
+  auto t_collapsed = f.collect_leaves(t, 0, 4);
+
+  auto leaf = mtkv(true, {});
+
+  auto t_collapsed_expected = mtkv(false, {{{0, 0}, leaf}, //
+                                           {{0, 1}, leaf}, //
+                                           {{1, 0}, leaf}, //
+                                           {{1, 1}, leaf}});
+  BOOST_TEST(*t_collapsed == *t_collapsed_expected);
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({2, 3});
+  auto t_collapsed = f.collect_leaves(t, 0, 8);
+
+  auto leaf = mtkv(true, {});
+
+  auto t_collapsed_expected = mtkv(false, {{{0, 0}, leaf}, //
+                                           {{0, 1}, leaf}, //
+                                           {{0, 2}, leaf}, //
+                                           {{1, 0}, leaf}, //
+                                           {{1, 1}, leaf}, //
+                                           {{1, 2}, leaf}, //
+                                           // these do not exist
+                                           // in the original tree
+                                           {{-1, -1}, leaf}, //
+                                           {{-1, -1}, leaf}});
+  BOOST_TEST(*t_collapsed == *t_collapsed_expected);
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_pullback) { BOOST_TEST(false); }
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_pushforward) { BOOST_TEST(false); }
 
 // TODO: Test that instead of crashes meaningful exceptions are thrown
 //       (is this a good thing?)

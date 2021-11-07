@@ -114,6 +114,12 @@ private:
         flatten;
 
     std::map<std::tuple<KVTreePv2<Node>, // t
+                        int,             // levelstart
+                        int>,            // padding
+             KVTreePv2<Node>>
+        collect_leaves;
+
+    std::map<std::tuple<KVTreePv2<Node>, // t
                         int>,            // level
              KVTreePv2<Node>>
         eo_naive;
@@ -149,6 +155,7 @@ private:
       int q = 0;
       int bb = 0;
       int flatten = 0;
+      int collect_leaves = 0;
       int eo_naive = 0;
       int remap_level = 0;
       int swap_levels = 0;
@@ -256,6 +263,7 @@ public:
     PRINTLINE(q)
     PRINTLINE(bb)
     PRINTLINE(flatten)
+    PRINTLINE(collect_leaves)
     PRINTLINE(eo_naive)
     PRINTLINE(remap_level)
     PRINTLINE(swap_levels)
@@ -405,7 +413,9 @@ public:
    * of the indices in the collapsed levels.
    * Affects only the levels in said range.
    * Uses recursion. */
-  KVTreePv2<Node> flatten(KVTreePv2<Node> t, int levelstart, int levelend) {
+  KVTreePv2<Node> flatten(KVTreePv2<Node> t, //
+                          int levelstart,    //
+                          int levelend) {
     callcounter.total.flatten++;
     if (cache.flatten.find({t, levelstart, levelend}) == cache.flatten.end()) {
       KVTreePv2<Node> res;
@@ -437,6 +447,65 @@ public:
     } else
       callcounter.cached.flatten++;
     return cache.flatten[{t, levelstart, levelend}];
+  }
+  /** Collects leaves of all subtree
+   * having a root at level "levelstart-1".
+   * The level "levelstart" is then replaced
+   * with a list of leaves
+   * which is at least "pad_to" long.
+   *
+   * The keys in the new level are the concatenation
+   * of the indices in the collapsed levels.
+   * Affects only the levels in said range.
+   * Uses recursion.
+   * NOTE: For trees produced by this function
+   *       the "index_pullback()" function
+   *       might raise exceptions,
+   *       as not all the leaves in the output tree
+   *       have a corresponding leaf in the input tree.
+   */
+  KVTreePv2<Node> collect_leaves(KVTreePv2<Node> t, //
+                                 int levelstart,    //
+                                 int pad_to) {
+    callcounter.total.collect_leaves++;
+    if (cache.collect_leaves.find({t, levelstart, pad_to}) ==
+        cache.collect_leaves.end()) {
+      KVTreePv2<Node> res;
+      decltype(KVTree<Node>::children) children;
+      if (levelstart <= 0) {
+        if (t->n != make_leaf()) {
+          for (auto i = 0; i != t->children.size(); ++i) {
+            auto tchild = collect_leaves(t->children[i].second, //
+                                         levelstart - 1,        //
+                                         pad_to);
+            for (auto grandchild : tchild->children) {
+              auto keys = append(i, grandchild.first);
+              children.push_back({keys, grandchild.second});
+            }
+          }
+        } else {
+          children.push_back({{}, t});
+        }
+        if (levelstart == 0) {
+          auto leaf = mtkv(make_leaf(), {});
+          int keylen = children[0].first.size();
+          std::vector<int> key(keylen, -1);
+          children.reserve(pad_to);
+          while (children.size() < pad_to)
+            children.push_back({key, leaf});
+        }
+        res = mtkv(false, children);
+      } else {
+        res = renumber_children(t, //
+                                [this, levelstart, pad_to](auto subtree) {
+                                  return collect_leaves(subtree, levelstart - 1,
+                                                        pad_to - 1);
+                                });
+      }
+      cache.collect_leaves[{t, levelstart, pad_to}] = res;
+    } else
+      callcounter.cached.collect_leaves++;
+    return cache.collect_leaves[{t, levelstart, pad_to}];
   }
 
   /** Assumes that the relevant dimensions (levels)
