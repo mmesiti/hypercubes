@@ -5,6 +5,7 @@
 #include "trees/kvtree_v2.hpp"
 #include "utils/print_utils.hpp"
 #include "utils/utils.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iomanip>
@@ -199,6 +200,7 @@ public:
                                                          // REMOVE?
     return cache.bring_level_on_top[{tree, next_level}]; // REMOVE?
   }
+
   // NOTE: Key must be unique between siblings.
   const KVTreePv2<Node>                       //
   collapse_level(const KVTreePv2<Node> &tree, //
@@ -451,9 +453,10 @@ public:
     return cache.flatten[{t, levelstart, levelend}];
   }
 
-  /* If a leaf was created as a result of padding,
+  /** If a leaf was created as a result of padding,
    * all the components of its key will be this value. */
   static const int no_key_component = -1;
+
   /** Collects leaves of all subtree
    * having a root at level "levelstart-1".
    * The level "levelstart" is then replaced
@@ -686,7 +689,7 @@ void _index_pullback(const KVTreePv2<Value> &tree, //
               std::back_inserter(out));
   }
 
-  _index_pullback(subtree, tail(in), out); // TCO
+  _index_pullback(subtree, tail(in), out); // TCO, hopefully
 }
 /* This function checks the keys in the tree
  * and returns the index that matches that.
@@ -719,10 +722,10 @@ void _index_pushforward(const KVTreePv2<Value> &tree, //
       std::copy(in.begin() + keylen, in.end(), //
                 std::back_inserter(other_indices));
     }
-    int matches = 0;
-    for (auto c = tree->children.begin(); c != tree->children.end(); ++c)
-      if (c->first == key)
-        matches++;
+
+    const int matches = std::count_if(tree->children.begin(), //
+                                      tree->children.end(),   //
+                                      [key](auto c) { return c.first == key; });
 
     int match_count = 0;
     for (auto c = tree->children.begin(); c != tree->children.end(); ++c) {
