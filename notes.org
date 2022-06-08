@@ -176,7 +176,7 @@ not displaying full coverage:
  to avoid the time and memory penalties of tree recursion
  (which would make the algorithm definitely too expensive
  to be of any use).
- The saving happen mostly because
+ The saving happens mostly because
  **pointers** are used to represent tree nodes,
  and such pointers are used as key in the memoisation map.
  This allows to detect easily
@@ -189,29 +189,65 @@ not displaying full coverage:
  like that all the paths that connect two nodes
  have the same length).
 
- Since it may not always be the case
- that the memoised version is faster,
- the non-memoised version of the function is left.
+** Different attempts and versions
+ Initially I thought it would be good
+ to implementa a general mechanism for memoisation
+ using templates.
+ The aim was to reduce boilerplate and code duplications.
+ It actually turned out to be very complicated
+ and each function needed anyway quite a lot of boilerplate,
+ so an explicit version was actually easier to write and maintain.
 
- A common pattern is used for all the memoised functions:
- a ~base~ function is defined, of the kind
- #+begin_src C++
+** The templatised version
+Since it may not always be the case
+that the memoised version is faster,
+the non-memoised version of the function is left.
+
+A common pattern is used for all the memoised functions:
+a ~base~ function is defined, of the kind
+#+begin_src C++
 RetType base(std::function<RetType(ArgTypes...)> f, //
-             ArgTypes... args);
- #+end_src
- In the non memoised version, we have
- #+begin_src C++
+            ArgTypes... args);
+#+end_src
+In the non memoised version, we have
+#+begin_src C++
 RetType nomemo(ArgTypes... args) { return base(nomemo, args...); }
- #+end_src
- While in the memoised version, we have
- #+begin_src C++
+#+end_src
+While in the memoised version, we have
+#+begin_src C++
 RetType memoised(ArgTypes... args) {
   Memo m;
   return base(m, args...);
 }
- #+end_src
- Where ~Memo~ is a class that encapsulate the ~Memoiser~ template.
+#+end_src
+Where ~Memo~ is a class that encapsulate the ~Memoiser~ template.
 
- **NOTE**: There might be nicer ways to do this,
- that require less code duplication.
- A better implementation is left for the future.
+Most of the boilerplate is encapsulated
+in a ~<name-of-the-function>_detail~ namespace.
+
+**NOTE**: There might be nicer ways to do this,
+that require less code duplication.
+A better implementation is left for the future.
+
+** The explicit version
+Possibly less elegantly but in a much simpler way,
+and with actually less duplication,
+I decided to create a class where to store
+all the memoisation maps and all the possible bookkeeping
+(this is useful to track how efficient memoisation actually is).
+This class also contains all the methods that are needed
+to perform the tree transformations,
+and it is called ~TreeFactory~.
+
+It is now a class template,
+but likely it does not need to be
+and will be moved to a concrete class.
+
+Notice that this implementation
+introduces some coupling between different functions,
+but it is also true that some functions are actually coupled.
+
+If a better implementation of the template mechanism is found,
+given this version maintainability issues
+(for example, adding new functions require modifying existing classes)
+we should switch back to that.

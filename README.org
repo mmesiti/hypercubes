@@ -30,10 +30,13 @@ In this section the main "raw" ideas are discussed,
 the [[Implementation][implementation]] is described separately.
 
 ** Main Ideas
+*** Symmetry breaking and memory layouts
+A possible way to see the problem of memory layouts
+is to think about symmetries and explicit symmetry breaking.
 Hypercubic lattices have
 "partitioning" symmetries
-that constrain the
-most general memory layout that can be sensibly adopted.
+that constrain the most general memory layout
+that can be sensibly adopted.
 
 By "partitioning symmetry",
 I refer to the fact that if we partition
@@ -45,61 +48,76 @@ into
 `|----|----|----|----|`
 #+end_src
 each one of the 4 chunk has the same shape.
+This can happen only if the number of partitions
+is a factor of the size of the lattice.
 
 HPC machines tend to have
-a more and more hierarchical
-memory structure, for example:
+a more and more complex structure,
+not only regarding memory but also topology,
+for example:
 - vector lanes
 - core-specific caches
 - socket-specific caches
-- node ram
-- the whole memory used
-  by a distributed data structure
-  (which is only an abstraction,
-  that makes anyway sense)
+- NUMA nodes
+- gpu caches and on board memory vs host ram
 - whatever else vendors may come up with.
 
-Of course, such memory structure
+Such structures
 can break the "partitioning" symmetries of the lattice,
 so one might have to adopt memory layouts
 that do not respect
 such symmetries.
-The point is:
-how much do we need
-to break the symmetry
-to have an efficient implementation?
-The less we break it,
-the easier the code will be
-to write
-and to understand once it's written.
+To deal with all these situations
+where these symmetries are explicitly broken,
+we need a more complex approach.
 
-** Definition of memory layout for a N-dimensional array (not the full story)
+*** Features of memory layouts
+The memory layout used in lattice applications
+might have the following features:
+
+- Domain decomposition (possibly non homogeneous),
+  and the facilities for efficient halo data exchanges
+- Additional blocking for cache-friendliness
+- Even-Odd site partitioning
+- Virtual Node partitioning for efficient vectorisationS
+  (possibly non homogeneous)
+
+In what follows, we will develop a framework
+to express all these features.
+
+** Definition of memory layout for a N-dimensional array
 A memory layout for a lattice
 is a function that takes the coordinates
-
-#+begin_src
-x_0, ... , x_d
-#+end_src
-
-of a point
-and returns a natural number:
-
+in the lattice and returns a natural number.
 #+begin_src
 idx = f ( x_0, ... , x_d )
 #+end_src
 
-A hypercubic lattice has also
-global dimensions
+The discussion can be extended
+trivially including the indices
+in the vector or tensor
+that sits on the lattice sites
+or on the links.
+
+*** Hyerarchical memory layouts: a basic discussion
+A hypercubic lattice has global dimensions
 
 #+begin_src
-L_0, ... , L_d
+(L_0, ... , L_d)
 #+end_src
 
-In what follows, the dimensions of the lattice
-are assumed to be divisible by the desired factors.
+Let's assume we want to domain-decompose the lattice
+in a hierarchical way,
+with different levels
+(e.g., a MPI parallelisation
+and a cache blocking mechanism,
+plus virtual nodes for parallelisation)
+At the beginning we will assume, for simplicity,
+the dimensions of the lattice
+to be divisible by the desired factors.
 
-*** Decomposition of dimensions in factors
 
+**** Decomposition of dimensions in factors
 We can decompose all the dimensions
 as a product of factors:
 
@@ -111,7 +129,7 @@ L_d = F_d0 * ... * F_d(n_d-1)
 
 For the sake of argument,
 and to support following examples,
-let's assume:
+let us use a complex example:
 
 #+begin_src
 L_0 = 32 = 2 * 2 * 4 * 2
@@ -119,8 +137,7 @@ L_1 = 27 = 3 * 9
 L_2 = 35 = 5 * 7
 #+end_src
 
-
-*** Express coordinates using the decomposition factors
+**** Express coordinates using the decomposition factors and strides
 
 We can re-express
 the individual components of the coordinates
@@ -174,9 +191,11 @@ x = ((1, 1, 0, 1),
      (5, 1))
 #+end_src
 
-*** Lexicographic memory layout
+**** Lexicographic memory layout
 
-A possible memory layout is the following:
+A possible memory layout
+(the so-called lexicographic memory layout)
+is the following:
 
 #+begin_src
 idx = x_0 * 1 +
@@ -185,14 +204,16 @@ idx = x_0 * 1 +
       x_2 * 1 * L_0 * L_1 * L_2
 #+end_src
 
-which can be expressed as the list
+which could be represented as the list
 
 #+begin_src
 [L_3,L_2,L_1,L_0]
 #+end_src
 
-We can define the memory layout
-to be the function f such that
+we can define a function ~f~ accordingly,
+which has the list of lattices sizes
+and the list of coordinates
+as arguments:
 
 #+begin_src
 idx = f([L_3,L_2,L_1,L_0],
@@ -200,9 +221,17 @@ idx = f([L_3,L_2,L_1,L_0],
 #+end_src
 
 Where ~0 <= x_d < L_d~.
+
+In this simple situation,
+moving along a given direction in the lattice
+by a certain amount of steps ~n~
+will change ~idx~ by an amount ~n*S_d~
+where ~S_d~ is the /stride/
+associated to that direction.
+
 We can factorise each dimension as described above
-and obtain another completely equivalend memory layout,
-such as
+and obtain another /identical/ memory layout
+function, such as:
 
 #+begin_src
 idx = x_00*1 +             // From L_0
@@ -218,19 +247,31 @@ idx = x_00*1 +             // From L_0
       //    | L_0   |L_1|L_2 |
 #+end_src
 
-
-Which can be expressed as
+Where the values for ~x_..~
+are obtained from the values of ~x_.~,
+and ~0 <= x_ab < F_ab~,
+in a trivial way.
+The memory layout can be expressed as
 
 #+begin_src
 idx = f([F_21, F_20, F_11, F_10, F_03, F_02, F_01, F_00],
         [x_21, x_20, x_11, x_10, x_03, x_02, x_01, x_00])
 #+end_src
-Where ~0 <= x_ab < F_ab~.
 
-*** Index Permutations
+where ~f~ has the same structure
+(if ~f~ is written in code,
+the code is the same).
 
-We can permute the lists of ~x_ab~ and ~F_ab~
+
+**** Index Permutations
+
+The reason why we want to use the factors
+instead of the full sizes of the lattice
+is that
+we can permute the lists of factors ~F_ab~
+(and the list of ~x_ab~ accordingly)
 to obtain other memory layouts functions
+(which can be more useful).
 Some statements:
 
 1. /If we apply the same permutation
@@ -242,7 +283,12 @@ Some statements:
 3. /The memory layout functions
     can be made modular/.
 
-** Breaking the symmetry - From ND-array to tree
+A suitable permutation of the list of factor gives us
+cache blocking,
+virtual nodes,
+and in principle also MPI decomposition.
+
+*** Breaking the symmetry - From ND-array to tree
 
 There are a number of features
 that are needed in order
@@ -262,6 +308,50 @@ is a common memory layout transformation.
 Applying the same transformations to a tree
 might be more complicated or impossible,
 depending on the implementation of the tree.
+
+*** Memory layout functions: some generalisations
+/Note: these ideas are used in the "v2" implementation./
+Our initial definition
+#+begin_src
+idx = f ( x_0, ... , x_d )
+#+end_src
+is reasonable but relatively hard to work with,
+and also possibly not fully correct.
+A couple of considerations:
+- While building ~f~ like this
+  in the case of lexicographic-like ordering
+  is relatively easy,
+  the simplicity goes away in more complex cases.
+- When using multiprocessing (MPI decomposition)
+  the output of ~f~ should actually also include the MPI rank
+  on which that site is allocated,
+  like:
+  #+begin_src
+  (pid,idx) = f ( x_0, ... , x_d )
+  #+end_src
+  Not only this, but it actually makes sense
+  to refer to each MPI process in a cartesian communicator
+  with a tuple of numbers:
+  #+begin_src
+  (pid_0, ... , pid_d ,idx) = f ( x_0, ... , x_d )
+  #+end_src
+- When implementing communication and halo exchanges,
+  a site might actually exist in multiple incarnations
+  (that need to be synchronised).
+  For this reason, ~f~ should actually give a list of results:
+  #+begin_src
+  [(pid_0, ... , pid_d ,idx)_1,
+   (pid_0, ... , pid_d ,idx)_2,
+   ... ] = f ( x_0, ... , x_d )
+  #+end_src
+
+So, we decide to represent the most general ~f~ as a /monadic composition/
+of functions that take a list of generalised coordinates
+and return a /list of lists/ of generalised coordinates.
+
+
+
+
 
 *** Discussion of possible data structures
 

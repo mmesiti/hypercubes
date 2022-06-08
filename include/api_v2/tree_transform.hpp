@@ -566,11 +566,6 @@ public:
     return cache.eo_naive[{t, level}];
   }
 
-  /** Where all these functions transform an input tree into an output tree,
-   * this function transforms an index in the opposite direction
-   * (that's why it's called 'pullback').
-   * */
-  /** Reshuffles the keys in a level.*/
   KVTreePv2<Node> remap_level(const KVTreePv2<Node> t, int level,
                               vector<int> index_map) {
     callcounter.total.remap_level++;
@@ -636,6 +631,12 @@ public:
 template <> bool TreeFactory<bool>::make_leaf();
 template <> bool TreeFactory<bool>::make_node();
 
+/** Where all these functions transform an input tree into an output tree,
+ * this function transforms an index in the opposite direction
+ * (that's why it's called 'pullback').
+ * */
+
+/** Reshuffles the keys in a level.*/
 template <class Value>
 vector<int> index_pullback(const KVTreePv2<Value> &tree,
                            const vector<int> &in) {

@@ -20,8 +20,10 @@ using transform_networks::TransformNetwork;
  * they store some arguments
  * (the ones that can be determined by the user)
  * before the real constructor can be called,
- * as the real constructor needs a TreeFactory object
- * and a "previous" TreeTransformer.
+ * as the real constructor needs a TreeFactory object,
+ * a "previous" TreeTransformer
+ * and in some cases also a reference
+ * to the whole transform network.
  */
 using transformers::TransformerP;
 class TransformRequest {
@@ -37,7 +39,7 @@ public:
 };
 
 using TransformRequestP = std::shared_ptr<TransformRequest>;
-/* Attempt at reducing the boilerplate */
+/* Generic classes - Attempt at reducing the boilerplate. */
 
 template <typename TransformerType>
 class TransformRequestGeneric0Arg : public TransformRequest {
@@ -114,6 +116,7 @@ public:
   }
 };
 
+/* Concrete classes */
 class Id : public TransformRequest {
 private:
   const vector<int> dimensions;
@@ -226,6 +229,9 @@ public:
                     TransformNetwork &network) const; //
 };
 
+/* This function is the top-level function
+ * that takes the list of TransformRequests
+ * and builds the actual graph.*/
 void Build(TreeFactory<bool> &f,      //
            TransformNetwork &network, //
            const vector<TransformRequestP> &requests);
