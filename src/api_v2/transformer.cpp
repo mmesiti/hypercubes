@@ -313,6 +313,10 @@ EONaive::EONaive(TreeFactory<bool> &f,  //
           f.eo_naive(previous->output_tree, previous->find_level(keylevel)),
           previous->emplace_name(newname, keylevel)) {}
 
+// TODO:
+// - SubTree selection with predicates
+// - EO (non-naive)
+
 TreeComposition::TreeComposition(TreeFactory<bool> &f,  //
                                  TransformerP previous, //
                                  const vector<TransformerP> &transformers)

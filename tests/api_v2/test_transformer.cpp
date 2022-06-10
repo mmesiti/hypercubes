@@ -257,6 +257,8 @@ BOOST_AUTO_TEST_CASE(test_flatten_inverse) {
                                 out_exp.begin(), out_exp.end());
 }
 
+// TODO: test Collect Leaves
+
 BOOST_AUTO_TEST_CASE(test_remap_constructor) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //

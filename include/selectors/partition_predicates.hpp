@@ -25,6 +25,7 @@ namespace slow {
 
 namespace selectors {
 
+// TODO: update / change for v2 (no PartList, for example)
 BoolM halos_upto_NmD(Indices idxs, PartList partitioners, int D);
 BoolM mpi_rank(Indices idxs, PartList partitioners, vector<int> cart_mpi_ranks);
 BoolM no_bulk_borders(Indices idxs, PartList partitioners);

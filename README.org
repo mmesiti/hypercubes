@@ -22,8 +22,9 @@ $ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. && \
     make coverage
 #+end_src
 Using ~-DCMAKE_BUILD_TYPE=Release~
-can speed up considerably the tests,
-if needed.
+slows down the compilation
+but can speed up considerably the tests,
+resulting overall in a considerable speed up.
 
 * Memory layouts: N-dimensional arrays and trees
 In this section the main "raw" ideas are discussed,
@@ -305,9 +306,6 @@ For an N-dimensional array,
 a transposition (intended as a permutation of the indices)
 is a common memory layout transformation.
 
-Applying the same transformations to a tree
-might be more complicated or impossible,
-depending on the implementation of the tree.
 
 *** Memory layout functions: some generalisations
 /Note: these ideas are used in the "v2" implementation./
@@ -346,14 +344,24 @@ A couple of considerations:
   #+end_src
 
 So, we decide to represent the most general ~f~ as a /monadic composition/
-of functions that take a list of generalised coordinates
-and return a /list of lists/ of generalised coordinates.
+of functions that take a generalised coordinate as input
+(represented as a list of integers)
+and return a /list/ of generalised coordinates.
+A single function will be represented by a transformation /t/
+that could be declared as:
 
+#+begin_src
+vector<vector<int>> t(vector<int>)
+#+end_src
 
+And the composition would be (in pseudocode)
+#+begin_src
+(t >=> s) l = [ t l' | l' <- s l ]
+#+end_src
 
+i.e., the [[https://hackage.haskell.org/package/base-4.16.1.0/docs/Control-Monad.html#v:-62--61--62-]["right fish" operator in Haskell]] for the List monad.
 
-
-*** Discussion of possible data structures
+*** Data structures
 
 The multidimensional array
 (à la Fortran)
@@ -383,7 +391,7 @@ in an ordered list or in a dictionary.
 In both cases, each parent-child relationship
 is associated to an integer.
 
-**** Transposition
+**** Transposition of arrays
 
 A "homogeneous" hierarchical partitioning
 that produces hypercubic arrays
@@ -439,6 +447,7 @@ e.g.:
   (for example, if we need to exchange only
   nearest neighbor information,
   ~nd_min~ should be D-1).
+
 
 *** Memory layouts transformations
 

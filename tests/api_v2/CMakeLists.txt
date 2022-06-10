@@ -4,7 +4,9 @@ project (HYPERCUBES_TEST_API)
 
 add_executable(test_tree_transform test_tree_transform.cpp)
 target_link_libraries(test_tree_transform tree_transform
-                                          boost_test_helper)
+                                          boost_test_helper
+                                          -lgcov)
+
 
 add_executable(test_transformer test_transformer.cpp)
 target_link_libraries(test_transformer transformer
@@ -25,7 +27,14 @@ target_link_libraries(test_transform_network transform_network
                                              transform_request_makers
                                              boost_test_helper)
 
+# Adding compile options for coverage for some tests.
+# This is needed because some code exists only as template.
+# (Note: this list might need to be lengthened.)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  target_compile_options(test_tree_transform PRIVATE "-fprofile-arcs"
+                                                     "-ftest-coverage")
 
+endif()
 
 set(CMAKE_CXX_STANDARDS 14)
 

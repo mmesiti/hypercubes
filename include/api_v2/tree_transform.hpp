@@ -53,6 +53,7 @@ private:
     }
     return res;
   }
+
   void partition_children_into_subtrees(
       decltype(KVTree<Node>::children) &children, //
       const vector<int> &starts,                  //
@@ -455,7 +456,7 @@ public:
 
   /** If a leaf was created as a result of padding,
    * all the components of its key will be this value. */
-  static const int no_key_component = -1;
+  static const int no_key_component;
 
   /** Collects leaves of all subtree
    * having a root at level "levelstart-1".
@@ -628,6 +629,13 @@ public:
   }
 };
 
+// Defining this inside the class body
+// causes a linking error
+// at low optimisation.
+// Solution from
+// https://stackoverflow.com/questions/3229883/static-member-initialization-in-a-class-template
+template <typename T> const int TreeFactory<T>::no_key_component = -1;
+
 template <> bool TreeFactory<bool>::make_leaf();
 template <> bool TreeFactory<bool>::make_node();
 
@@ -662,7 +670,7 @@ vector<vector<int>> index_pullback_pad(const KVTreePv2<Value> &tree,
   return out;
 }
 
-inline void throw_index_pullback_error(int key, int size) {
+static inline void throw_index_pullback_error(int key, int size) {
   std::stringstream ss;
   ss << "Index over bound: (unsigned)" << key << "<" << size;
   throw KeyNotFoundError(ss.str());
