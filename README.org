@@ -25,6 +25,11 @@ Using ~-DCMAKE_BUILD_TYPE=Release~
 slows down the compilation
 but can speed up considerably the tests,
 resulting overall in a considerable speed up.
+It has though been the case
+that some bugs were fixed by the compiler
+at higher level of optimisation,
+so asking for a Debug build
+seems a more stringent requirement.
 
 * Memory layouts: N-dimensional arrays and trees
 In this section the main "raw" ideas are discussed,

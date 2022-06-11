@@ -8,7 +8,7 @@
 
 using namespace hypercubes::slow::internals;
 
-BOOST_AUTO_TEST_SUITE(test_transform_request_makers)
+BOOST_AUTO_TEST_SUITE(test_transform_network)
 using transform_networks::TransformNetwork;
 using transform_requests::Build;
 using namespace trms;

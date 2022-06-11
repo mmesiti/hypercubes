@@ -125,7 +125,36 @@ BOOST_AUTO_TEST_CASE(test_flatten_constructor) {
                                 exp_out_names.begin(),              //
                                 exp_out_names.end());
 }
+BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
+  TreeFactory<bool> f;
+  TransformNetwork n;
+  auto idr = transform_requests::Id({2, 2, 3}, {"X", "Y", "Z"});
+  auto id = idr.join(f, 0, n);
 
+  auto collect_leaves_r = transform_requests::CollectLeaves("Y", "COLLECT", 8);
+  auto collect_leaves = collect_leaves_r.join(f, id, n);
+
+  Tree leaf = mtkv(true, {});
+  auto nkc = TreeFactory<bool>::no_key_component;
+  Tree COLLECT = mtkv(false, {{{0, 0}, leaf}, //
+                              {{0, 1}, leaf}, //
+                              {{0, 2}, leaf}, //
+                              {{1, 0}, leaf}, //
+                              {{1, 1}, leaf}, //
+                              {{1, 2}, leaf}, //
+                              // these do not exist
+                              // in the original tree
+                              {{nkc, nkc}, leaf}, //
+                              {{nkc, nkc}, leaf}});
+  Tree X_COLLECT = mtkv(false, {{{0}, COLLECT}, //
+                                {{1}, COLLECT}});
+
+  BOOST_TEST(*X_COLLECT == *(collect_leaves->output_tree));
+  vector<std::string> exp_out_names{"X", "COLLECT"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(exp_out_names.begin(), exp_out_names.end(),
+                                collect_leaves->output_levelnames.begin(),
+                                collect_leaves->output_levelnames.end());
+}
 BOOST_AUTO_TEST_CASE(test_level_remap_constructor) {
   TreeFactory<bool> f;
   TransformNetwork n;

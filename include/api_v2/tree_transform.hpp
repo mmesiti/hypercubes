@@ -512,9 +512,9 @@ public:
                                 [this,       //
                                  levelstart, //
                                  pad_to](auto subtree) {
-                                  return collect_leaves(subtree, //
-                                                        levelstart - 1,
-                                                        pad_to - 1);
+                                  return collect_leaves(subtree,        //
+                                                        levelstart - 1, //
+                                                        pad_to);
                                 });
       }
       cache.collect_leaves[{t, levelstart, pad_to}] = res;

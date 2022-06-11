@@ -257,7 +257,94 @@ BOOST_AUTO_TEST_CASE(test_flatten_inverse) {
                                 out_exp.begin(), out_exp.end());
 }
 
-// TODO: test Collect Leaves
+BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //
+                                vector<int>{2, 2}, //
+                                vector<std::string>{"X", "Y"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "X", "COLLECTED", 4);
+  vector<std::string> names_exp{"COLLECTED"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(names_exp.begin(), names_exp.end(),   //
+                                collected->output_levelnames.begin(), //
+                                collected->output_levelnames.end());
+  BOOST_TEST(collected->output_tree->children.size() == 4);
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padded) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //
+                                vector<int>{2, 3}, //
+                                vector<std::string>{"X", "Y"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "X", "COLLECTED", 8);
+  BOOST_TEST(collected->output_tree->children.size() == 8);
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_apply) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //
+                                vector<int>{2, 3}, //
+                                vector<std::string>{"X", "Y"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "X", "COLLECTED", 8);
+  Index out = collected->apply({1, 1})[0];
+  Index out_exp = {4};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_apply_mid_level) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                    //
+                                vector<int>{2, 2, 3}, //
+                                vector<std::string>{"X", "Y", "Z"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "Y", "COLLECTED", 8);
+  Index out = collected->apply({0, 1, 1})[0];
+  Index out_exp = {0, 4};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //
+                                vector<int>{2, 3}, //
+                                vector<std::string>{"X", "Y"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "X", "COLLECTED", 8);
+  Index out = collected->inverse({4})[0];
+  Index out_exp = {1, 1};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse_midlevel) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                    //
+                                vector<int>{2, 2, 3}, //
+                                vector<std::string>{"X", "Y", "Z"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "Y", "COLLECTED", 8);
+  Index out = collected->inverse({0, 4})[0];
+  Index out_exp = {0, 1, 1};
+  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                out_exp.begin(), out_exp.end());
+}
+BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse_in_pad) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //
+                                vector<int>{2, 3}, //
+                                vector<std::string>{"X", "Y"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "X", "COLLECTED", 8);
+  auto out = collected->inverse({7});
+  BOOST_TEST(out.size() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse_in_pad_midlevel) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                    //
+                                vector<int>{2, 2, 3}, //
+                                vector<std::string>{"X", "Y", "Z"});
+  auto collected = std::make_shared<CollectLeaves>(f, R, "Y", "COLLECTED", 8);
+  auto out = collected->inverse({1, 7});
+  BOOST_TEST(out.size() == 0);
+}
 
 BOOST_AUTO_TEST_CASE(test_remap_constructor) {
   TreeFactory<bool> f;

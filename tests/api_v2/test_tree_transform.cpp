@@ -558,6 +558,29 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding) {
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
 }
 
+BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding_midlevel) {
+  TreeFactory<bool> f;
+  auto t = f.generate_nd_tree({2, 2, 3});
+  auto t_collapsed = f.collect_leaves(t, 1, 8);
+
+  auto leaf = mtkv(true, {});
+
+  auto nkc = TreeFactory<bool>::no_key_component;
+
+  auto sub_t_collapsed_expected = mtkv(false, {{{0, 0}, leaf}, //
+                                               {{0, 1}, leaf}, //
+                                               {{0, 2}, leaf}, //
+                                               {{1, 0}, leaf}, //
+                                               {{1, 1}, leaf}, //
+                                               {{1, 2}, leaf}, //
+                                               // these do not exist
+                                               // in the original tree
+                                               {{nkc, nkc}, leaf}, //
+                                               {{nkc, nkc}, leaf}});
+  auto t_collapsed_expected = mtkv(false, {{{0}, sub_t_collapsed_expected}, //
+                                           {{1}, sub_t_collapsed_expected}});
+  BOOST_TEST(*t_collapsed == *t_collapsed_expected);
+}
 BOOST_AUTO_TEST_CASE(test_collect_leaves_pullback_pad) {
   TreeFactory<bool> f;
   auto t = f.generate_nd_tree({2, 3});
