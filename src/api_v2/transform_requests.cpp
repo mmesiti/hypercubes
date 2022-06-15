@@ -74,8 +74,8 @@ TransformerP Fork::join(TreeFactory<bool> &f,  //
   for (auto &request : requests) {
     TransformerP t = request->join(f, previous, network);
     network.add_node(t, request->get_end_node_name());
-    std::cout << "FORK:nodes:" << network.nnodes() << std::endl;
-    std::cout << "FORK:arcs:" << network.narcs() << std::endl;
+    std::cout << "FORK:nodes:" << network.nnodes() << std::endl; // DEBUG
+    std::cout << "FORK:arcs:" << network.narcs() << std::endl;   // DEBUG
   };
 
   return 0;
@@ -101,10 +101,12 @@ TransformerP TreeComposition::join(TreeFactory<bool> &f,  //
 
     network.add_node(t, request->get_end_node_name());
     last = t;
-    std::cout << end_node_name << " COMPOSITION:nodes:" << network.nnodes()
-              << std::endl;
-    std::cout << end_node_name << " COMPOSITION:arcs:" << network.narcs()
-              << std::endl;
+    std::cout << end_node_name                             // DEBUG
+              << " COMPOSITION:nodes:" << network.nnodes() // DEBUG
+              << std::endl;                                // DEBUG
+    std::cout << end_node_name                             // DEBUG
+              << " COMPOSITION:arcs:" << network.narcs()   // DEBUG
+              << std::endl;                                // DEBUG
   };
   return last;
 }

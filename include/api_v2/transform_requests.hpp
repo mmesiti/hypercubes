@@ -26,12 +26,16 @@ using transform_networks::TransformNetwork;
  * to the whole transform network.
  */
 using transformers::TransformerP;
-class TransformRequest {
+class TransformRequest { // TODO: it's an abstract class,
+                         //       so maybe rename to TransformRequestBase?
 protected:
   const std::string end_node_name;
 
 public:
+  // the constructor only stores the values
+  // that are needed for the Transformer constructor later on.
   TransformRequest(std::string end_node_name);
+  // here the constructor of the Transformer will be called
   virtual TransformerP join(TreeFactory<bool> &f,  //
                             TransformerP previous, //
                             TransformNetwork &network) const = 0;

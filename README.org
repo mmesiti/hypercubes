@@ -312,7 +312,7 @@ a transposition (intended as a permutation of the indices)
 is a common memory layout transformation.
 
 
-*** Memory layout functions: some generalisations
+*** Memory layout functions: some generalisations <<generalisations>>
 /Note: these ideas are used in the "v2" implementation./
 Our initial definition
 #+begin_src
@@ -365,6 +365,12 @@ And the composition would be (in pseudocode)
 #+end_src
 
 i.e., the [[https://hackage.haskell.org/package/base-4.16.1.0/docs/Control-Monad.html#v:-62--61--62-]["right fish" operator in Haskell]] for the List monad.
+This approach allows us to create
+complex memory layout transformations
+starting from simple ones.
+Also, if the inverse transformation is needed,
+it can be obtained as the composition of the inverses
+of the simple transformations.
 
 *** Data structures
 
@@ -486,7 +492,92 @@ we might refer to objects
 or shared pointers to those objects
 interchangeably.
 
-** Partitioning of the lattice - an example
+** Transform Network
+A memory layout is represented as a transformation function
+(as described in [[generalisations]]),
+from a simple cartesian product of subsets of N to the target representation.
+There can be multiple memory layouts needed,
+which may differ only in some transformation steps
+or be completely different but having the starting same point,
+i.e. the simple cartesian product of subsets of N.
+
+Each transformation step can be seen as
+a link between nodes.
+For each link there is an opposite link
+that represents the inverse transformation.
+
+There is a one-to-one correspondence
+between nodes and a pair of direct and inverse links,
+so that each node represents a direct link and vice versa.
+The "initial" node represents a link to itself
+meaning the identity transformation
+(which is trivially inverted).
+
+The graph of all the transformations is a tree
+(with a loop at the root),
+which we will call
+a ~TransformNetwork~
+to distinguish it from other trees.
+
+*** ~Transformer~'s, ~TransformRequest~'s and ~TransformRequestMaker~'s
+Each transformation is represented as a ~Transformer~ object.
+The problem is that to create a ~Transformer~ object,
+the previous node is known.
+In some cases, also the knowledge of the full network
+is necessary.
+Moreover, the creation of the ~Transformer~ object
+might use some memoised functions and their caches.
+For this reason, when writing down
+the code that defines the ~TransformNetwork~,
+we cannot use ~Transformer~ objects directly,
+but we need to store the information
+we type in a ~TransformRequest~ object,
+and create trees of ~TransformRequest~'s.
+A ~Build~ function will then take
+the list of ~TransformRequest~'s
+and generate the tree of ~Transformer~ objects.
+
+To create ~TransformRequest~'s,
+since they are stored in a vector
+we need to create pointers.
+Using ~shared_pointer~'s requires
+using a ~std::make_shared~ call.
+For convenience, the call to ~std::make_shared~
+is wrapped into conveniently named functions
+in their own namespaces.
+The functions are called ~TransformRequestMaker~
+and ar trivial wrappers around ~std::make_shared~.
+In principle, they could be templatised as:
+
+#+begin_src C++
+#define DECLARE_TRANSFORM_REQUEST_MAKER(TransformRequestType)                  \
+  template <typename... Args>                                                  \
+  transform_requests::TransformRequestP TransformRequestType(Args... args) {   \
+    return std::make_shared<transform_requests::TransformRequestType>(         \
+        args...);                                                              \
+  }
+
+ DECLARE_TRANSFORM_REQUEST_MAKER(Id)
+ DECLARE_TRANSFORM_REQUEST_MAKER(Renumber)
+ DECLARE_TRANSFORM_REQUEST_MAKER(Q)
+ DECLARE_TRANSFORM_REQUEST_MAKER(BB)
+ DECLARE_TRANSFORM_REQUEST_MAKER(Flatten)
+ DECLARE_TRANSFORM_REQUEST_MAKER(CollectLeaves)
+ DECLARE_TRANSFORM_REQUEST_MAKER(LevelRemap)
+ DECLARE_TRANSFORM_REQUEST_MAKER(LevelSwap1)
+ DECLARE_TRANSFORM_REQUEST_MAKER(LevelSwap2)
+ DECLARE_TRANSFORM_REQUEST_MAKER(EONaive)
+ DECLARE_TRANSFORM_REQUEST_MAKER(Sum)
+ DECLARE_TRANSFORM_REQUEST_MAKER(Fork)
+ DECLARE_TRANSFORM_REQUEST_MAKER(TreeComposition)
+
+#undef DECLARE_TRANSFORM_REQUEST_MAKER
+#+end_src
+But this does not work if one wants to call define the call
+with brace initialisation,
+since the compiler cannot infer the types correctly in that situation.
+
+** Partitioning of the lattice - an example (OLD)
 
 In this section a 2D example
 (taken from the test suite with some modifications)
@@ -608,7 +699,7 @@ can, e.g.:
 - divide the subpartition between even and odd sites.
 
 
-*** The different kind of trees
+*** The different kind of trees (OLD)
 The ~PartitionTree~ constructor
 takes the dimension of the N-dimensional array
 (has spatial and local indices),
@@ -741,7 +832,7 @@ Using the other methods of ~OffsetTree~ and ~PartitionTree~
 it is possible to do the reverse transformation,
 from ~offset~ to the specific coordinate.
 
-** Partitions
+** Partitions (OLD)
 A partition represents, in the simplest case,
 an N-dimensional block of the lattice
 (or of a tensor).
@@ -762,7 +853,7 @@ and how that partition is meant to be split further
 when there is need to run efficiently
 on heterogeneous machines).
 
-** Geometric Partitionings
+** Geometric Partitionings (OLD)
 There are partitionings that are intrinsically mono-dimensional,
 i.e., they can work only in 1D,
 and partitionings that need
@@ -891,7 +982,7 @@ that need to be there to make sure
 that the second-last level
 has the right number of children.
 
-** Types of Trees
+** Types of Trees (OLD)
 At each step in the partitioning process,
 a partition class is divided into
 1 or more partition classes,
@@ -975,7 +1066,7 @@ This is also necessary
 to allocate SoA memory layouts
 and hybrid SoA / AoSoA memory layouts,
 or to separate even and odd sites in an allocation.
-This can be done on a [[~NChildrenTree~]].
+This can be done on a [[~NChildrenTree~]]. (OLD)
 
 ** Partition Predicates
 Out of a full [[~PartitionTree~]]
