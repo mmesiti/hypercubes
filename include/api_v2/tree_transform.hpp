@@ -1,6 +1,7 @@
 #ifndef TREE_TRANSFORM_H_
 #define TREE_TRANSFORM_H_
 #include "exceptions/exceptions.hpp"
+#include "geometry/geometry.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
 #include "utils/print_utils.hpp"
@@ -67,10 +68,16 @@ private:
       decltype(KVTree<Node>::children) grandchildren;
       grandchildren.reserve(i_grandchildren_end - i_grandchildren_start);
 
-      for (auto i = i_grandchildren_start; i < i_grandchildren_end; ++i) {
+      for (int i = i_grandchildren_start; i < i_grandchildren_end; ++i) {
+        int i_sanitised = i;
+        if (i_sanitised < 0)
+          i_sanitised += t_children.size();
+        else if (i_sanitised >= t_children.size())
+          i_sanitised -= t_children.size();
 
-        grandchildren.push_back({{i}, //
-                                 renumber_children(t_children[i].second)});
+        grandchildren.push_back(
+            {{i_sanitised}, //
+             renumber_children(t_children[i_sanitised].second)});
       }
 
       if (grandchildren.size() > 0)
@@ -99,11 +106,14 @@ private:
   struct Cache {
     std::map<KVTreePv2<Node>, KVTreePv2<Node>> renumber;
 
-    std::map<std::tuple<KVTreePv2<Node>, // t
-                        int,             // level
-                        int>,            // nparts
+    std::map<std::tuple<KVTreePv2<Node>,    // t
+                        int,                // level
+                        int,                // nparts
+                        int,                // halo
+                        int,                // existing_halo
+                        BoundaryCondition>, // bc
              KVTreePv2<Node>>
-        q;
+        qh;
 
     std::map<std::tuple<KVTreePv2<Node>, // t
                         int,             // level
@@ -156,7 +166,7 @@ private:
   struct CallCounter {
     struct Counts {
       int renumber = 0;
-      int q = 0;
+      int qh = 0;
       int bb = 0;
       int flatten = 0;
       int collect_leaves = 0;
@@ -265,7 +275,7 @@ public:
             << std::endl;
 
     PRINTLINE(renumber)
-    PRINTLINE(q)
+    PRINTLINE(qh)
     PRINTLINE(bb)
     PRINTLINE(flatten)
     PRINTLINE(collect_leaves)
@@ -291,7 +301,7 @@ public:
   /** Renumbers subtrees recursively.
    *  Helper functions to deal with recursion,
    *  but also for those cases where the keys must be renumbered
-   *  (e.g., before swap_levels and after q or bb)
+   *  (e.g., before swap_levels and after qh or bb)
    *  Recursive function. */
   KVTreePv2<Node> renumber_children(const KVTreePv2<Node> t) {
     callcounter.total.renumber++;
@@ -349,12 +359,33 @@ public:
    *       This means that they should be ignored by index_pullback. */
 
   /** Splits a level of a tree in n-parts,
-   * making sure the partitions are as equal as possible.
+   * making sure the partitions are as equal as possible,
+   * and adding a halo of specified size on each partition.
+   * Assumes that the level has already a halo of size "existing_halo",
+   * so that the halo in the new level
+   * will have a superposition with the existing halo.
    * Affects only level and level+1.
+   *
    * Uses recursion. */
-  KVTreePv2<Node> q(KVTreePv2<Node> t, int level, int nparts) {
-    callcounter.total.q++;
-    if (cache.q.find({t, level, nparts}) == cache.q.end()) {
+
+  KVTreePv2<Node> qh(KVTreePv2<Node> t, int level, int nparts, int halo = 0,
+                     int existing_halo = 0,
+                     BoundaryCondition bc = BoundaryCondition::OPEN) {
+    // TODO:
+    // There are some complex conditions regarding
+    // halo, existing halo, the levels and the boundary conditions.
+    // e.g., the halo should be smaller or equal to the existing halo,
+    // except if the level to split is the whole lattice.
+    // Also, it may make little sense to have PERIODIC bcs
+    // on sublevels.
+    // It might make more sense to have a function/transformer/...
+    // for the full lattice case (where it is possible to specify the boundary
+    // condition) and another where "OPEN" is always the case, for levels down
+    // the hierarchy.
+    // This can be managed at the TransformRequestMaker level, though.
+    callcounter.total.qh++;
+    if (cache.qh.find({t, level, nparts, halo, existing_halo, bc}) ==
+        cache.qh.end()) {
 
       KVTreePv2<Node> res;
       decltype(KVTree<Node>::children) children;
@@ -365,21 +396,26 @@ public:
         starts.reserve(nparts);
         ends.reserve(nparts);
         for (int child = 0; child < nparts; child++) {
-          starts.push_back(std::round(child * quotient));
-          ends.push_back(std::round((child + 1) * quotient));
+          int start = std::round(child * quotient) - halo;
+          int end = std::round((child + 1) * quotient) + halo;
+
+          starts.push_back(bc == OPEN ? std::max(0, start) : start);
+          ends.push_back(bc == OPEN ? std::min(end, size) : end);
         }
         partition_children_into_subtrees(children, starts, ends, t->children);
         res = mtkv(false, children);
       } else {
-        res = renumber_children(t, [this, level, nparts](auto subtree) {
-          return q(subtree, level - 1, nparts);
-        });
+        res = renumber_children(
+            t, [this, level, nparts, halo, existing_halo, bc](auto subtree) {
+              return qh(subtree, level - 1, nparts, halo, existing_halo, bc);
+            });
       }
-      cache.q[{t, level, nparts}] = res;
+      cache.qh[{t, level, nparts, halo, existing_halo, bc}] = res;
     } else
-      callcounter.cached.q++;
-    return cache.q[{t, level, nparts}];
+      callcounter.cached.qh++;
+    return cache.qh[{t, level, nparts, halo, existing_halo, bc}];
   }
+
   /** Splits a level in 3 parts,
    * representing the first border,
    * the bulk and the last border.
@@ -411,6 +447,7 @@ public:
       callcounter.cached.bb++;
     return cache.bb[{t, level, halosize}];
   }
+  // TODO: add HBB function (to be used with qh and nonzero halo).
   /** Level collapsing function.
    * Collapses the levels in the range [levelstart,levelend),
    * which are replaced by a single level placed at "levelstart".

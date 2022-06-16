@@ -159,9 +159,9 @@ Q::Q(TreeFactory<bool> &f,  //
      int nparts,            //
      std::string name)
     : Transformer(previous,
-                  f.q(previous->output_tree,       //
-                      previous->find_level(level), //
-                      nparts),
+                  f.qh(previous->output_tree,       //
+                       previous->find_level(level), //
+                       nparts),
                   previous->emplace_name(name, //
                                          level)) {}
 
