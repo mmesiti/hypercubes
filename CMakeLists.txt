@@ -104,6 +104,7 @@ target_link_libraries(memory_layout geometry
 
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # TODO: add more directories when needed
 add_custom_target(coverage
      COMMAND lcov --capture
              --directory CMakeFiles
@@ -111,6 +112,11 @@ add_custom_target(coverage
              --directory tests/CMakeFiles/test_tree.dir
              --directory tests/CMakeFiles/test_size_tree_iterator.dir
              --directory tests/CMakeFiles/test_level_swap.dir
+             --directory tests/api_v2/CMakeFiles/test_tree_transform.dir
+             --directory tests/api_v2/CMakeFiles/test_transformer.dir
+             --directory tests/api_v2/CMakeFiles/test_transform_requests.dir
+             --directory tests/api_v2/CMakeFiles/test_transform_network.dir
+             --directory tests/api_v2/CMakeFiles/test_transform_request_makers.dir
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
      COMMAND genhtml --demangle-cpp coverage.info

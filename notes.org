@@ -153,15 +153,17 @@ This might be worth investigating.
 ** Troubleshooting
 Known reasons for some functions
 not displaying full coverage:
-1. The function is not actually called everywhere.
+1. the ~coverage~ target in the top-level ~CMakeLists.txt~ file
+   does not include the right ~--directory~.
+2. The function is not actually called anywhere.
    Trivial case, but it happened to me,
    so it is worth understanding
-   if case 1. or 2. happened instead.
-2. The function is a template
+   if other cases happened instead.
+3. The function is a template
    and the compilation unit
    where it is actually instantiated
    is not covered by ~lcov~.
-3. When the compiler can inline functions
+4. When the compiler can inline functions
    lcov might not detect the function call.
    This can happen when
    the function is passed as a function pointer

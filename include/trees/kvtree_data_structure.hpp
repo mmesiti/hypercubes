@@ -26,10 +26,18 @@ template <class Node> struct KVTree {
       return true;
     if (children.size() != other.children.size())
       return true;
-    for (int i = 0; i < children.size(); ++i)
+    for (int i = 0; i < children.size(); ++i) {
       if (children[i].first != other.children[i].first or //
-          *children[i].second != *other.children[i].second)
+          (children[i].second == NULL and
+           other.children[i].second != NULL) or //
+          (children[i].second != NULL and other.children[i].second == NULL))
         return true;
+
+      if ((children[i].second != NULL) and
+          (other.children[i].second != NULL) and
+          (*children[i].second != *other.children[i].second))
+        return true;
+    }
     return false;
   }
   bool operator==(const KVTree &other) const { return not(*this != other); };
@@ -62,8 +70,11 @@ template <class Node> std::string kvtree_str(const KVTree<Node> &tree) {
         if (k + 1 != keys.end())
           ss << ',';
       }
-      ss << '}';
-      ss << ": " << f(prefix + "  ", *c, f);
+      ss << "}:";
+      if (c)
+        ss << f(prefix + "  ", *c, f);
+      else
+        ss << "NULL\n";
     }
     auto res = ss.str();
     if (res[res.size() - 1] != '\n')

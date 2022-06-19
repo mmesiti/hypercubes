@@ -144,8 +144,8 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
                               {{1, 2}, leaf}, //
                               // these do not exist
                               // in the original tree
-                              {{nkc, nkc}, leaf}, //
-                              {{nkc, nkc}, leaf}});
+                              {{nkc, nkc}, NULL}, //
+                              {{nkc, nkc}, NULL}});
   Tree X_COLLECT = mtkv(false, {{{0}, COLLECT}, //
                                 {{1}, COLLECT}});
 
