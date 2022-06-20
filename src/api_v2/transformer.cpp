@@ -205,7 +205,7 @@ CollectLeaves::CollectLeaves(TreeFactory<bool> &f,       //
 {}
 vector<Index> CollectLeaves::inverse(const Index &in) const {
 
-  return index_pullback_pad(output_tree, in);
+  return index_pullback_safe(output_tree, in);
 }
 
 LevelRemap::LevelRemap(TreeFactory<bool> &f,  //

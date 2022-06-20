@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
   auto collect_leaves = collect_leaves_r.join(f, id, n);
 
   Tree leaf = mtkv(true, {});
-  auto nkc = TreeFactory<bool>::no_key_component;
+  auto nkc = TreeFactory<bool>::no_key;
   Tree COLLECT = mtkv(false, {{{0, 0}, leaf}, //
                               {{0, 1}, leaf}, //
                               {{0, 2}, leaf}, //

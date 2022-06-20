@@ -55,6 +55,7 @@ private:
     return res;
   }
 
+  // TODO: split into periodic/open versions.
   void partition_children_into_subtrees(
       decltype(KVTree<Node>::children) &children, //
       const vector<int> &starts,                  //
@@ -72,6 +73,7 @@ private:
       for (int i = i_grandchildren_start; i < i_grandchildren_end; ++i) {
         int i_sanitised = i;
 
+        // TODO: abstract this piece away into "add-to-grandchildren-policy"
         if (bc == BoundaryCondition::PERIODIC) {
           if (i_sanitised < 0)
             i_sanitised += t_children.size();
@@ -83,7 +85,7 @@ private:
                renumber_children(t_children[i_sanitised].second)});
         } else if (bc == BoundaryCondition::OPEN) {
           if (i_sanitised < 0 or t_children.size() <= i_sanitised)
-            grandchildren.push_back({{no_key_component}, NULL});
+            grandchildren.push_back({{no_key}, NULL});
           else
             grandchildren.push_back(
                 {{i_sanitised}, //
@@ -203,33 +205,25 @@ public:
   // TODO: check that memoisation is useful here. Likely not.
   KVTreePv2<Node> bring_level_on_top(const KVTreePv2<Node> tree,
                                      int next_level) {
-    callcounter.total.bring_level_on_top++;                  // REMOVE?
-    if (cache.bring_level_on_top.find({tree, next_level}) == // REMOVE?
-        cache.bring_level_on_top.end()) {                    // REMOVE?
-      std::set<vector<int>> keys;
-      _collect_keys_at_level(keys, tree, next_level);
+
+    std::set<vector<int>> keys;
+    _collect_keys_at_level(keys, tree, next_level);
+    Node root;
+    { // check on node types - all nodes should be equal.
       std::set<Node> nodes;
       _collect_nodes_at_level(nodes, tree, next_level);
-      if (nodes.size() == 0) {
-        // return 0;
-        cache.bring_level_on_top[{tree, next_level}] = 0; // REMOVE?
-      } else if (nodes.size() != 1)
+      if (nodes.size() != 1)
         _throw_different_nodes_error(nodes, std::string("level:") +
                                                 std::to_string(next_level));
-      else {
-        decltype(KVTree<Node>::children) children;
-        for (auto key : keys) {
-          children.push_back({key, collapse_level(tree, next_level, key)});
-        }
+      else
+        root = *nodes.begin();
+    }
+    decltype(KVTree<Node>::children) children;
+    for (auto key : keys) {
+      children.push_back({key, collapse_level(tree, next_level, key)});
+    }
 
-        // return mtkv(*nodes.begin(), children); // UNCOMMENT
-        cache.bring_level_on_top[{tree, next_level}] = // REMOVE?
-            mtkv(*nodes.begin(), children);            // REMOVE?
-      }
-    } else                                               // REMOVE?
-      callcounter.cached.bring_level_on_top++;           // REMOVE?
-                                                         // REMOVE?
-    return cache.bring_level_on_top[{tree, next_level}]; // REMOVE?
+    return mtkv(root, children);
   }
 
   // NOTE: Key must be unique between siblings.
@@ -237,7 +231,6 @@ public:
   collapse_level(const KVTreePv2<Node> &tree, //
                  int level_to_collapse,       //
                  const vector<int> &child_key_to_replace) {
-
     callcounter.total.collapse_level++;
     if (cache.collapse_level.find(
             {tree, level_to_collapse, child_key_to_replace}) ==
@@ -399,8 +392,20 @@ public:
    *       at the edge of the range, for halo > 0.
    * */
 
-  KVTreePv2<Node> qh(KVTreePv2<Node> t, int level, int nparts, int halo = 0,
-                     int existing_halo = 0,
+  // TODO: existing halo must be zero when periodic,
+  //       so it makes sense to have two different versions
+  //       of this function - one with open boundary conditions
+  //       accepting a "existing halo" parameter,
+  //       and another with periodic boundary conditions
+  //       without that parameter
+  //       (since periodic boundary conditions
+  //       make sense only for the full lattice,
+  //       so there is no existing halo)
+  KVTreePv2<Node> qh(KVTreePv2<Node> t,     //
+                     int level,             //
+                     int nparts,            //
+                     int halo = 0,          //
+                     int existing_halo = 0, //
                      BoundaryCondition bc = BoundaryCondition::OPEN) {
     // TODO:
     // There are some complex conditions regarding
@@ -415,7 +420,7 @@ public:
     // the hierarchy.
     // This can be managed at the TransformRequestMaker level, though.
     if (t == 0)
-      return 0; // DEBUG
+      return 0;
     callcounter.total.qh++;
     if (cache.qh.find({t, level, nparts, halo, existing_halo, bc}) ==
         cache.qh.end()) {
@@ -577,7 +582,7 @@ public:
 
   /** If a leaf was created as a result of padding,
    * all the components of its key will be this value. */
-  static const int no_key_component;
+  static const int no_key;
 
   /** Collects leaves of all subtree
    * having a root at level "levelstart-1".
@@ -625,7 +630,7 @@ public:
           // TODO: This may cause problems
           //                    V
           int keylen = children[0].first.size();
-          std::vector<int> key(keylen, no_key_component);
+          std::vector<int> key(keylen, no_key);
           children.reserve(pad_to);
           while (children.size() < pad_to)
             children.push_back({key, NULL});
@@ -657,6 +662,8 @@ public:
    * This means that the partitioning between even and odd sites
    * will be correct only up to an exchange between even and odd
    * (that will be different for each subtree).
+   * Therefore, an additional step might be necessary
+   * to fix the parity.
    * Uses recursion. */
   KVTreePv2<Node> eo_naive(const KVTreePv2<Node> t, int level) {
 
@@ -693,6 +700,7 @@ public:
     return cache.eo_naive[{t, level}];
   }
 
+  /** Remaps keys in a level, allowing duplications and deletions. */
   KVTreePv2<Node> remap_level(const KVTreePv2<Node> t, int level,
                               vector<int> index_map) {
 
@@ -766,7 +774,7 @@ public:
 // at low optimisation.
 // Solution from
 // https://stackoverflow.com/questions/3229883/static-member-initialization-in-a-class-template
-template <typename T> const int TreeFactory<T>::no_key_component = -1;
+template <typename T> const int TreeFactory<T>::no_key = -1;
 
 // template <> class TreeFactory<bool>;
 // template <> bool TreeFactory<bool>::make_leaf();
@@ -777,7 +785,6 @@ template <typename T> const int TreeFactory<T>::no_key_component = -1;
  * (that's why it's called 'pullback').
  * */
 
-/** Reshuffles the keys in a level.*/
 template <class Value>
 vector<int> index_pullback(const KVTreePv2<Value> &tree,
                            const vector<int> &in) {
@@ -790,15 +797,15 @@ vector<int> index_pullback(const KVTreePv2<Value> &tree,
  * where padding creates some new leaves
  * that have no correspondence in the old tree.
  * In that case we return an empty vector.  */
-// TODO: this function should be also used by the QH transformer.
+// TODO: - this function must be also used by the QH transformer.
 template <class Value>
-vector<vector<int>> index_pullback_pad(const KVTreePv2<Value> &tree,
-                                       const vector<int> &in) {
+vector<vector<int>> index_pullback_safe(const KVTreePv2<Value> &tree,
+                                        const vector<int> &in) {
   vector<vector<int>> out;
   auto out_temp = index_pullback(tree, in);
   if (std::find(out_temp.begin(), //
                 out_temp.end(),   //
-                TreeFactory<Value>::no_key_component) == out_temp.end()) {
+                TreeFactory<Value>::no_key) == out_temp.end()) {
     out.push_back(out_temp);
   }
   return out;
@@ -814,12 +821,11 @@ template <class Value>
 void _index_pullback(const KVTreePv2<Value> &tree, //
                      const vector<int> &in,        //
                      vector<int> &out) {
-  if (in.size() == 0)
+  if (in.size() == 0 or tree == 0)
     return;
 
   int idx = in[0];
-  if (idx == TreeFactory<Value>::no_key_component or
-      idx >= tree->children.size()) {
+  if (idx == TreeFactory<Value>::no_key or idx >= tree->children.size()) {
     throw_index_pullback_error(idx, tree->children.size());
   }
 
@@ -851,6 +857,8 @@ void _index_pushforward(const KVTreePv2<Value> &tree, //
                         const vector<int> &in,        //
                         vector<int> &&result,         //
                         vector<vector<int>> &all_results) {
+  if (tree == 0)
+    return;
   if (in.size() == 0)
     all_results.push_back(result);
   else {
