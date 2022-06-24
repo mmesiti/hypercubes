@@ -1,5 +1,6 @@
 #ifndef TRANSFORM_REQUEST_MAKERS_H_
 #define TRANSFORM_REQUEST_MAKERS_H_
+#include "geometry/geometry.hpp"
 #include "transform_requests.hpp"
 
 namespace hypercubes {
@@ -37,15 +38,24 @@ TransformRequestP Id(vector<int> dimensions,              //
 
 TransformRequestP Renumber(std::string end_node_name = "");
 
-TransformRequestP Q(std::string level,          //
-                    int nparts,                 //
-                    std::string new_level_name, //
-                    std::string end_node_name = "");
+TransformRequestP QFull(std::string level,          //
+                        int nparts,                 //
+                        std::string new_level_name, //
+                        int halo,                   //
+                        BoundaryCondition bc,       //
+                        std::string end_node_name = "");
 
-TransformRequestP BB(std::string level,          //
-                     int halosize,               //
-                     std::string new_level_name, //
-                     std::string end_node_name = "");
+TransformRequestP QSub(std::string level,          //
+                       int nparts,                 //
+                       std::string new_level_name, //
+                       int halo,                   //
+                       int existing_halo,          //
+                       std::string end_node_name = "");
+
+TransformRequestP HBB(std::string level,          //
+                      int halosize,               //
+                      std::string new_level_name, //
+                      std::string end_node_name = "");
 
 TransformRequestP Flatten(std::string level_start,    //
                           std::string level_end,      // INCLUSIVE

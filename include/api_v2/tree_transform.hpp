@@ -13,12 +13,17 @@
 #include <iostream>
 #include <map>
 #include <numeric>
+#include <stdexcept>
 #include <vector>
 
 namespace hypercubes {
 namespace slow {
 namespace internals {
-
+/** Why have a single class with all the functions inside
+ *  instead of many classes, one per function?
+ *  The main reason is that some of these functions
+ *  call each other (qh and hbb do call renumber_children)
+ */
 template <class Node> class TreeFactory {
   // TODO: make copy constructor
   //       and copy assignment operator private?
@@ -27,7 +32,7 @@ private:
   Node make_node();
   KVTreePv2<Node> tree_product2(const KVTreePv2<Node> &t1,
                                 const KVTreePv2<Node> &t2) {
-    if (t1->n == true) {
+    if (t1->n == make_leaf()) {
       return t2;
     } else {
       decltype(KVTree<Node>::children) children;
@@ -55,11 +60,10 @@ private:
     return res;
   }
 
-  // TODO: split into periodic/open versions.
   void partition_children_into_subtrees(
       decltype(KVTree<Node>::children) &children, //
-      const vector<int> &starts,                  //
-      const vector<int> &ends,                    //
+      const vector<int> &starts, // starts do not have to coincide
+      const vector<int> &ends,   // with ends.
       const decltype(KVTree<Node>::children) &t_children,
       BoundaryCondition bc = BoundaryCondition::OPEN) {
 
@@ -68,12 +72,15 @@ private:
       int i_grandchildren_start = starts[child];
       int i_grandchildren_end = ends[child];
       decltype(KVTree<Node>::children) grandchildren;
-      grandchildren.reserve(i_grandchildren_end - i_grandchildren_start);
+      // TODO: assert size is > 0.
+      int grandchildren_size = i_grandchildren_end - i_grandchildren_start;
+      grandchildren.reserve(grandchildren_size);
 
       for (int i = i_grandchildren_start; i < i_grandchildren_end; ++i) {
         int i_sanitised = i;
 
-        // TODO: abstract this piece away into "add-to-grandchildren-policy"
+        // NOTE: Tried to abstract these into methods,
+        //       code is longer and less readable.
         if (bc == BoundaryCondition::PERIODIC) {
           if (i_sanitised < 0)
             i_sanitised += t_children.size();
@@ -83,13 +90,14 @@ private:
           grandchildren.push_back(
               {{i_sanitised}, //
                renumber_children(t_children[i_sanitised].second)});
+
         } else if (bc == BoundaryCondition::OPEN) {
-          if (i_sanitised < 0 or t_children.size() <= i_sanitised)
-            grandchildren.push_back({{no_key}, NULL});
-          else
+          if (0 <= i_sanitised and i_sanitised < t_children.size())
             grandchildren.push_back(
                 {{i_sanitised}, //
                  renumber_children(t_children[i_sanitised].second)});
+          else // add empty node instead
+            grandchildren.push_back({{no_key}, mtkv(make_node(), {})});
         }
       }
 
@@ -105,9 +113,6 @@ private:
    *  Helper functions to deal with recursion */
   template <class F>
   KVTreePv2<Node> renumber_children(const KVTreePv2<Node> t, F f) {
-    if (t == 0)
-      return 0; // DEBUG
-
     decltype(KVTree<Node>::children) children;
     auto tchildren = t->children;
     children.reserve(tchildren.size());
@@ -118,6 +123,12 @@ private:
   }
 
   // Caches for memoisation
+
+public:
+  // These is public only to expose it conveniently during the tests,
+  // so that we have a way to check
+  // which functions are called by the higher-level code
+  // and with which arguments.
   struct Cache {
     std::map<KVTreePv2<Node>, KVTreePv2<Node>> renumber;
 
@@ -183,7 +194,6 @@ private:
              KVTreePv2<Node>>
         collapse_level;
   } cache;
-
   struct CallCounter {
     struct Counts {
       int renumber = 0;
@@ -201,8 +211,6 @@ private:
 
   } callcounter;
 
-public:
-  // TODO: check that memoisation is useful here. Likely not.
   KVTreePv2<Node> bring_level_on_top(const KVTreePv2<Node> tree,
                                      int next_level) {
 
@@ -315,11 +323,9 @@ public:
   /** Renumbers subtrees recursively.
    *  Helper functions to deal with recursion,
    *  but also for those cases where the keys must be renumbered
-   *  (e.g., before swap_levels and after qh or bb)
+   *  (e.g., before swap_levels after qh or bb)
    *  Recursive function. */
   KVTreePv2<Node> renumber_children(const KVTreePv2<Node> t) {
-    if (t == 0)
-      return 0; // DEBUG
     callcounter.total.renumber++;
     if (cache.renumber.find(t) == cache.renumber.end()) {
       decltype(KVTree<Node>::children) children;
@@ -387,7 +393,7 @@ public:
    *
    * Uses recursion.
    *
-   * NOTE: This function can create NULL subtrees.
+   * NOTE: This function might not create all the subtrees.
    *       This happens ONLY when using open boundary conditions,
    *       at the edge of the range, for halo > 0.
    * */
@@ -401,12 +407,12 @@ public:
   //       (since periodic boundary conditions
   //       make sense only for the full lattice,
   //       so there is no existing halo)
-  KVTreePv2<Node> qh(KVTreePv2<Node> t,     //
-                     int level,             //
-                     int nparts,            //
-                     int halo = 0,          //
-                     int existing_halo = 0, //
-                     BoundaryCondition bc = BoundaryCondition::OPEN) {
+  KVTreePv2<Node> qh(KVTreePv2<Node> t, //
+                     int level,         //
+                     int nparts,        //
+                     int halo,          //
+                     int existing_halo, //
+                     BoundaryCondition bc) {
     // TODO:
     // There are some complex conditions regarding
     // halo, existing halo, the levels and the boundary conditions.
@@ -419,8 +425,6 @@ public:
     // condition) and another where "OPEN" is always the case, for levels down
     // the hierarchy.
     // This can be managed at the TransformRequestMaker level, though.
-    if (t == 0)
-      return 0;
     callcounter.total.qh++;
     if (cache.qh.find({t, level, nparts, halo, existing_halo, bc}) ==
         cache.qh.end()) {
@@ -461,8 +465,6 @@ public:
    * Affects only level and level+1.
    * Uses recursion. */
   KVTreePv2<Node> bb(KVTreePv2<Node> t, int level, int halo) {
-    if (t == 0)
-      return 0;
     callcounter.total.bb++;
     if (cache.bb.find({t, level, halo}) == cache.bb.end()) {
 
@@ -497,15 +499,17 @@ public:
    * Affects only level and level+1.
    * Uses recursion. */
   KVTreePv2<Node> hbb(KVTreePv2<Node> t, int level, int halo) {
-    if (t == 0)
-      return 0;
     callcounter.total.hbb++;
     if (cache.hbb.find({t, level, halo}) == cache.hbb.end()) {
 
       KVTreePv2<Node> res;
-      decltype(KVTree<Node>::children) children;
-      int size = t->children.size() - 2 * halo;
       if (level == 0) {
+        decltype(KVTree<Node>::children) children;
+        int size = t->children.size() - 2 * halo;
+        if (size <= 2 * halo) {
+          throw std::invalid_argument(
+              "HBB: the halo does not fit in the domain!");
+        }
         std::vector<int> limits = {0,                  //
                                    halo,               //
                                    2 * halo,           //
@@ -529,22 +533,19 @@ public:
 
   /** Level collapsing function.
    * Collapses the levels in the range [levelstart,levelend),
-   * which are replaced by a single level placed at "levelstart".
+   * which are replaced by a single level placed at "levelstart",
+   * using a depth-first path.
    * The keys in the new level are the concatenation
    * of the indices in the collapsed levels.
    * Affects only the levels in said range.
    * Uses recursion.
    * NOTE: this function is the inverse of q and bb.
    *       it should also be the inverse of hbb.
-   *       qh, though produces copies when halo != 0,
-   *       and might produce "NULL" subtrees,
-   *       that should not be added. */
+   *       qh, though produces copies when halo != 0.*/
 
   KVTreePv2<Node> flatten(KVTreePv2<Node> t, //
                           int levelstart,    //
                           int levelend) {
-    if (t == 0)
-      return 0;
     callcounter.total.flatten++;
     if (cache.flatten.find({t, levelstart, levelend}) == cache.flatten.end()) {
       KVTreePv2<Node> res;
@@ -604,8 +605,6 @@ public:
                                  int levelstart,    //
                                  int pad_to) {
 
-    if (t == 0)
-      return 0;
     callcounter.total.collect_leaves++;
     if (cache.collect_leaves.find({t, levelstart, pad_to}) ==
         cache.collect_leaves.end()) {
@@ -633,7 +632,7 @@ public:
           std::vector<int> key(keylen, no_key);
           children.reserve(pad_to);
           while (children.size() < pad_to)
-            children.push_back({key, NULL});
+            children.push_back({key, leaf});
         }
         res = mtkv(false, children);
       } else {
@@ -667,8 +666,6 @@ public:
    * Uses recursion. */
   KVTreePv2<Node> eo_naive(const KVTreePv2<Node> t, int level) {
 
-    if (t == 0)
-      return 0;
     callcounter.total.eo_naive++;
     if (cache.eo_naive.find({t, level}) == cache.eo_naive.end()) {
 
@@ -704,8 +701,6 @@ public:
   KVTreePv2<Node> remap_level(const KVTreePv2<Node> t, int level,
                               vector<int> index_map) {
 
-    if (t == 0)
-      return 0;
     callcounter.total.remap_level++;
     if (cache.remap_level.find({t, level, index_map}) ==
         cache.remap_level.end()) {
@@ -733,8 +728,6 @@ public:
   const KVTreePv2<Node> swap_levels(const KVTreePv2<Node> &t,
                                     const vector<int> &new_level_ordering) {
 
-    if (t == 0)
-      return 0;
     callcounter.total.swap_levels++;
     if (cache.swap_levels.find({t, new_level_ordering}) ==
         cache.swap_levels.end()) {
@@ -821,7 +814,7 @@ template <class Value>
 void _index_pullback(const KVTreePv2<Value> &tree, //
                      const vector<int> &in,        //
                      vector<int> &out) {
-  if (in.size() == 0 or tree == 0)
+  if (in.size() == 0)
     return;
 
   int idx = in[0];
@@ -857,8 +850,6 @@ void _index_pushforward(const KVTreePv2<Value> &tree, //
                         const vector<int> &in,        //
                         vector<int> &&result,         //
                         vector<vector<int>> &all_results) {
-  if (tree == 0)
-    return;
   if (in.size() == 0)
     all_results.push_back(result);
   else {

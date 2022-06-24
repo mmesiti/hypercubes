@@ -1,5 +1,6 @@
 #include "api_v2/transform_network.hpp"
 #include "api_v2/transform_request_makers.hpp"
+#include "geometry/geometry.hpp"
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
@@ -9,6 +10,7 @@
 using namespace hypercubes::slow::internals;
 
 BOOST_AUTO_TEST_SUITE(test_transform_network)
+using hypercubes::slow::BoundaryCondition;
 using transform_networks::TransformNetwork;
 using transform_requests::Build;
 using namespace trms;
@@ -19,8 +21,9 @@ BOOST_AUTO_TEST_CASE(test_network_build_small) {
   Build(f, n,
         {trms::Id({4, 4}, {"X", "Y"}, "ROOT"),
          trms::TreeComposition(
-             {trms::Q("X", 2, "MPI X"), //
-              trms::Q("Y", 2, "MPI Y", "MPI_DOMAIN_DECOMPOSITION")})});
+             {trms::QFull("X", 2, "MPI X", 0, BoundaryCondition::OPEN), //
+              trms::QFull("Y", 2, "MPI Y", 0, BoundaryCondition::OPEN,
+                          "MPI_DOMAIN_DECOMPOSITION")})});
   BOOST_TEST(n.nnodes() == 3);
   auto levelnames = n["MPI_DOMAIN_DECOMPOSITION"]->output_levelnames;
   vector<std::string> exp_levelnames{"MPI X", "X", "MPI Y", "Y"};
@@ -52,31 +55,32 @@ struct BuildFork1 {
   BuildFork1() {
     Build(f, n,
           {
-              Id({12, 12},                         //
-                 {"X", "Y"},                       //
-                 "root"),                          //
-              TreeComposition({Q("X", 2, "MPI X"), //
-                               Q("Y", 2, "MPI Y"), //
-                               Renumber(),
-                               LevelSwap({"MPI X", "MPI Y", //
-                                          "X", "Y"})},
-                              "domain decomposition"),
+              Id({12, 12},   //
+                 {"X", "Y"}, //
+                 "root"),    //
+              TreeComposition(
+                  {QFull("X", 2, "MPI X", 1, BoundaryCondition::OPEN), //
+                   QFull("Y", 2, "MPI Y", 1, BoundaryCondition::OPEN), //
+                   Renumber(),
+                   LevelSwap({"MPI X", "MPI Y", //
+                              "X", "Y"})},
+                  "domain decomposition"),
 
-              Fork({TreeComposition({BB("X", 1, "BB X", "bbx"), //
-                                     BB("Y", 1, "BB Y", "bby"), //
-                                     Renumber(),                //
-                                     LevelSwap({"BB X", "X",    //
-                                                "BB Y", "Y"},   //
-                                               {"BB X", "BB Y", //
+              Fork({TreeComposition({HBB("X", 1, "BB X", "bbx"), //
+                                     HBB("Y", 1, "BB Y", "bby"), //
+                                     Renumber(),                 //
+                                     LevelSwap({"BB X", "X",     //
+                                                "BB Y", "Y"},    //
+                                               {"BB X", "BB Y",  //
                                                 "X", "Y"},
                                                "vector level swap")},
                                     "mpi-border-bulk"),
-                    TreeComposition({Q("X", 2, "Vec X", "vecX"), //
-                                     Q("Y", 2, "Vec Y", "vecY"), //
-                                     Renumber(),                 //
-                                     LevelSwap({"Vec X", "X",    //
-                                                "Vec Y", "Y"},   //
-                                               {"X", "Y",        //
+                    TreeComposition({QSub("X", 2, "Vec X", 1, 1, "vecX"), //
+                                     QSub("Y", 2, "Vec Y", 1, 1, "vecY"), //
+                                     Renumber(),                          //
+                                     LevelSwap({"Vec X", "X",             //
+                                                "Vec Y", "Y"},            //
+                                               {"X", "Y",                 //
                                                 "Vec X", "Vec Y"})},
                                     "vector")}) //
           });
@@ -89,39 +93,40 @@ struct BuildFork4 {
   BuildFork4() {
     Build(f, n,
           {
-              Id({42, 42, 42, 42},                 //
-                 {"X", "Y", "Z", "T"},             //
-                 "root"),                          //
-              TreeComposition({Q("X", 4, "MPI X"), //
-                               Q("Y", 4, "MPI Y"), //
-                               Q("Z", 4, "MPI Z"), //
-                               Q("T", 4, "MPI T"), //
-                               Renumber(),
-                               LevelSwap({"MPI X", "MPI Y", //
-                                          "MPI Z", "MPI T", //
-                                          "X", "Y",         //
-                                          "Z", "T"})},
-                              "domain decomposition"),
-              Fork({TreeComposition({BB("X", 1, "BB X", "BB X"), //
-                                     BB("Y", 1, "BB Y", "BB Y"), //
-                                     BB("Z", 1, "BB Z", "BB Z"), //
-                                     BB("T", 1, "BB T", "BB T"), //
-                                     Renumber(),                 //
-                                     LevelSwap({"BB X", "X",     //
-                                                "BB Y", "Y",     //
-                                                "BB Z", "Z",     //
-                                                "BB T", "T"},    //
-                                               {"BB X", "BB Y",  //
-                                                "BB Z", "BB T",  //
-                                                "X", "Y",        //
+              Id({42, 42, 42, 42},     //
+                 {"X", "Y", "Z", "T"}, //
+                 "root"),              //
+              TreeComposition(
+                  {QFull("X", 4, "MPI X", 1, BoundaryCondition::OPEN), //
+                   QFull("Y", 4, "MPI Y", 1, BoundaryCondition::OPEN), //
+                   QFull("Z", 4, "MPI Z", 1, BoundaryCondition::OPEN), //
+                   QFull("T", 4, "MPI T", 1, BoundaryCondition::OPEN), //
+                   Renumber(),
+                   LevelSwap({"MPI X", "MPI Y", //
+                              "MPI Z", "MPI T", //
+                              "X", "Y",         //
+                              "Z", "T"})},
+                  "domain decomposition"),
+              Fork({TreeComposition({HBB("X", 1, "BB X", "BB X"), //
+                                     HBB("Y", 1, "BB Y", "BB Y"), //
+                                     HBB("Z", 1, "BB Z", "BB Z"), //
+                                     HBB("T", 1, "BB T", "BB T"), //
+                                     Renumber(),                  //
+                                     LevelSwap({"BB X", "X",      //
+                                                "BB Y", "Y",      //
+                                                "BB Z", "Z",      //
+                                                "BB T", "T"},     //
+                                               {"BB X", "BB Y",   //
+                                                "BB Z", "BB T",   //
+                                                "X", "Y",         //
                                                 "Z", "T"}),
                                      Flatten("X", "T", "XYZT"),
                                      EONaive("XYZT", "EO")},
                                     "mpi-border-bulk"),
-                    TreeComposition({Q("X", 2, "Vec X"),            //
-                                     Q("Y", 2, "Vec Y"),            //
-                                     Q("Z", 2, "Vec Z"),            //
-                                     Q("T", 2, "Vec T"),            //
+                    TreeComposition({QSub("X", 2, "Vec X", 1, 1),   //
+                                     QSub("Y", 2, "Vec Y", 1, 1),   //
+                                     QSub("Z", 2, "Vec Z", 1, 1),   //
+                                     QSub("T", 2, "Vec T", 1, 1),   //
                                      Renumber(),                    //
                                      LevelSwap({"Vec X", "X",       //
                                                 "Vec Y", "Y",       //
@@ -169,9 +174,10 @@ BOOST_AUTO_TEST_CASE(test_network_build_nodenames) {
   TransformNetwork n;
   Build(f, n,
         {Id({4, 4}, {"X", "Y"}, "ROOT"),
-         TreeComposition({Q("X", 2, "MPI X", "XMPI"),  //
-                          Q("Y", 2, "MPI Y", "YMPI")}, //
-                         "MPI_DOMAIN_DECOMPOSITION")});
+         TreeComposition(
+             {QFull("X", 2, "MPI X", 0, BoundaryCondition::OPEN, "XMPI"),  //
+              QFull("Y", 2, "MPI Y", 0, BoundaryCondition::OPEN, "YMPI")}, //
+             "MPI_DOMAIN_DECOMPOSITION")});
   BOOST_TEST(n.nnodes() == 3);
   BOOST_TEST(n.narcs() == 2 * n.nnodes());
   std::set<std::string> expnames{"ROOT", //
@@ -188,7 +194,9 @@ BOOST_AUTO_TEST_CASE(test_network_build_repeated_names_throws) {
   TreeFactory<bool> f;
   TransformNetwork n;
   BOOST_CHECK_THROW(
-      Build(f, n, {Id({4, 4}, {"X", "Y"}, "ROOT"), Q("X", 2, "MPI X", "ROOT")}),
+      Build(f, n,
+            {Id({4, 4}, {"X", "Y"}, "ROOT"),
+             QFull("X", 2, "MPI X", 0, BoundaryCondition::OPEN, "ROOT")}),
       std::invalid_argument);
   f.print_diagnostics();
 }
@@ -199,15 +207,16 @@ BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
   TransformNetwork n;
   Build(f, n,
         {
-            Id({4, 4},                           //
-               {"X", "Y"},                       //
-               "root"),                          //
-            TreeComposition({Q("X", 2, "MPI X"), //
-                             Q("Y", 2, "MPI Y"), //
-                             Renumber(),
-                             LevelSwap({"MPI X", "MPI Y", //
-                                        "X", "Y"})},
-                            "domain decomposition"),
+            Id({4, 4},     //
+               {"X", "Y"}, //
+               "root"),    //
+            TreeComposition(
+                {QFull("X", 2, "MPI X", 0, BoundaryCondition::OPEN), //
+                 QFull("Y", 2, "MPI Y", 0, BoundaryCondition::OPEN), //
+                 Renumber(),
+                 LevelSwap({"MPI X", "MPI Y", //
+                            "X", "Y"})},
+                "domain decomposition"),
         });
 
   BOOST_TEST(n.nnodes() == 5);
@@ -256,13 +265,17 @@ BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_direct) {
   TreeFactory<bool> f;
 
   using transformers::Id;
-  using transformers::Q;
+  using transformers::QFull;
 
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 4, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
-  auto q = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+  auto q = std::make_shared<QFull>(f, R, "Y", //
+                                   2,         //
+                                   "MPI Y",   //
+                                   0,         //
+                                   BoundaryCondition::OPEN);
 
   TransformNetwork::Arc a{q, TransformNetwork::ArcType::DIRECT};
 
@@ -290,13 +303,17 @@ BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_inverse) {
   TreeFactory<bool> f;
 
   using transformers::Id;
-  using transformers::Q;
+  using transformers::QFull;
 
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 4, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
-  auto q = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+  auto q = std::make_shared<QFull>(f, R, "Y", //
+                                   2,         //
+                                   "MPI Y",   //
+                                   0,         //
+                                   BoundaryCondition::OPEN);
 
   TransformNetwork::Arc a{q, TransformNetwork::ArcType::INVERSE};
 

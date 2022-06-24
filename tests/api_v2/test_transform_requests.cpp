@@ -1,6 +1,7 @@
 #include "api_v2/transform_network.hpp"
 #include "api_v2/transform_requests.hpp"
 #include "api_v2/transformer.hpp"
+#include "geometry/geometry.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "utils/print_utils.hpp"
 #include <boost/test/unit_test.hpp>
@@ -8,7 +9,7 @@
 #include <memory>
 
 using namespace hypercubes::slow::internals;
-
+using hypercubes::slow::BoundaryCondition;
 BOOST_AUTO_TEST_SUITE(test_transform_requests)
 using Tree = KVTreePv2<bool>;
 using transform_networks::TransformNetwork;
@@ -49,7 +50,8 @@ BOOST_AUTO_TEST_CASE(test_q_constructor) {
   auto idr = transform_requests::Id({2, 4}, {"X", "Y"});
   auto id = idr.join(f, 0, n);
 
-  auto qr = transform_requests::Q("Y", 2, "MPI Y");
+  auto qr =
+      transform_requests::QFull("Y", 2, "MPI Y", 0, BoundaryCondition::OPEN);
   auto q = qr.join(f, id, n);
   Tree leaf = mtkv(true, {});
   Tree subsubtree1 = mtkv(false, {{{0}, leaf}, //
@@ -70,32 +72,57 @@ BOOST_AUTO_TEST_CASE(test_q_constructor) {
                                 exp_out_names.end());
 }
 
-BOOST_AUTO_TEST_CASE(test_bb_constructor) {
+BOOST_AUTO_TEST_CASE(test_hbb_constructor) {
   TreeFactory<bool> f;
   TransformNetwork n;
-  auto idr = transform_requests::Id({2, 4}, {"X", "Y"});
+  auto idr = transform_requests::Id({2, 8}, {"X", "Y"});
   auto id = idr.join(f, 0, n);
 
-  auto bbr = transform_requests::BB("Y", 1, "BB Y");
-  auto bb = bbr.join(f, id, n);
+  auto partr = transform_requests::QFull("Y",     //
+                                         2,       //
+                                         "MPI_Y", //
+                                         1,       //
+                                         BoundaryCondition::OPEN);
+  auto part = partr.join(f, id, n);
+
+  auto hbbr = transform_requests::HBB("Y", 1, "BB Y");
+  auto hbb = hbbr.join(f, part, n);
   Tree leaf = mtkv(true, {});
+  Tree empty = mtkv(false, {});
 
-  Tree subtree = mtkv(false, {{{},                          //
-                               mtkv(false, {{{0}, leaf}})}, //
-                              {{},                          //
-                               mtkv(false, {{{1}, leaf},    //
-                                            {{2}, leaf}})}, //
-                              {{},                          //
-                               mtkv(false, {{{3}, leaf}})}});
+  Tree ytree = mtkv(false, {{{0},
+                             mtkv(false, {{{},                           //
+                                           mtkv(false, {{{0}, empty}})}, //
+                                          {{},                           //
+                                           mtkv(false, {{{1}, leaf}})},  //
+                                          {{},                           //
+                                           mtkv(false, {{{2}, leaf},     //
+                                                        {{3}, leaf}})},  //
+                                          {{},                           //
+                                           mtkv(false, {{{4}, leaf}})},  //
+                                          {{},                           //
+                                           mtkv(false, {{{5}, leaf}})}})},
+                            {{1},
+                             mtkv(false, {{{},                          //
+                                           mtkv(false, {{{0}, leaf}})}, //
+                                          {{},                          //
+                                           mtkv(false, {{{1}, leaf}})}, //
+                                          {{},                          //
+                                           mtkv(false, {{{2}, leaf},    //
+                                                        {{3}, leaf}})}, //
+                                          {{},                          //
+                                           mtkv(false, {{{4}, leaf}})}, //
+                                          {{},                          //
+                                           mtkv(false, {{{5}, empty}})}})}});
 
-  Tree exptree = mtkv(false, {{{0}, subtree}, //
-                              {{1}, subtree}});
+  Tree exptree = mtkv(false, {{{0}, ytree}, //
+                              {{1}, ytree}});
 
-  BOOST_TEST(*exptree == *(bb->output_tree));
-  vector<std::string> exp_out_names{"X", "BB Y", "Y"};
-  BOOST_CHECK_EQUAL_COLLECTIONS(bb->output_levelnames.begin(), //
-                                bb->output_levelnames.end(),   //
-                                exp_out_names.begin(),         //
+  BOOST_TEST(*exptree == *(hbb->output_tree));
+  vector<std::string> exp_out_names{"X", "MPI_Y", "BB Y", "Y"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(hbb->output_levelnames.begin(), //
+                                hbb->output_levelnames.end(),   //
+                                exp_out_names.begin(),          //
                                 exp_out_names.end());
 }
 
@@ -144,8 +171,8 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
                               {{1, 2}, leaf}, //
                               // these do not exist
                               // in the original tree
-                              {{nkc, nkc}, NULL}, //
-                              {{nkc, nkc}, NULL}});
+                              {{nkc, nkc}, leaf}, //
+                              {{nkc, nkc}, leaf}});
   Tree X_COLLECT = mtkv(false, {{{0}, COLLECT}, //
                                 {{1}, COLLECT}});
 
@@ -310,17 +337,20 @@ BOOST_AUTO_TEST_CASE(test_composition_constructor) {
   auto idr = transform_requests::Id({4, 8}, {"X", "Y"});
   transformers::TransformerP id = idr.join(f, 0, n);
   n.add_node(id, idr.get_end_node_name());
-  using transform_requests::BB;
-  using transform_requests::Q;
+  using transform_requests::HBB;
+  using transform_requests::QFull;
   using transform_requests::TreeComposition;
-  auto qr = std::make_shared<Q>(std::string("Y"),     //
-                                2,                    //
-                                std::string("MPI Y"), //
-                                "QY");
-  auto bbr = std::make_shared<BB>(std::string("Y"),    //
-                                  1,                   //
-                                  std::string("BB Y"), //
-                                  "BBY");
+  auto qr =
+      std::make_shared<QFull>(std::string("Y"),                          //
+                              2,                                         //
+                              std::string("MPI Y"),                      //
+                              0,                                         //
+                              hypercubes::slow::BoundaryCondition::OPEN, //
+                              "QY");
+  auto bbr = std::make_shared<HBB>(std::string("Y"),    //
+                                   1,                   //
+                                   std::string("BB Y"), //
+                                   "BBY");
   TreeComposition compositionr({qr, bbr}, "COMPOSITION");
   auto composition = compositionr.join(f, id, n);
   // Last node in the chain is the output node.
@@ -335,19 +365,21 @@ BOOST_AUTO_TEST_CASE(test_composition_constructor) {
 BOOST_AUTO_TEST_CASE(test_build) {
   TreeFactory<bool> f;
   TransformNetwork n;
-  using transform_requests::BB;
+  using transform_requests::HBB;
   using transform_requests::Id;
-  using transform_requests::Q;
+  using transform_requests::QFull;
   auto idr = std::make_shared<Id>(vector<int>{4, 8}, //
                                   vector<std::string>{"X", "Y"});
-  auto qr = std::make_shared<Q>(std::string("Y"),     //
-                                2,                    //
-                                std::string("MPI Y"), //
-                                "QY");
-  auto bbr = std::make_shared<BB>(std::string("Y"),    //
-                                  1,                   //
-                                  std::string("BB Y"), //
-                                  "BBY");
+  auto qr =
+      std::make_shared<QFull>(std::string("Y"),     //
+                              2,                    //
+                              std::string("MPI Y"), //
+                              0,                    //
+                              hypercubes::slow::BoundaryCondition::OPEN, "QY");
+  auto bbr = std::make_shared<HBB>(std::string("Y"),    //
+                                   1,                   //
+                                   std::string("BB Y"), //
+                                   "BBY");
   transform_requests::Build(f, //
                             n, //
                             {idr, qr, bbr});

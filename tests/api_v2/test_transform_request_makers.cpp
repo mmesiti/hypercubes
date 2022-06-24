@@ -1,6 +1,7 @@
 #include "api_v2/transform_network.hpp"
 #include "api_v2/transform_request_makers.hpp"
 #include "api_v2/transform_requests.hpp"
+#include "geometry/geometry.hpp"
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 
@@ -21,14 +22,19 @@ BOOST_AUTO_TEST_CASE(test_renumber) {
   BOOST_TEST(check);
 }
 BOOST_AUTO_TEST_CASE(test_q) {
-  auto t = trms::Q("TESTLEVEL", 4, "TESTNEWLEVEL", "TESTNODE");
-  auto p = std::dynamic_pointer_cast<transform_requests::Q>(t);
+  auto t = trms::QFull("TESTLEVEL",                               //
+                       4,                                         //
+                       "TESTNEWLEVEL",                            //
+                       0,                                         //
+                       hypercubes::slow::BoundaryCondition::OPEN, //
+                       "TESTNODE");
+  auto p = std::dynamic_pointer_cast<transform_requests::QFull>(t);
   bool check = p != NULL;
   BOOST_TEST(check);
 }
 BOOST_AUTO_TEST_CASE(test_bb) {
-  auto t = trms::BB("TESTLEVEL", 1, "TESTNEWLEVEL", "TESTNODE");
-  auto p = std::dynamic_pointer_cast<transform_requests::BB>(t);
+  auto t = trms::HBB("TESTLEVEL", 1, "TESTNEWLEVEL", "TESTNODE");
+  auto p = std::dynamic_pointer_cast<transform_requests::HBB>(t);
   bool check = p != NULL;
   BOOST_TEST(check);
 }

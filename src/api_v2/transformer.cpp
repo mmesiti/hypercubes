@@ -1,5 +1,6 @@
 #include "api_v2/transformer.hpp"
 #include "api_v2/tree_transform.hpp"
+#include "geometry/geometry.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/level_swap.hpp"
 #include "utils/print_utils.hpp"
@@ -145,7 +146,9 @@ Id::Id(TreeFactory<bool> &f, vector<int> dimensions,
                                 " to size of dimension_names");
 }
 
+// TODO: range checks.
 vector<Index> Id::apply(const Index &idx) const { return vector<Index>{idx}; }
+// TODO: range checks.
 vector<Index> Id::inverse(const Index &idx) const { return vector<Index>{idx}; }
 
 Renumber::Renumber(TreeFactory<bool> &f, //
@@ -153,27 +156,48 @@ Renumber::Renumber(TreeFactory<bool> &f, //
     : Transformer(previous, f.renumber_children(previous->output_tree),
                   previous->output_levelnames) {}
 
-Q::Q(TreeFactory<bool> &f,  //
-     TransformerP previous, //
-     std::string level,     //
-     int nparts,            //
-     std::string name)
+QFull::QFull(TreeFactory<bool> &f,  //
+             TransformerP previous, //
+             std::string level,     //
+             int nparts,            //
+             std::string name,      //
+             int halo,              //
+             BoundaryCondition bc)
     : Transformer(previous,
                   f.qh(previous->output_tree,       //
                        previous->find_level(level), //
-                       nparts),
+                       nparts,                      //
+                       halo,                        //
+                       0,                           // no existing halo
+                       bc), // TODO: test bc and existing halo
+                  previous->emplace_name(name, //
+                                         level)) {}
+QSub::QSub(TreeFactory<bool> &f,  //
+           TransformerP previous, //
+           std::string level,     //
+           int nparts,            //
+           std::string name,      //
+           int halo,              //
+           int existing_halo)
+    : Transformer(previous,
+                  f.qh(previous->output_tree,       //
+                       previous->find_level(level), //
+                       nparts,                      //
+                       halo,                        //
+                       existing_halo,               //
+                       BoundaryCondition::OPEN),
                   previous->emplace_name(name, //
                                          level)) {}
 
-BB::BB(TreeFactory<bool> &f,  //
-       TransformerP previous, //
-       std::string level,     //
-       int halosize,          //
-       std::string name)
+HBB::HBB(TreeFactory<bool> &f,  //
+         TransformerP previous, //
+         std::string level,     //
+         int halosize,          //
+         std::string name)
     : Transformer(previous,
-                  f.bb(previous->output_tree,       //
-                       previous->find_level(level), //
-                       halosize),
+                  f.hbb(previous->output_tree,       //
+                        previous->find_level(level), //
+                        halosize),
                   previous->emplace_name(name, //
                                          level)) {}
 

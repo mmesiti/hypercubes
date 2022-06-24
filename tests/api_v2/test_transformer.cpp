@@ -1,5 +1,6 @@
 #include "api_v2/transformer.hpp"
 #include "api_v2/tree_transform.hpp"
+#include "geometry/geometry.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "utils/print_utils.hpp"
 #include <boost/test/tools/old/interface.hpp>
@@ -9,6 +10,7 @@
 
 using namespace hypercubes::slow::internals;
 using namespace hypercubes::slow::internals::transformers;
+using hypercubes::slow::BoundaryCondition;
 
 BOOST_AUTO_TEST_SUITE(test_transformers)
 
@@ -18,13 +20,11 @@ BOOST_AUTO_TEST_CASE(test_tree_transformer_find_level) {
   int ilevel = t.find_level("Z");
   BOOST_TEST(ilevel == 2);
 }
-
 BOOST_AUTO_TEST_CASE(test_tree_transformer_find_level_notfound_throws) {
 
   TreeTransformer t{0, {"X", "Y", "Z", "T"}};
   BOOST_CHECK_THROW(t.find_level("Q"), std::invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(test_tree_transformer_check_names_different) {
   BOOST_CHECK_THROW(TreeTransformer(0, {"X", "Y", "Z", "Z"}),
                     std::invalid_argument);
@@ -39,7 +39,6 @@ BOOST_AUTO_TEST_CASE(test_tree_transformer_check_names_different_3args) {
                                     {"X", "Y", "Z", "Z"}),
                     std::invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(test_tree_transformer_emplace_name) {
 
   TreeTransformer t{0, {"X", "Y", "Z", "T"}};
@@ -48,7 +47,6 @@ BOOST_AUTO_TEST_CASE(test_tree_transformer_emplace_name) {
   BOOST_CHECK_EQUAL_COLLECTIONS(new_names.begin(), new_names.end(), //
                                 new_names_exp.begin(), new_names_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_tree_transformer_replace_name_range) {
 
   TreeTransformer t{0, {"X", "Y", "Z", "T"}};
@@ -57,6 +55,24 @@ BOOST_AUTO_TEST_CASE(test_tree_transformer_replace_name_range) {
   BOOST_CHECK_EQUAL_COLLECTIONS(new_names.begin(), new_names.end(), //
                                 new_names_exp.begin(), new_names_exp.end());
 }
+
+/** TODO: Things to test for the Transformer-derived classes:
+ * 1. Transformer logic:
+ *    - names of the levels;
+ *    - previous tree
+ * 2. The functions that produce trees
+ *    are already tested in test_tree_transform.
+ *    We can verify, using the maps
+ *    or even just the counters
+ *    in the tree factory,
+ *    that these functions
+ *    - are called
+ *    - with the right arguments.
+ *    It is useless to re-test here
+ *    the logic written in the TreeFactory class
+ *    (although it might look easier).
+ * */
+
 BOOST_AUTO_TEST_CASE(test_id_constructor) {
   TreeFactory<bool> f;
   Id R(f, {3, 4}, {"X", "Y"});
@@ -64,13 +80,12 @@ BOOST_AUTO_TEST_CASE(test_id_constructor) {
   int nchildren = tflat->children.size();
   BOOST_TEST(nchildren == 12);
 }
-
 BOOST_AUTO_TEST_CASE(test_id_constructor_throws) {
 
   TreeFactory<bool> f;
   BOOST_CHECK_THROW((Id{f, {3, 4, 5}, {"Y", "Z"}}), std::invalid_argument);
 }
-
+// TODO: Id::apply/Id::inverse should throw if out of range.
 BOOST_AUTO_TEST_CASE(test_id_apply) {
   TreeFactory<bool> f;
   Id R(f, {3, 4}, {"X", "Y"});
@@ -79,7 +94,6 @@ BOOST_AUTO_TEST_CASE(test_id_apply) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 in.begin(), in.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_id_inverse) {
   TreeFactory<bool> f;
   Id R(f, {3, 4}, {"X", "Y"});
@@ -89,76 +103,121 @@ BOOST_AUTO_TEST_CASE(test_id_inverse) {
                                 in.begin(), in.end());
 }
 
-BOOST_AUTO_TEST_CASE(test_q_constructor) {
+BOOST_AUTO_TEST_CASE(test_qfull_constructor_nohalo_open) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 4, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  Q part(f, R, "Y", 2, "MPI Y");
+  QFull part(f, R,
+             "Y",     // level name
+             2,       // nparts
+             "MPI Y", // new_level_name
+             0,       // halo
+             BoundaryCondition::OPEN);
   vector<std::string> partnames_exp{"X", "MPI Y", "Y", "Z"};
   BOOST_CHECK_EQUAL_COLLECTIONS(partnames_exp.begin(), partnames_exp.end(), //
                                 part.output_levelnames.begin(),
                                 part.output_levelnames.end());
 }
-
-BOOST_AUTO_TEST_CASE(test_q_apply) {
+BOOST_AUTO_TEST_CASE(test_qfull_apply_nohalo_open) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                    //
                                 vector<int>{4, 8, 4}, //
                                 vector<std::string>{"X", "Y", "Z"});
-  Q part(f, R, "Y", 2, "MPI Y");
+  QFull part(f, R, "Y", 2, "MPI Y", 0, BoundaryCondition::OPEN);
   Index out = part.apply({2, 4, 3})[0];
   Index out_exp{2, 1, 0, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
-BOOST_AUTO_TEST_CASE(test_q_inverse) {
+BOOST_AUTO_TEST_CASE(test_qfull_inverse_nohalo_open) {
 
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  Q part(f, R, "Y", 2, "MPI Y");
+  QFull part(f, R, "Y", 2, "MPI Y", 0, BoundaryCondition::OPEN);
   Index out = part.inverse({2, 1, 0, 3})[0];
   Index out_exp{2, 4, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
 
+// TODO: test qfull:
+// - with halo, open
+// - with halo, periodic
+// - no halo, periodic
+
+BOOST_AUTO_TEST_CASE(test_qsub_constructor_open) {
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f,                 //
+                                vector<int>{8, 8}, //
+                                vector<std::string>{"X", "Y"});
+  auto part = std::make_shared<QFull>(f, R,
+                                      "Y",     // level name
+                                      2,       // nparts
+                                      "MPI Y", // new_level_name
+                                      1,       // halo
+                                      BoundaryCondition::OPEN);
+  QSub subpart(f, part,
+               "Y",    // level name
+               2,      // nparts
+               "VecY", // new_level_name
+               1,      // halo
+               1);     // existing halo
+
+  vector<std::string> partnames_exp{"X", "MPI Y", "VecY", "Y"};
+  BOOST_CHECK_EQUAL_COLLECTIONS(partnames_exp.begin(), //
+                                partnames_exp.end(),   //
+                                subpart.output_levelnames.begin(),
+                                subpart.output_levelnames.end());
+}
+// TODO: bb -> hbb
 BOOST_AUTO_TEST_CASE(test_bb_constructor) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-  BB part(f, split, "Y", 1, "BB Y");
+
+  auto split = std::make_shared<QFull>(f, R, "Y", //
+                                       2,         //
+                                       "MPI Y",   //
+                                       0,         //
+                                       BoundaryCondition::OPEN);
+  HBB part(f, split, "Y", 1, "BB Y");
   vector<std::string> partnames_exp{"X", "MPI Y", "BB Y", "Y", "Z"};
   BOOST_CHECK_EQUAL_COLLECTIONS(partnames_exp.begin(), partnames_exp.end(), //
                                 part.output_levelnames.begin(),
                                 part.output_levelnames.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_bb_apply) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-  BB part(f, split, "Y", 1, "BB Y");
+  auto split = std::make_shared<QFull>(f, R, "Y", //
+                                       2,         //
+                                       "MPI Y",   //
+                                       0,         //
+                                       BoundaryCondition::OPEN);
+  HBB part(f, split, "Y", 1, "BB Y");
   Index out = part.apply({2, 1, 0, 3})[0];
   Index out_exp{2, 1, 0, 0, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_bb_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-  BB part(f, split, "Y", 1, "BB Y");
+  auto split = std::make_shared<QFull>(f, R, "Y", //
+                                       2,         //
+                                       "MPI Y",   //
+                                       0,         //
+                                       BoundaryCondition::OPEN);
+
+  HBB part(f, split, "Y", 1, "BB Y");
   Index out = part.inverse({2, 1, 0, 0, 3})[0];
   Index out_exp{2, 1, 0, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
@@ -170,50 +229,66 @@ BOOST_AUTO_TEST_CASE(test_composition_apply) {
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-  auto part = std::make_shared<BB>(f, split, "Y", 1, "BB Y");
+  auto split = std::make_shared<QFull>(f, R, "Y", //
+                                       2,         //
+                                       "MPI Y",   //
+                                       0,         //
+                                       BoundaryCondition::OPEN);
+
+  auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
   Composition all({split, part});
   Index out = all.apply({2, 5, 3})[0];
   Index out_exp{2, 1, 1, 0, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_tree_composition_apply) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-  auto part = std::make_shared<BB>(f, split, "Y", 1, "BB Y");
+  auto split = std::make_shared<QFull>(f, R, "Y", //
+                                       2,         //
+                                       "MPI Y",   //
+                                       0,         //
+                                       BoundaryCondition::OPEN);
+
+  auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
   TreeComposition all(f, R, {split, part});
   Index out = all.apply({2, 5, 3})[0];
   Index out_exp{2, 1, 1, 0, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_composition_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-  auto part = std::make_shared<BB>(f, split, "Y", 1, "BB Y");
+
+  auto split = std::make_shared<QFull>(f, R, "Y", //
+                                       2,         //
+                                       "MPI Y",   //
+                                       0,         //
+                                       BoundaryCondition::OPEN);
+  auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
   Composition all({split, part});
   Index out = all.inverse({2, 1, 1, 0, 3})[0];
   Index out_exp{2, 5, 3};
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_tree_composition_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-  auto part = std::make_shared<BB>(f, split, "Y", 1, "BB Y");
+  auto split = std::make_shared<QFull>(f, R, "Y", //
+                                       2,         //
+                                       "MPI Y",   //
+                                       0,         //
+                                       BoundaryCondition::OPEN);
+  auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
   TreeComposition all(f, R, {split, part});
   Index out = all.inverse({2, 1, 1, 0, 3})[0];
   Index out_exp{2, 5, 3};
@@ -232,7 +307,6 @@ BOOST_AUTO_TEST_CASE(test_flatten_constructor) {
                                 flat->output_levelnames.begin(),
                                 flat->output_levelnames.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_flatten_apply) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -244,7 +318,6 @@ BOOST_AUTO_TEST_CASE(test_flatten_apply) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_flatten_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -269,7 +342,6 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
                                 collected->output_levelnames.end());
   BOOST_TEST(collected->output_tree->children.size() == 4);
 }
-
 BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padded) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                 //
@@ -278,7 +350,6 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padded) {
   auto collected = std::make_shared<CollectLeaves>(f, R, "X", "COLLECTED", 8);
   BOOST_TEST(collected->output_tree->children.size() == 8);
 }
-
 BOOST_AUTO_TEST_CASE(test_collect_leaves_apply) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                 //
@@ -290,7 +361,6 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_apply) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_collect_leaves_apply_mid_level) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                    //
@@ -302,7 +372,6 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_apply_mid_level) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                 //
@@ -314,7 +383,6 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 out_exp.begin(), out_exp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse_midlevel) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                    //
@@ -335,7 +403,6 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse_in_pad) {
   auto out = collected->inverse({7});
   BOOST_TEST(out.size() == 0);
 }
-
 BOOST_AUTO_TEST_CASE(test_collect_leaves_inverse_in_pad_midlevel) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                    //
@@ -358,7 +425,6 @@ BOOST_AUTO_TEST_CASE(test_remap_constructor) {
                                 remapped->output_levelnames.begin(),
                                 remapped->output_levelnames.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_remap_apply_none) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -369,7 +435,6 @@ BOOST_AUTO_TEST_CASE(test_remap_apply_none) {
   auto outs = remapped->apply({3, 6, 3});
   BOOST_TEST(outs.size() == 0);
 }
-
 BOOST_AUTO_TEST_CASE(test_remap_apply_2) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -384,7 +449,6 @@ BOOST_AUTO_TEST_CASE(test_remap_apply_2) {
   BOOST_CHECK_EQUAL_COLLECTIONS(outs[1].begin(), outs[1].end(), //
                                 expouts[1].begin(), expouts[1].end());
 }
-
 BOOST_AUTO_TEST_CASE(test_remap_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -437,7 +501,6 @@ BOOST_AUTO_TEST_CASE(test_sum_constructor_throws) {
   BOOST_CHECK_THROW(Sum(f, R0, {remapped0, remapped1}, "SUM"),
                     std::invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(test_sum_apply) {
   TreeFactory<bool> f;
   auto R =
@@ -465,7 +528,6 @@ BOOST_AUTO_TEST_CASE(test_sum_apply) {
   BOOST_CHECK_EQUAL_COLLECTIONS(outs[1].begin(), outs[1].end(),
                                 expouts[1].begin(), expouts[1].end());
 }
-
 BOOST_AUTO_TEST_CASE(test_sum_inverse) {
   TreeFactory<bool> f;
   auto R =
@@ -499,7 +561,6 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor) {
   auto swapped =
       std::make_shared<LevelSwap>(f, R, vector<std::string>{"Y", "Z", "X"});
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -517,7 +578,6 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2) {
                                 levelnames2.begin(), levelnames2.end());
   BOOST_TEST(*(swapped1->output_tree) == *(swapped2->output_tree));
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2_throws_non_existing_level) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -529,7 +589,6 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2_throws_non_existing_level) {
                                   vector<std::string>{"Z", "T", "F"}),
       std::invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2_throws_wrong_reorder) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -541,7 +600,6 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_v2_throws_wrong_reorder) {
                                   vector<std::string>{"Z", "T", "X"}),
       std::invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_check_names_wrong_length) {
   vector<std::string> oldnames{"X", "Y", "Z"};
   vector<std::string> newnames{"X", "Y", "Z", "T"};
@@ -553,7 +611,6 @@ BOOST_AUTO_TEST_CASE(test_levelswap_check_names_wrong_length) {
   BOOST_CHECK_THROW(std::make_shared<LevelSwap>(f, R, newnames),
                     std::invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_too_few_names) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
@@ -574,13 +631,16 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_throws_no_permutation) {
       std::make_shared<LevelSwap>(f, R, vector<std::string>{"Y", "Z", "T"}),
       std::invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_constructor_complex) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f,                 //)
                                 vector<int>{4, 4}, //
                                 vector<std::string>{"X", "Y"});
-  auto part = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
+  auto part = std::make_shared<QFull>(f, R, "Y", //
+                                      2,         //
+                                      "MPI Y",   //
+                                      0,         //
+                                      BoundaryCondition::OPEN);
   // we need renumbering between Q/BB and LevelSwap
   auto renumbered = std::make_shared<Renumber>(f, part);
   auto swapped =
@@ -598,7 +658,6 @@ BOOST_AUTO_TEST_CASE(test_levelswap_constructor_complex) {
 
   BOOST_TEST(*swapped->output_tree == *MPIY_XY);
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_apply_simple) {
 
   TreeFactory<bool> f;
@@ -627,7 +686,6 @@ BOOST_AUTO_TEST_CASE(test_levelswap_inverse_simple) {
   BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
                                 outexp.begin(), outexp.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_levelswap_apply_afterq) {
 
   TreeFactory<bool> f;
@@ -635,8 +693,11 @@ BOOST_AUTO_TEST_CASE(test_levelswap_apply_afterq) {
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
-  auto part = std::make_shared<Q>(f, R, "Y", 2, "MPI Y");
-
+  auto part = std::make_shared<QFull>(f, R, "Y", //
+                                      2,         //
+                                      "MPI Y",   //
+                                      0,         //
+                                      BoundaryCondition::OPEN);
   auto swapped = std::make_shared<LevelSwap>(
       f, part, vector<std::string>{"MPI Y", "Z", "Y", "X"});
 
@@ -650,6 +711,7 @@ BOOST_AUTO_TEST_CASE(test_levelswap_apply_afterq) {
   BOOST_CHECK_EQUAL_COLLECTIONS(v2.begin(), v2.end(), //
                                 v2exp.begin(), v2exp.end());
 }
+
 BOOST_AUTO_TEST_CASE(test_levelswap_inverse_afterq) {
 
   TreeFactory<bool> f;
@@ -679,7 +741,6 @@ BOOST_AUTO_TEST_CASE(test_eonaive_constructor) {
                                 exp_levelnames.begin(),        //
                                 exp_levelnames.end());
 }
-
 BOOST_AUTO_TEST_CASE(test_eonaive_apply) {
 
   TreeFactory<bool> f;

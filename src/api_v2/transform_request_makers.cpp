@@ -1,5 +1,6 @@
 #include "api_v2/transform_request_makers.hpp"
 #include "api_v2/transform_requests.hpp"
+#include "geometry/geometry.hpp"
 
 namespace hypercubes {
 namespace slow {
@@ -19,25 +20,43 @@ TransformRequestP Renumber(std::string end_node_name) {
   return std::make_shared<transform_requests::Renumber>(end_node_name);
 }
 
-TransformRequestP Q(std::string level,          //
-                    int nparts,                 //
-                    std::string new_level_name, //
-                    std::string end_node_name) {
+TransformRequestP QFull(std::string level,          //
+                        int nparts,                 //
+                        std::string new_level_name, //
+                        int halo,                   //
+                        BoundaryCondition bc,       //
+                        std::string end_node_name) {
 
-  return std::make_shared<transform_requests::Q>(level,          //
-                                                 nparts,         //
-                                                 new_level_name, //
-                                                 end_node_name);
+  return std::make_shared<transform_requests::QFull>(level,          //
+                                                     nparts,         //
+                                                     new_level_name, //
+                                                     halo,           //
+                                                     bc,             //
+                                                     end_node_name);
+}
+TransformRequestP QSub(std::string level,          //
+                       int nparts,                 //
+                       std::string new_level_name, //
+                       int halo,                   //
+                       int existing_halo,          //
+                       std::string end_node_name) {
+
+  return std::make_shared<transform_requests::QSub>(level,          //
+                                                    nparts,         //
+                                                    new_level_name, //
+                                                    halo,           //
+                                                    existing_halo,  //
+                                                    end_node_name);
 }
 
-TransformRequestP BB(std::string level,          //
-                     int halosize,               //
-                     std::string new_level_name, //
-                     std::string end_node_name) {
-  return std::make_shared<transform_requests::BB>(level,          //
-                                                  halosize,       //
-                                                  new_level_name, //
-                                                  end_node_name);
+TransformRequestP HBB(std::string level,          //
+                      int halosize,               //
+                      std::string new_level_name, //
+                      std::string end_node_name) {
+  return std::make_shared<transform_requests::HBB>(level,          //
+                                                   halosize,       //
+                                                   new_level_name, //
+                                                   end_node_name);
 }
 
 TransformRequestP Flatten(std::string level_start,    //

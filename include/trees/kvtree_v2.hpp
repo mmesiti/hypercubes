@@ -35,8 +35,6 @@ template <class Value>
 void _collect_keys_at_level(std::set<vector<int>> &out,   //
                             const KVTreePv2<Value> &tree, //
                             int level) {
-  if (tree == 0)
-    return;
   if (level == 0) {
     for (auto &c : tree->children)
       out.insert(c.first);
@@ -51,8 +49,6 @@ template <class Value>
 void _collect_nodes_at_level(std::set<Value> &nodes,       //
                              const KVTreePv2<Value> &tree, //
                              int level) {
-  if (tree == 0)
-    return;
   if (level == 0) {
     nodes.insert(tree->n);
   } else {

@@ -1,5 +1,6 @@
 #ifndef TRANSFORMER_H_
 #define TRANSFORMER_H_
+#include "geometry/geometry.hpp"
 #include "tree_transform.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
@@ -102,22 +103,42 @@ public:
   Renumber(TreeFactory<bool> &f, TransformerP previous);
 };
 
-struct Q : public Transformer {
+// TODO: 1. split Q in
+//         a. QFull: intended to act on the full lattice,
+//           can choose between open and periodic boundary conditions,
+//           has no existing halo.
+//         b. QSub: uses only open boundary conditions, uses existing halo.
+//       2. add halo specification to both.
+struct QFull : public Transformer {
 public:
-  Q(TreeFactory<bool> &f,  //
-    TransformerP previous, //
-    std::string level,     //
-    int nparts,            //
-    std::string new_level_name);
+  QFull(TreeFactory<bool> &f,       //
+        TransformerP previous,      //
+        std::string level,          //
+        int nparts,                 //
+        std::string new_level_name, //
+        int halo,                   //
+        BoundaryCondition bc);
 };
-struct BB : public Transformer {
+
+struct QSub : public Transformer {
 public:
-  BB(TreeFactory<bool> &f,  //
-     TransformerP previous, //
-     std::string level,     //
-     int halosize,          //
-     std::string new_level_name);
+  QSub(TreeFactory<bool> &f,       //
+       TransformerP previous,      //
+       std::string level,          //
+       int nparts,                 //
+       std::string new_level_name, //
+       int halo,                   //
+       int existing_halo);
 };
+struct HBB : public Transformer {
+public:
+  HBB(TreeFactory<bool> &f,  //
+      TransformerP previous, //
+      std::string level,     //
+      int halosize,          //
+      std::string new_level_name);
+};
+
 struct Flatten : public Transformer {
   Flatten(TreeFactory<bool> &f,    //
           TransformerP previous,   //

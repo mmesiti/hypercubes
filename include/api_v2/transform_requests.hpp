@@ -1,5 +1,6 @@
 #ifndef TRANSFORM_REQUESTS_H_
 #define TRANSFORM_REQUESTS_H_
+#include "geometry/geometry.hpp"
 #include "transformer.hpp"
 #include "tree_transform.hpp"
 #include <memory>
@@ -119,6 +120,29 @@ public:
     return res;
   }
 };
+template <typename TransformerType, typename... Ts>
+class TransformRequestGeneric5Arg : public TransformRequest {
+private:
+  static_assert(sizeof...(Ts) == 5,
+                "This class can be used only with 3 parameters.");
+  const std::tuple<Ts...> args;
+
+public:
+  TransformRequestGeneric5Arg(Ts... args, std::string end_node_name = "")
+      : TransformRequest(end_node_name), args(args...){};
+
+  TransformerP join(TreeFactory<bool> &f,  //
+                    TransformerP previous, //
+                    TransformNetwork &_) const {
+    auto res = std::make_shared<TransformerType>(f, previous,       //
+                                                 std::get<0>(args), //
+                                                 std::get<1>(args), //
+                                                 std::get<2>(args), //
+                                                 std::get<3>(args), //
+                                                 std::get<4>(args));
+    return res;
+  }
+};
 
 /* Concrete classes */
 class Id : public TransformRequest {
@@ -137,15 +161,24 @@ public:
 
 using Renumber = TransformRequestGeneric0Arg<transformers::Renumber>;
 
-using Q = TransformRequestGeneric3Arg<transformers::Q,
-                                      std::string,  // level
-                                      int,          // nparts
-                                      std::string>; // new_level_name
+using QFull = TransformRequestGeneric5Arg<transformers::QFull,
+                                          std::string,        // level
+                                          int,                // nparts
+                                          std::string,        // new_level_name
+                                          int,                // halo
+                                          BoundaryCondition>; // bc
 
-using BB = TransformRequestGeneric3Arg<transformers::BB,
-                                       std::string,  // level
-                                       int,          // halosize
-                                       std::string>; // new_level_name
+using QSub = TransformRequestGeneric5Arg<transformers::QSub,
+                                         std::string, // level
+                                         int,         // nparts
+                                         std::string, // new_level_name
+                                         int,         // halo
+                                         int>;        // existing halo
+
+using HBB = TransformRequestGeneric3Arg<transformers::HBB,
+                                        std::string,  // level
+                                        int,          // halosize
+                                        std::string>; // new_level_name
 
 using Flatten = TransformRequestGeneric3Arg<transformers::Flatten,
                                             std::string,  // level_start

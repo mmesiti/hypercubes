@@ -8,8 +8,10 @@
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
+#include <stdexcept>
 
 using namespace hypercubes::slow::internals;
+using hypercubes::slow::BoundaryCondition;
 namespace bdata = boost::unit_test::data;
 template <class A, class B> std::pair<A, B> mp(A a, B b) {
   return std::make_pair(a, b);
@@ -80,19 +82,16 @@ BOOST_AUTO_TEST_CASE(test_generate_nd_tree) {
   BOOST_TEST(*t == *expected);
 }
 
-BOOST_AUTO_TEST_CASE(test_qh_null) {
-  TreeFactory<bool> f;
-  auto t = f.qh(NULL, 123413, 123412);
-  bool check = t == 0;
-  BOOST_TEST(check);
-}
 BOOST_AUTO_TEST_CASE(test_q_dimension_0_no_rest) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
   auto t = f.generate_nd_tree({6});
-  auto t_partitioned = f.qh(t,  // tree
-                            0,  // level
-                            3); // nparts
+  auto t_partitioned = f.qh(t, // tree
+                            0, // level
+                            3, // nparts
+                            0, // halo
+                            0, // existing halo
+                            BoundaryCondition::OPEN);
   auto t_partitioned_expected = mtkv(false, {{{},
                                               mtkv(false, {{{0}, leaf},    //
                                                            {{1}, leaf}})}, //
@@ -108,7 +107,7 @@ BOOST_AUTO_TEST_CASE(test_q_dimension_0_with_rest) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
   auto t = f.generate_nd_tree({5});
-  auto t_partitioned = f.qh(t, 0, 2);
+  auto t_partitioned = f.qh(t, 0, 2, 0, 0, BoundaryCondition::OPEN);
   auto t_partitioned_expected = mtkv(false, {{{},
                                               mtkv(false, {{{0}, leaf},    //
                                                            {{1}, leaf},    //
@@ -123,7 +122,7 @@ BOOST_AUTO_TEST_CASE(test_q_dimension_1_with_rest) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
   auto t = f.generate_nd_tree({2, 5});
-  auto t_partitioned = f.qh(t, 1, 2);
+  auto t_partitioned = f.qh(t, 1, 2, 0, 0, BoundaryCondition::OPEN);
   auto subtree = mtkv(false, {{{},
                                mtkv(false, {{{0}, leaf},    //
                                             {{1}, leaf},    //
@@ -139,7 +138,7 @@ BOOST_AUTO_TEST_CASE(test_q_dimension_1_with_rest) {
 BOOST_AUTO_TEST_CASE(test_q_dimension_0_as_equal_as_possible) {
   TreeFactory<bool> f;
   auto t = f.generate_nd_tree({23});
-  auto t_partitioned = f.qh(t, 0, 19);
+  auto t_partitioned = f.qh(t, 0, 19, 0, 0, BoundaryCondition::OPEN);
   BOOST_TEST(t_partitioned->children.size() == 19);
   for (auto c : t_partitioned->children) {
     bool success =
@@ -151,7 +150,7 @@ BOOST_AUTO_TEST_CASE(test_q_no_empty_trees) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
   auto t = f.generate_nd_tree({4});
-  auto t_partitioned = f.qh(t, 0, 5);
+  auto t_partitioned = f.qh(t, 0, 5, 0, 0, BoundaryCondition::OPEN);
   auto t_partitioned_expected = mtkv(false, {{{}, mtkv(false, {{{0}, leaf}})},
                                              {{}, mtkv(false, {{{1}, leaf}})},
                                              {{}, mtkv(false, {{{2}, leaf}})},
@@ -191,6 +190,7 @@ BOOST_AUTO_TEST_CASE(test_qhp_dimension_0_norest_no_existing_halo) {
 BOOST_AUTO_TEST_CASE(test_qho_dimension_0_norest_no_existing_halo) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
+  auto empty = mtkv(false, {});
   auto t = f.generate_nd_tree({6});
   auto nkc = TreeFactory<bool>::no_key;
   auto t_partitioned = f.qh(t, // tree
@@ -200,9 +200,9 @@ BOOST_AUTO_TEST_CASE(test_qho_dimension_0_norest_no_existing_halo) {
                             0, // existing halo
                             hypercubes::slow::BoundaryCondition::OPEN);
   auto t_partitioned_expected = mtkv(false, {{{},
-                                              mtkv(false, {{{nkc}, NULL},
-                                                           {{0}, leaf}, //
-                                                           {{1}, leaf}, //
+                                              mtkv(false, {{{nkc}, empty}, //
+                                                           {{0}, leaf},    //
+                                                           {{1}, leaf},    //
                                                            {{2}, leaf}})},
                                              {{},
                                               mtkv(false, {{{1}, leaf},    //
@@ -213,7 +213,7 @@ BOOST_AUTO_TEST_CASE(test_qho_dimension_0_norest_no_existing_halo) {
                                               mtkv(false, {{{3}, leaf}, //
                                                            {{4}, leaf}, //
                                                            {{5}, leaf}, //
-                                                           {{nkc}, NULL}})}});
+                                                           {{nkc}, empty}})}});
 
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
@@ -266,6 +266,7 @@ BOOST_DATA_TEST_CASE(test_qho_dimension_0_norest_existing_halo,
   // In the existing halo case BC should not make a difference
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
+  auto empty = mtkv(false, {});
   auto t = f.generate_nd_tree({6});
   // First partitioning done with periodic boundary conditions.
   auto t_partitioned_1 = f.qh(t, // tree
@@ -285,8 +286,8 @@ BOOST_DATA_TEST_CASE(test_qho_dimension_0_norest_existing_halo,
   auto t_partitioned_2_expected =
       mtkv(false, {{{0},
                     mtkv(false, {{{},
-                                  mtkv(false, {{{0}, NULL}, //
-                                               {{1}, leaf}, //
+                                  mtkv(false, {{{0}, empty}, //
+                                               {{1}, leaf},  //
                                                {{2}, leaf}})},
                                  {{},
                                   mtkv(false, {{{1}, leaf}, //
@@ -308,19 +309,13 @@ BOOST_DATA_TEST_CASE(test_qho_dimension_0_norest_existing_halo,
                                  {{},
                                   mtkv(false, {{{2}, leaf}, //
                                                {{3}, leaf}, //
-                                               {{4}, NULL}})}})}});
+                                               {{4}, empty}})}})}});
 
   BOOST_TEST(*t_partitioned_2 == *t_partitioned_2_expected);
 }
 // TODO: test that when there is an existing halo,
 //       periodic boundary conditions should not be given?
 
-BOOST_AUTO_TEST_CASE(test_bb_null) {
-  TreeFactory<bool> f;
-  auto t = f.bb(NULL, 123413, 123412);
-  bool check = t == 0;
-  BOOST_TEST(check);
-}
 BOOST_AUTO_TEST_CASE(test_bb_dimension_0) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
@@ -373,12 +368,6 @@ BOOST_AUTO_TEST_CASE(test_bb_no_empty_trees) {
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
 
-BOOST_AUTO_TEST_CASE(test_hbb_null) {
-  TreeFactory<bool> f;
-  auto t = f.hbb(NULL, 123413, 123412);
-  bool check = t == 0;
-  BOOST_TEST(check);
-}
 BOOST_AUTO_TEST_CASE(test_hbb_dimension_0) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
@@ -431,20 +420,22 @@ BOOST_AUTO_TEST_CASE(test_hbb_dimension_1) {
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
 
-BOOST_AUTO_TEST_CASE(test_flatten_null) {
-  TreeFactory<bool> f;
-  auto t = f.flatten(NULL, 123413, 123412);
-  bool check = t == 0;
-  BOOST_TEST(check);
-}
-BOOST_AUTO_TEST_CASE(test_flatten_null_children) {
+BOOST_AUTO_TEST_CASE(test_hbb_throws_size_too_small) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
+  auto t = f.generate_nd_tree({4});
+  BOOST_CHECK_THROW(f.hbb(t, 0, 1), std::invalid_argument);
+}
+
+BOOST_AUTO_TEST_CASE(test_flatten_empty_children) {
+  TreeFactory<bool> f;
+  auto leaf = mtkv(true, {});
+  auto empty = mtkv(false, {});
   auto nkc = TreeFactory<bool>::no_key;
   auto t = mtkv(false, {{{},
-                         mtkv(false, {{{nkc}, NULL}, //
-                                      {{0}, leaf},   //
-                                      {{1}, leaf},   //
+                         mtkv(false, {{{nkc}, empty}, //
+                                      {{0}, leaf},    //
+                                      {{1}, leaf},    //
                                       {{2}, leaf}})},
                         {{},
                          mtkv(false, {{{1}, leaf},    //
@@ -455,38 +446,42 @@ BOOST_AUTO_TEST_CASE(test_flatten_null_children) {
                          mtkv(false, {{{3}, leaf}, //
                                       {{4}, leaf}, //
                                       {{5}, leaf}, //
-                                      {{nkc}, NULL}})}});
+                                      {{nkc}, empty}})}});
   auto t_collapsed = f.flatten(t, 0, 2);
 
-  auto t_collapsed_expected = mtkv(false, {{{0, 1}, leaf}, //
-                                           {{0, 2}, leaf}, //
-                                           {{0, 3}, leaf}, //
-                                           {{1, 0}, leaf}, //
-                                           {{1, 1}, leaf}, //
-                                           {{1, 2}, leaf}, //
-                                           {{1, 3}, leaf}, //
-                                           {{2, 0}, leaf}, //
-                                           {{2, 1}, leaf}, //
-                                           {{2, 2}, leaf}});
+  auto t_collapsed_expected = mtkv(false, {{{0, 0}, empty}, //
+                                           {{0, 1}, leaf},  //
+                                           {{0, 2}, leaf},  //
+                                           {{0, 3}, leaf},  //
+                                           {{1, 0}, leaf},  //
+                                           {{1, 1}, leaf},  //
+                                           {{1, 2}, leaf},  //
+                                           {{1, 3}, leaf},  //
+                                           {{2, 0}, leaf},  //
+                                           {{2, 1}, leaf},  //
+                                           {{2, 2}, leaf},  //
+                                           {{2, 3}, empty}});
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
 }
-BOOST_AUTO_TEST_CASE(test_flatten_null_children_with_sub) {
+BOOST_AUTO_TEST_CASE(test_flatten_empty_children_with_sub) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
+  auto empty = mtkv(false, {});
   auto nkc = TreeFactory<bool>::no_key;
   auto subtree = mtkv(false, {{{0}, leaf}, //
                               {{1}, leaf}});
   auto t = mtkv(false, {{{},
-                         mtkv(false, {{{nkc}, NULL}, //
+                         mtkv(false, {{{nkc}, empty}, //
                                       {{2}, subtree}})},
                         {{},
                          mtkv(false, {{{1}, subtree},    //
                                       {{4}, subtree}})}, //
                         {{},
                          mtkv(false, {{{3}, subtree}, //
-                                      {{nkc}, NULL}})}});
+                                      {{nkc}, empty}})}});
   auto t_collapsed = f.flatten(t, 0, 3);
 
+  // no {0,0} and no {2,1}
   auto t_collapsed_expected = mtkv(false, {{{0, 1, 0}, leaf}, //
                                            {{0, 1, 1}, leaf}, //
                                            {{1, 0, 0}, leaf}, //
@@ -533,17 +528,11 @@ BOOST_AUTO_TEST_CASE(test_flatten_levels_3d_02) {
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
 }
 
-BOOST_AUTO_TEST_CASE(test_eo_null) {
-  TreeFactory<bool> f;
-  auto t = f.eo_naive(NULL, {});
-  bool check = t == 0;
-  BOOST_TEST(check);
-}
 BOOST_AUTO_TEST_CASE(test_eo_naive_1d_even) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
   auto t = f.generate_nd_tree({4});
-  auto t_nested = f.qh(t, 0, 1);
+  auto t_nested = f.qh(t, 0, 1, 0, 0, BoundaryCondition::OPEN);
   auto t_sub_expected = mtkv(false, {{{},
                                       mtkv(false, {{{0}, leaf},    //
                                                    {{2}, leaf}})}, //
@@ -559,7 +548,7 @@ BOOST_AUTO_TEST_CASE(test_eo_naive_1d_odd) {
   TreeFactory<bool> f;
   auto leaf = mtkv(true, {});
   auto t = f.generate_nd_tree({5});
-  auto t_nested = f.qh(t, 0, 1);
+  auto t_nested = f.qh(t, 0, 1, 0, 0, BoundaryCondition::OPEN);
   auto t_sub_expected = mtkv(false, {{{},
                                       mtkv(false, {{{0}, leaf},    //
                                                    {{2}, leaf},    //
@@ -600,12 +589,6 @@ BOOST_AUTO_TEST_CASE(test_remap_level) {
                              {{1}, subtree1_exp}});
   BOOST_TEST(*t1 == *t1_exp);
 }
-BOOST_AUTO_TEST_CASE(test_remap_level_null) {
-  TreeFactory<bool> f;
-  auto t = f.remap_level(0, 0, {1, 2, 3});
-  bool check = t == 0;
-  BOOST_TEST(check);
-}
 
 BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
   TreeFactory<bool> f;
@@ -619,12 +602,6 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
                                            {{1, 0}, leaf}, //
                                            {{1, 1}, leaf}});
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
-}
-BOOST_AUTO_TEST_CASE(test_collect_leaves_null) {
-  TreeFactory<bool> f;
-  auto t = f.collect_leaves(0, 0, 4);
-  bool check = (t == 0);
-  BOOST_TEST(check);
 }
 BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding) {
   TreeFactory<bool> f;
@@ -643,8 +620,8 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding) {
                                            {{1, 2}, leaf}, //
                                            // these do not exist
                                            // in the original tree
-                                           {{nkc, nkc}, NULL}, //
-                                           {{nkc, nkc}, NULL}});
+                                           {{nkc, nkc}, leaf}, //
+                                           {{nkc, nkc}, leaf}});
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
 }
 BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding_midlevel) {
@@ -664,8 +641,8 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding_midlevel) {
                                                {{1, 2}, leaf}, //
                                                // these do not exist
                                                // in the original tree
-                                               {{nkc, nkc}, NULL}, //
-                                               {{nkc, nkc}, NULL}});
+                                               {{nkc, nkc}, leaf}, //
+                                               {{nkc, nkc}, leaf}});
   auto t_collapsed_expected = mtkv(false, {{{0}, sub_t_collapsed_expected}, //
                                            {{1}, sub_t_collapsed_expected}});
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
@@ -705,12 +682,6 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_throws_negative) {
   BOOST_CHECK_THROW(index_pullback(t, {1, 1, -1}), KeyNotFoundError);
 }
 
-BOOST_AUTO_TEST_CASE(test_index_pushforward_null) {
-
-  KVTreePv2<bool> t = 0;
-  auto out = index_pushforward(t, {1, 2, 3});
-  BOOST_TEST(out.size() == 0);
-}
 BOOST_AUTO_TEST_CASE(test_index_pushforward_id) {
   TreeFactory<bool> f;
   auto t = f.generate_nd_tree({2, 2, 2});
@@ -770,7 +741,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_qh_nohalo) {
   TreeFactory<bool> f;
   auto t0 = f.generate_nd_tree({2, 4, 4});
   int level = 1;
-  auto t1 = f.qh(t0, level, 2);
+  auto t1 = f.qh(t0, level, 2, 0, 0, BoundaryCondition::OPEN);
   vector<int> in{0, 1, 1, 2};
   vector<int> out_exp{0, 3, 2};
   auto out = index_pullback(t1, in);
@@ -782,7 +753,7 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_qh_nohalo) {
   TreeFactory<bool> f;
   auto t0 = f.generate_nd_tree({2, 4, 4});
   int level = 1;
-  auto t1 = f.qh(t0, level, 2);
+  auto t1 = f.qh(t0, level, 2, 0, 0, BoundaryCondition::OPEN);
   vector<int> in{0, 3, 2};
   vector<int> out_exp{0, 1, 1, 2};
   auto out = index_pushforward(t1, in)[0];
@@ -843,7 +814,7 @@ BOOST_AUTO_TEST_CASE(test_index_pullback_inverse_tree) {
   TreeFactory<bool> f;
   auto t0 = f.generate_nd_tree({2, 4, 4});
   int level = 1;
-  auto t1 = f.qh(t0, level, 2);
+  auto t1 = f.qh(t0, level, 2, 0, 0, BoundaryCondition::OPEN);
   auto t2 = f.flatten(t1, level, level + 2); // the inverse tree
 
   vector<int> in2{0, 3, 2};
@@ -861,7 +832,7 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_both_ways) {
   TreeFactory<bool> f;
   auto t0 = f.generate_nd_tree({2, 4, 4});
   int level = 1;
-  auto t1 = f.qh(t0, level, 2);
+  auto t1 = f.qh(t0, level, 2, 0, 0, BoundaryCondition::OPEN);
   auto t2 = f.flatten(t1, level, level + 2); // the inverse tree
 
   vector<int> in2{0, 3, 2};
@@ -874,12 +845,6 @@ BOOST_AUTO_TEST_CASE(test_index_pushforward_both_ways) {
                                 out2_exp.begin(), out2_exp.end());
   BOOST_CHECK_EQUAL_COLLECTIONS(out1.begin(), out1.end(), //
                                 out1_exp.begin(), out1_exp.end());
-}
-BOOST_AUTO_TEST_CASE(test_index_pullback_null) {
-  KVTreePv2<bool> t = 0;
-  vector<int> in{1, 2, 3};
-  auto out = index_pullback(t, in);
-  BOOST_TEST(out.size() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(test_remap_level_pullback_index) {
@@ -1004,55 +969,6 @@ BOOST_AUTO_TEST_CASE(test_swap_levels_by_key) {
 
   BOOST_TEST(*newt == *newt_exp);
 }
-BOOST_AUTO_TEST_CASE(test_swap_levels_by_key_null_subtree_null_above) {
-  TreeFactory<int> f;
-
-  auto t = mtkv(1, {{{10},
-                     mtkv(2, {{{12},     //
-                               NULL}})}, //
-                    {{11},
-                     mtkv(4, {{{13},
-                               mtkv(3, {{{14}, mtkv(7, {})}, //
-                                        {{15}, mtkv(8, {})}})}})}});
-  vector<int> new_level_ordering{2, 0, 1};
-
-  auto newt_exp =
-      mtkv(3, {{{14},
-                mtkv(1, {{{10}, mtkv(2, {})},                       //
-                         {{11}, mtkv(4, {{{13}, mtkv(7, {})}})}})}, //
-               {{15},
-                mtkv(1, {{{10}, mtkv(2, {})}, //
-                         {{11}, mtkv(4, {{{13}, mtkv(8, {})}})}})}});
-
-  auto newt = f.swap_levels(t, new_level_ordering);
-
-  BOOST_TEST(*newt == *newt_exp);
-}
-BOOST_AUTO_TEST_CASE(test_swap_levels_by_key_null_below) {
-  TreeFactory<int> f;
-
-  auto t = mtkv(1, {{{10},
-                     mtkv(2, {{{12},
-                               mtkv(3, {{{14}, NULL},              //
-                                        {{15}, mtkv(6, {})}})}})}, //
-                    {{11},
-                     mtkv(4, {{{13},
-                               mtkv(3, {{{14}, mtkv(7, {})}, //
-                                        {{15}, mtkv(8, {})}})}})}});
-  vector<int> new_level_ordering{2, 0, 1};
-
-  auto newt_exp =
-      mtkv(3, {{{14},
-                mtkv(1, {{{10}, mtkv(2, {{{12}, NULL}})},           //
-                         {{11}, mtkv(4, {{{13}, mtkv(7, {})}})}})}, //
-               {{15},
-                mtkv(1, {{{10}, mtkv(2, {{{12}, mtkv(6, {})}})}, //
-                         {{11}, mtkv(4, {{{13}, mtkv(8, {})}})}})}});
-
-  auto newt = f.swap_levels(t, new_level_ordering);
-
-  BOOST_TEST(*newt == *newt_exp);
-}
 BOOST_AUTO_TEST_CASE(test_renumber_children) {
   TreeFactory<int> f;
 
@@ -1113,7 +1029,6 @@ BOOST_AUTO_TEST_CASE(test_bring_level_on_top_key_throws) {
   BOOST_CHECK_THROW(f.bring_level_on_top(t, 2), TreeLevelPermutationError);
 }
 BOOST_AUTO_TEST_CASE(test_collapse_level_by_key_all_there) {
-
   TreeFactory<int> f;
   auto _t = mt(mp(0, 1), {mt(mp(3, 2), {mt(mp(5, 3), {mt(mp(1, 4), {}),     //
                                                       mt(mp(2, 5), {})}),   //
@@ -1139,7 +1054,6 @@ BOOST_AUTO_TEST_CASE(test_collapse_level_by_key_all_there) {
   BOOST_TEST(*tcollapsed_exp == *tcollapsed);
 }
 BOOST_AUTO_TEST_CASE(test_collapse_level_by_key_missing) {
-
   TreeFactory<int> f;
   auto _t = mt(mp(0, 1), {mt(mp(3, 2), {mt(mp(5, 3), {mt(mp(1, 4), {}),     //
                                                       mt(mp(2, 5), {})}),   //
