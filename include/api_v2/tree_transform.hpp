@@ -790,7 +790,6 @@ vector<int> index_pullback(const KVTreePv2<Value> &tree,
  * where padding creates some new leaves
  * that have no correspondence in the old tree.
  * In that case we return an empty vector.  */
-// TODO: - this function must be also used by the QH transformer.
 template <class Value>
 vector<vector<int>> index_pullback_safe(const KVTreePv2<Value> &tree,
                                         const vector<int> &in) {
@@ -822,14 +821,12 @@ void _index_pullback(const KVTreePv2<Value> &tree, //
     throw_index_pullback_error(idx, tree->children.size());
   }
 
-  auto subtree = tree->children[idx].second;
-
   {
-    vector<int> key;
-    key = tree->children[idx].first;
+    vector<int> key = tree->children[idx].first;
     std::copy(key.begin(), key.end(), //
               std::back_inserter(out));
   }
+  auto subtree = tree->children[idx].second;
 
   _index_pullback(subtree, tail(in), out); // TCO, hopefully
 }

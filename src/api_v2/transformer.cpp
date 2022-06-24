@@ -172,6 +172,11 @@ QFull::QFull(TreeFactory<bool> &f,  //
                        bc), // TODO: test bc and existing halo
                   previous->emplace_name(name, //
                                          level)) {}
+
+vector<Index> QFull::inverse(const Index &in) const {
+  return index_pullback_safe(output_tree, in);
+}
+
 QSub::QSub(TreeFactory<bool> &f,  //
            TransformerP previous, //
            std::string level,     //

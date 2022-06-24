@@ -118,6 +118,8 @@ public:
         std::string new_level_name, //
         int halo,                   //
         BoundaryCondition bc);
+
+  vector<Index> inverse(const Index &in) const;
 };
 
 struct QSub : public Transformer {

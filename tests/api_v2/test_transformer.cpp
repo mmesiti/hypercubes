@@ -179,10 +179,10 @@ BOOST_AUTO_TEST_CASE(test_bb_constructor) {
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
-  auto split = std::make_shared<QFull>(f, R, "Y", //
-                                       2,         //
-                                       "MPI Y",   //
-                                       0,         //
+  auto split = std::make_shared<QFull>(f, R, "Y", // level name
+                                       2,         // nparts
+                                       "MPI Y",   // new level name
+                                       1,         // halo
                                        BoundaryCondition::OPEN);
   HBB part(f, split, "Y", 1, "BB Y");
   vector<std::string> partnames_exp{"X", "MPI Y", "BB Y", "Y", "Z"};
@@ -195,10 +195,10 @@ BOOST_AUTO_TEST_CASE(test_bb_apply) {
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<QFull>(f, R, "Y", //
-                                       2,         //
-                                       "MPI Y",   //
-                                       0,         //
+  auto split = std::make_shared<QFull>(f, R, "Y", // level name
+                                       2,         // nparts
+                                       "MPI Y",   // new level name
+                                       1,         // nalo
                                        BoundaryCondition::OPEN);
   HBB part(f, split, "Y", 1, "BB Y");
   Index out = part.apply({2, 1, 0, 3})[0];
@@ -211,10 +211,10 @@ BOOST_AUTO_TEST_CASE(test_bb_inverse) {
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<QFull>(f, R, "Y", //
-                                       2,         //
-                                       "MPI Y",   //
-                                       0,         //
+  auto split = std::make_shared<QFull>(f, R, "Y", // level name
+                                       2,         // nparts
+                                       "MPI Y",   // new level name
+                                       1,         // halo
                                        BoundaryCondition::OPEN);
 
   HBB part(f, split, "Y", 1, "BB Y");
@@ -229,36 +229,37 @@ BOOST_AUTO_TEST_CASE(test_composition_apply) {
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<QFull>(f, R, "Y", //
-                                       2,         //
-                                       "MPI Y",   //
-                                       0,         //
+  auto split = std::make_shared<QFull>(f, R, "Y", // level name
+                                       2,         // nparts
+                                       "MPI Y",   // new level name
+                                       1,         // halo
                                        BoundaryCondition::OPEN);
 
   auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
   Composition all({split, part});
-  Index out = all.apply({2, 5, 3})[0];
-  Index out_exp{2, 1, 1, 0, 3};
-  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
-                                out_exp.begin(), out_exp.end());
-}
-BOOST_AUTO_TEST_CASE(test_tree_composition_apply) {
-  TreeFactory<bool> f;
-  auto R = std::make_shared<Id>(f, //
-                                vector<int>{4, 8, 4},
-                                vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<QFull>(f, R, "Y", //
-                                       2,         //
-                                       "MPI Y",   //
-                                       0,         //
-                                       BoundaryCondition::OPEN);
+  auto outs = all.apply({2, 4, 3});
 
-  auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
-  TreeComposition all(f, R, {split, part});
-  Index out = all.apply({2, 5, 3})[0];
-  Index out_exp{2, 1, 1, 0, 3};
-  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
-                                out_exp.begin(), out_exp.end());
+  /* As far as Y is concerned
+   * 01234567
+   * becomes
+   * |     0    |     1    |
+   * |-|0|12|3|4|3|4|56|7|-|
+   * so 4 -> {0,4,0}, {1,1,0}
+   * */
+
+  BOOST_TEST(outs.size() == 2);
+  {
+    auto out = outs[0];
+    Index out_exp{2, 0, 4, 0, 3};
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  out_exp.begin(), out_exp.end());
+  }
+  {
+    auto out = outs[1];
+    Index out_exp{2, 1, 1, 0, 3};
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  out_exp.begin(), out_exp.end());
+  }
 }
 BOOST_AUTO_TEST_CASE(test_composition_inverse) {
   TreeFactory<bool> f;
@@ -266,34 +267,94 @@ BOOST_AUTO_TEST_CASE(test_composition_inverse) {
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
 
-  auto split = std::make_shared<QFull>(f, R, "Y", //
-                                       2,         //
-                                       "MPI Y",   //
-                                       0,         //
+  auto split = std::make_shared<QFull>(f, R, "Y", // level name
+                                       2,         // nparts
+                                       "MPI Y",   // new level name
+                                       1,         // halo
                                        BoundaryCondition::OPEN);
   auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
   Composition all({split, part});
-  Index out = all.inverse({2, 1, 1, 0, 3})[0];
-  Index out_exp{2, 5, 3};
-  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
-                                out_exp.begin(), out_exp.end());
+  auto outs = all.inverse({2, 1, 1, 0, 3});
+  BOOST_TEST(outs.size() == 1);
+  {
+    auto out = outs[0];
+    Index out_exp{2, 4, 3};
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  out_exp.begin(), out_exp.end());
+  }
+}
+BOOST_AUTO_TEST_CASE(test_tree_composition_apply) {
+  // This is a remake of the previous test
+  // checking the halo to make things more interesting
+  TreeFactory<bool> f;
+  auto R = std::make_shared<Id>(f, //
+                                vector<int>{4, 8, 4},
+                                vector<std::string>{"X", "Y", "Z"});
+  auto split = std::make_shared<QFull>(f, R, "Y", // level name
+                                       2,         // nparts
+                                       "MPI Y",   // new level name
+                                       1,         // halo
+                                       BoundaryCondition::PERIODIC);
+
+  auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
+  TreeComposition all(f, R, {split, part});
+  auto outs = all.apply({3, 0, 3});
+
+  BOOST_TEST(outs.size() == 2);
+  {
+    auto out = outs[0];
+    Index out_exp{3, 0, 1, 0, 3};
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  out_exp.begin(), out_exp.end());
+  }
+  {
+    auto out = outs[1];
+    Index out_exp{3, 1, 4, 0, 3};
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  out_exp.begin(), out_exp.end());
+  }
 }
 BOOST_AUTO_TEST_CASE(test_tree_composition_inverse) {
   TreeFactory<bool> f;
   auto R = std::make_shared<Id>(f, //
                                 vector<int>{4, 8, 4},
                                 vector<std::string>{"X", "Y", "Z"});
-  auto split = std::make_shared<QFull>(f, R, "Y", //
-                                       2,         //
-                                       "MPI Y",   //
-                                       0,         //
+  auto split = std::make_shared<QFull>(f, R, "Y", // level name
+                                       2,         // nparts
+                                       "MPI Y",   // new level name
+                                       1,         // halo
                                        BoundaryCondition::OPEN);
   auto part = std::make_shared<HBB>(f, split, "Y", 1, "BB Y");
   TreeComposition all(f, R, {split, part});
-  Index out = all.inverse({2, 1, 1, 0, 3})[0];
-  Index out_exp{2, 5, 3};
-  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
-                                out_exp.begin(), out_exp.end());
+  { // DEBUG
+    // This is a remake of the previous test
+    // checking the halo in the open bc to make things more interesting
+    Index in_non_existant = {2,       // X
+                             1, 4, 0, // Y - in the halo - non-existing point
+                             3};      // Z
+    // TODO: think: 2,1,4,0,3 does not actually exist in the output tree,
+    //       because the subtree 2,1,4,0 is actually empty,
+    //       so this actually generates an exception
+    //       when looking for the '3' in the empty subtree.
+    //       Is it legal to just test for {2,1,4,0}, then?
+    Index in = {
+        2,      // X
+        1, 4, 0 // in the halo - non-existing point
+                // omitting Z
+    };
+
+    auto outs = all.inverse(in);
+    BOOST_TEST(outs.size() == 0);
+  }
+  { // standard case
+
+    auto outs = all.inverse({2, 1, 0, 0, 3});
+    BOOST_TEST(outs.size() == 1);
+    auto out = outs[0];
+    Index out_exp{2, 3, 3};
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  out_exp.begin(), out_exp.end());
+  }
 }
 
 BOOST_AUTO_TEST_CASE(test_flatten_constructor) {
