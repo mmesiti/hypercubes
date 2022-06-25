@@ -344,7 +344,7 @@ BOOST_AUTO_TEST_CASE(test_composition_constructor) {
       std::make_shared<QFull>(std::string("Y"),                          //
                               2,                                         //
                               std::string("MPI Y"),                      //
-                              0,                                         //
+                              1,                                         //
                               hypercubes::slow::BoundaryCondition::OPEN, //
                               "QY");
   auto bbr = std::make_shared<HBB>(std::string("Y"),    //
@@ -374,7 +374,7 @@ BOOST_AUTO_TEST_CASE(test_build) {
       std::make_shared<QFull>(std::string("Y"),     //
                               2,                    //
                               std::string("MPI Y"), //
-                              0,                    //
+                              1,                    //
                               hypercubes::slow::BoundaryCondition::OPEN, "QY");
   auto bbr = std::make_shared<HBB>(std::string("Y"),    //
                                    1,                   //

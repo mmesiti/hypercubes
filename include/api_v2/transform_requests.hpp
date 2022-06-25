@@ -4,6 +4,8 @@
 #include "transformer.hpp"
 #include "tree_transform.hpp"
 #include <memory>
+#include <sstream>
+#include <stdexcept>
 
 namespace hypercubes {
 namespace slow {
@@ -56,7 +58,15 @@ public:
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
                     TransformNetwork &_) const {
-    return std::make_shared<TransformerType>(f, previous);
+    try {
+      return std::make_shared<TransformerType>(f, previous);
+    } catch (std::invalid_argument const &ex) {
+      std::stringstream ss;
+      ss << "Invalid argument in join:\n" //
+         << ex.what() << "\n"             //
+         << "end node name: " << end_node_name;
+      throw std::invalid_argument(ss.str());
+    }
   }
 };
 
@@ -74,8 +84,17 @@ public:
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
                     TransformNetwork &_) const {
-    return std::make_shared<TransformerType>(f, previous, //
-                                             std::get<0>(args));
+    try {
+      return std::make_shared<TransformerType>(f, previous, //
+                                               std::get<0>(args));
+    } catch (std::invalid_argument const &ex) {
+      std::stringstream ss;
+      ss << "Invalid argument in join:\n"              //
+         << ex.what() << "\n"                          //
+         << "end node name: " << end_node_name << "\n" //
+         << "Parameters:" << std::get<0>(args);
+      throw std::invalid_argument(ss.str());
+    }
   }
 };
 
@@ -93,9 +112,19 @@ public:
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
                     TransformNetwork &_) const {
-    return std::make_shared<TransformerType>(f, previous,       //
-                                             std::get<0>(args), //
-                                             std::get<1>(args));
+    try {
+      return std::make_shared<TransformerType>(f, previous,       //
+                                               std::get<0>(args), //
+                                               std::get<1>(args));
+    } catch (std::invalid_argument const &ex) {
+      std::stringstream ss;
+      ss << "Invalid argument in join:\n"              //
+         << ex.what() << "\n"                          //
+         << "end node name: " << end_node_name << "\n" //
+         << "Parameters:" << std::get<0>(args)         //
+         << ", " << std::get<1>(args);
+      throw std::invalid_argument(ss.str());
+    }
   }
 };
 
@@ -113,11 +142,21 @@ public:
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
                     TransformNetwork &_) const {
-    auto res = std::make_shared<TransformerType>(f, previous,       //
-                                                 std::get<0>(args), //
-                                                 std::get<1>(args), //
-                                                 std::get<2>(args));
-    return res;
+    try {
+      return std::make_shared<TransformerType>(f, previous,       //
+                                               std::get<0>(args), //
+                                               std::get<1>(args), //
+                                               std::get<2>(args));
+    } catch (std::invalid_argument const &ex) {
+      std::stringstream ss;
+      ss << "Invalid argument in join:\n"              //
+         << ex.what() << "\n"                          //
+         << "end node name: " << end_node_name << "\n" //
+         << "Parameters:" << std::get<0>(args)         //
+         << ", " << std::get<1>(args)                  //
+         << ", " << std::get<2>(args);
+      throw std::invalid_argument(ss.str());
+    }
   }
 };
 template <typename TransformerType, typename... Ts>
@@ -134,13 +173,25 @@ public:
   TransformerP join(TreeFactory<bool> &f,  //
                     TransformerP previous, //
                     TransformNetwork &_) const {
-    auto res = std::make_shared<TransformerType>(f, previous,       //
-                                                 std::get<0>(args), //
-                                                 std::get<1>(args), //
-                                                 std::get<2>(args), //
-                                                 std::get<3>(args), //
-                                                 std::get<4>(args));
-    return res;
+    try {
+      return std::make_shared<TransformerType>(f, previous,       //
+                                               std::get<0>(args), //
+                                               std::get<1>(args), //
+                                               std::get<2>(args), //
+                                               std::get<3>(args), //
+                                               std::get<4>(args));
+    } catch (std::invalid_argument const &ex) {
+      std::stringstream ss;
+      ss << "Invalid argument in join:\n"              //
+         << ex.what() << "\n"                          //
+         << "end node name: " << end_node_name << "\n" //
+         << "Parameters:" << std::get<0>(args)         //
+         << ", " << std::get<1>(args)                  //
+         << ", " << std::get<2>(args)                  //
+         << ", " << std::get<3>(args)                  //
+         << ", " << std::get<4>(args);
+      throw std::invalid_argument(ss.str());
+    }
   }
 };
 

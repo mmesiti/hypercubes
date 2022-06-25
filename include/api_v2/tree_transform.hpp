@@ -243,7 +243,7 @@ public:
     if (cache.collapse_level.find(
             {tree, level_to_collapse, child_key_to_replace}) ==
         cache.collapse_level.end()) {
-      KVTreePv2<Node> res = 0;
+      KVTreePv2<Node> res = 0; // TODO: are there better ways?
       if (level_to_collapse == 0) {
         for (auto c : tree->children) {
           if (c.first == child_key_to_replace)
@@ -256,7 +256,7 @@ public:
           const vector<int> k = ktree.first;
           KVTreePv2<Node> v = collapse_level(
               ktree.second, level_to_collapse - 1, child_key_to_replace);
-          if (v)
+          if (v != NULL) // TODO: are there better ways?
             children.push_back({k, v});
         }
         res = mtkv(tree->n, children);
