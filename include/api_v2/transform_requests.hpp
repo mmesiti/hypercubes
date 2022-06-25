@@ -39,7 +39,7 @@ public:
   // that are needed for the Transformer constructor later on.
   TransformRequest(std::string end_node_name);
   // here the constructor of the Transformer will be called
-  virtual TransformerP join(TreeFactory<bool> &f,  //
+  virtual TransformerP join(TreeFactory &f,        //
                             TransformerP previous, //
                             TransformNetwork &network) const = 0;
   std::string get_end_node_name() const;
@@ -55,7 +55,7 @@ public:
   TransformRequestGeneric0Arg(std::string end_node_name = "")
       : TransformRequest(end_node_name){};
 
-  TransformerP join(TreeFactory<bool> &f,  //
+  TransformerP join(TreeFactory &f,        //
                     TransformerP previous, //
                     TransformNetwork &_) const {
     try {
@@ -81,7 +81,7 @@ public:
   TransformRequestGeneric1Arg(Ts... args, std::string end_node_name = "")
       : TransformRequest(end_node_name), args(args...){};
 
-  TransformerP join(TreeFactory<bool> &f,  //
+  TransformerP join(TreeFactory &f,        //
                     TransformerP previous, //
                     TransformNetwork &_) const {
     try {
@@ -109,7 +109,7 @@ public:
   TransformRequestGeneric2Arg(Ts... args, std::string end_node_name = "")
       : TransformRequest(end_node_name), args(args...){};
 
-  TransformerP join(TreeFactory<bool> &f,  //
+  TransformerP join(TreeFactory &f,        //
                     TransformerP previous, //
                     TransformNetwork &_) const {
     try {
@@ -139,7 +139,7 @@ public:
   TransformRequestGeneric3Arg(Ts... args, std::string end_node_name = "")
       : TransformRequest(end_node_name), args(args...){};
 
-  TransformerP join(TreeFactory<bool> &f,  //
+  TransformerP join(TreeFactory &f,        //
                     TransformerP previous, //
                     TransformNetwork &_) const {
     try {
@@ -170,7 +170,7 @@ public:
   TransformRequestGeneric5Arg(Ts... args, std::string end_node_name = "")
       : TransformRequest(end_node_name), args(args...){};
 
-  TransformerP join(TreeFactory<bool> &f,  //
+  TransformerP join(TreeFactory &f,        //
                     TransformerP previous, //
                     TransformNetwork &_) const {
     try {
@@ -205,7 +205,7 @@ public:
   Id(vector<int> dimensions,              //
      vector<std::string> dimension_names, //
      std::string end_node_name = "");
-  TransformerP join(TreeFactory<bool> &f,       //
+  TransformerP join(TreeFactory &f,             //
                     TransformerP previous,      //
                     TransformNetwork &_) const; // must be 0
 };
@@ -274,7 +274,7 @@ public:
   Sum(std::string new_level_name,                //
       const vector<TransformRequestP> &requests, //
       std::string end_node_name = "");
-  TransformerP join(TreeFactory<bool> &f,             //
+  TransformerP join(TreeFactory &f,                   //
                     TransformerP previous,            //
                     TransformNetwork &network) const; //
 };
@@ -292,7 +292,7 @@ public:
   Fork(const vector<TransformRequestP> &requests); //
 
   // This returns NULL
-  TransformerP join(TreeFactory<bool> &f,             //
+  TransformerP join(TreeFactory &f,                   //
                     TransformerP previous,            //
                     TransformNetwork &network) const; //
 };
@@ -312,7 +312,7 @@ public:
   // Adds all the subnodes to the network,
   // and return the last node as result.
   // (This is the only object that knows the name of the sub nodes).
-  TransformerP join(TreeFactory<bool> &f,             //
+  TransformerP join(TreeFactory &f,                   //
                     TransformerP previous,            //
                     TransformNetwork &network) const; //
 };
@@ -320,7 +320,7 @@ public:
 /* This function is the top-level function
  * that takes the list of TransformRequests
  * and builds the actual graph.*/
-void Build(TreeFactory<bool> &f,      //
+void Build(TreeFactory &f,            //
            TransformNetwork &network, //
            const vector<TransformRequestP> &requests);
 

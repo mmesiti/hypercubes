@@ -23,7 +23,7 @@ Id::Id(vector<int> dimensions,              //
       dimensions(dimensions),      //
       dimension_names(dimension_names) {}
 
-TransformerP Id::join(TreeFactory<bool> &f, //
+TransformerP Id::join(TreeFactory &f, //
                       TransformerP previous, TransformNetwork &_) const {
 
   if (previous)
@@ -41,7 +41,7 @@ Sum::Sum(std::string new_level_name,                //
       requests(requests),              //
       new_level_name(new_level_name) {}
 
-TransformerP Sum::join(TreeFactory<bool> &f, //
+TransformerP Sum::join(TreeFactory &f, //
                        TransformerP previous, TransformNetwork &network) const {
   vector<TransformerP> transformers;
 
@@ -66,7 +66,7 @@ Fork::Fork(const vector<TransformRequestP> &requests)
     : TransformRequest(""), //
       requests(requests) {}
 
-TransformerP Fork::join(TreeFactory<bool> &f,  //
+TransformerP Fork::join(TreeFactory &f,        //
                         TransformerP previous, //
                         TransformNetwork &network) const {
 
@@ -86,7 +86,7 @@ TreeComposition::TreeComposition(const vector<TransformRequestP> &requests,
     : TransformRequest(end_node_name), //
       requests(requests) {}
 
-TransformerP TreeComposition::join(TreeFactory<bool> &f,  //
+TransformerP TreeComposition::join(TreeFactory &f,        //
                                    TransformerP previous, //
                                    TransformNetwork &network) const {
 
@@ -111,7 +111,7 @@ TransformerP TreeComposition::join(TreeFactory<bool> &f,  //
   return last;
 }
 
-void Build(TreeFactory<bool> &f,      //
+void Build(TreeFactory &f,            //
            TransformNetwork &network, //
            const vector<TransformRequestP> &requests) {
   auto root_request = requests[0];

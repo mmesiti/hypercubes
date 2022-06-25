@@ -16,7 +16,7 @@ using transform_requests::Build;
 using namespace trms;
 
 BOOST_AUTO_TEST_CASE(test_network_build_small) {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   Build(f, n,
         {trms::Id({4, 4}, {"X", "Y"}, "ROOT"),
@@ -33,24 +33,24 @@ BOOST_AUTO_TEST_CASE(test_network_build_small) {
                                 exp_levelnames.begin(), exp_levelnames.end());
 
   // check output tree
-  auto leaf = mtkv(true, {});
+  auto leaf = mtkv(LEAF, {});
   // Since Y was Q-ized last, it is not yet renumbered.
-  auto Y0 = mtkv(false, {{{0}, leaf}, //
-                         {{1}, leaf}});
-  auto Y1 = mtkv(false, {{{2}, leaf}, //
-                         {{3}, leaf}});
+  auto Y0 = mtkv(NODE, {{{0}, leaf}, //
+                        {{1}, leaf}});
+  auto Y1 = mtkv(NODE, {{{2}, leaf}, //
+                        {{3}, leaf}});
 
-  auto MPI_YY = mtkv(false, {{{}, Y0}, //
-                             {{}, Y1}});
-  auto XMPI_YY = mtkv(false, {{{0}, MPI_YY}, //
-                              {{1}, MPI_YY}});
-  auto MPI_XXMPI_YY = mtkv(false, {{{0}, XMPI_YY}, //
-                                   {{1}, XMPI_YY}});
+  auto MPI_YY = mtkv(NODE, {{{}, Y0}, //
+                            {{}, Y1}});
+  auto XMPI_YY = mtkv(NODE, {{{0}, MPI_YY}, //
+                             {{1}, MPI_YY}});
+  auto MPI_XXMPI_YY = mtkv(NODE, {{{0}, XMPI_YY}, //
+                                  {{1}, XMPI_YY}});
   BOOST_TEST(*(n["MPI_DOMAIN_DECOMPOSITION"]->output_tree) == *MPI_XXMPI_YY);
 }
 
 struct BuildFork1 {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   BuildFork1() {
     Build(f, n,
@@ -88,7 +88,7 @@ struct BuildFork1 {
 };
 
 struct BuildFork4 {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   BuildFork4() {
     Build(f, n,
@@ -144,7 +144,7 @@ struct BuildFork4 {
 };
 
 BOOST_AUTO_TEST_CASE(test_arc_ordering_same_t) {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   auto R1 = transform_requests::Id({4}, {"X"}, "root").join(f, 0, n);
 
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(test_arc_ordering_same_t) {
 }
 
 BOOST_AUTO_TEST_CASE(test_arc_ordering_different_t_same_direction) {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   auto R1 = transform_requests::Id({4}, {"X"}, "root").join(f, 0, n);
   auto R2 = transform_requests::Id({5}, {"X"}, "root").join(f, 0, n);
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(test_arc_ordering_different_t_same_direction) {
 }
 
 BOOST_AUTO_TEST_CASE(test_network_build_nodenames) {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   Build(f, n,
         {Id({4, 4}, {"X", "Y"}, "ROOT"),
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(test_network_build_nodenames) {
 }
 
 BOOST_AUTO_TEST_CASE(test_network_build_repeated_names_throws) {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   BOOST_CHECK_THROW(
       Build(f, n,
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(test_network_build_repeated_names_throws) {
 // TODO: convert this into a test for LevelSwap,
 //       which is obviously fucked up
 BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
-  TreeFactory<bool> f;
+  TreeFactory f;
   TransformNetwork n;
   Build(f, n,
         {
@@ -221,15 +221,15 @@ BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
 
   BOOST_TEST(n.nnodes() == 5);
   BOOST_TEST(n.narcs() == 10);
-  auto leaf = mtkv(true, {});
-  auto Y = mtkv(false, {{{0}, leaf}, //
-                        {{1}, leaf}});
-  auto XY = mtkv(false, {{{0}, Y}, //
-                         {{1}, Y}});
-  auto MPIY_XY = mtkv(false, {{{0}, XY}, //
-                              {{1}, XY}});
-  auto MPIX_MPIY_XY = mtkv(false, {{{0}, MPIY_XY}, //
-                                   {{1}, MPIY_XY}});
+  auto leaf = mtkv(LEAF, {});
+  auto Y = mtkv(NODE, {{{0}, leaf}, //
+                       {{1}, leaf}});
+  auto XY = mtkv(NODE, {{{0}, Y}, //
+                        {{1}, Y}});
+  auto MPIY_XY = mtkv(NODE, {{{0}, XY}, //
+                             {{1}, XY}});
+  auto MPIX_MPIY_XY = mtkv(NODE, {{{0}, MPIY_XY}, //
+                                  {{1}, MPIY_XY}});
 
   BOOST_TEST(*(n["domain decomposition"]->output_tree) == *MPIX_MPIY_XY);
   f.print_diagnostics();
@@ -262,7 +262,7 @@ BOOST_FIXTURE_TEST_CASE(test_network_find_transform_chain, BuildFork1) {
 }
 
 BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_direct) {
-  TreeFactory<bool> f;
+  TreeFactory f;
 
   using transformers::Id;
   using transformers::QFull;
@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_direct) {
   }
 }
 BOOST_AUTO_TEST_CASE(test_get_transformer_from_arc_inverse) {
-  TreeFactory<bool> f;
+  TreeFactory f;
 
   using transformers::Id;
   using transformers::QFull;
