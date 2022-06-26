@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE(test_qhp_dimension_0_norest_no_existing_halo) {
 BOOST_AUTO_TEST_CASE(test_qho_dimension_0_norest_no_existing_halo) {
   TreeFactory f;
   auto leaf = mtkv(LEAF, {});
-  auto empty = mtkv(NODE, {});
+  auto empty = mtkv(GHOST, {});
   auto t = f.generate_nd_tree({6});
   auto nkc = TreeFactory::no_key;
   auto t_partitioned = f.qh(t, // tree
@@ -278,7 +278,7 @@ BOOST_DATA_TEST_CASE(test_qho_dimension_0_norest_existing_halo,
   // In the existing halo case BC should not make a difference
   TreeFactory f;
   auto leaf = mtkv(LEAF, {});
-  auto empty = mtkv(NODE, {});
+  auto empty = mtkv(GHOST, {});
   auto t = f.generate_nd_tree({6});
   // First partitioning done with periodic boundary conditions.
   auto t_partitioned_1 = f.qh(t, // tree
@@ -324,6 +324,14 @@ BOOST_DATA_TEST_CASE(test_qho_dimension_0_norest_existing_halo,
                                             {{4}, empty}})}})}});
 
   BOOST_TEST(*t_partitioned_2 == *t_partitioned_2_expected);
+}
+BOOST_AUTO_TEST_CASE(test_qh_ghost) {
+  TreeFactory f;
+  auto ghost = mtkv(GHOST, {});
+  auto exp = ghost;
+  auto out = f.qh(ghost, 0, 0, 0, 0, BoundaryCondition::OPEN);
+
+  BOOST_TEST(*out == *exp);
 }
 // TODO: test that when there is an existing halo,
 //       periodic boundary conditions should not be given?
@@ -379,6 +387,14 @@ BOOST_AUTO_TEST_CASE(test_bb_no_empty_trees) {
 
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
+BOOST_AUTO_TEST_CASE(test_bb_ghost) {
+  TreeFactory f;
+  auto ghost = mtkv(GHOST, {});
+  auto exp = ghost;
+  auto out = f.bb(ghost, 0, 0);
+
+  BOOST_TEST(*out == *exp);
+}
 
 BOOST_AUTO_TEST_CASE(test_hbb_dimension_0) {
   TreeFactory f;
@@ -431,18 +447,25 @@ BOOST_AUTO_TEST_CASE(test_hbb_dimension_1) {
                                             {{2}, subtree}});
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
-
 BOOST_AUTO_TEST_CASE(test_hbb_throws_size_too_small) {
   TreeFactory f;
   auto leaf = mtkv(LEAF, {});
   auto t = f.generate_nd_tree({4});
   BOOST_CHECK_THROW(f.hbb(t, 0, 1), std::invalid_argument);
 }
+BOOST_AUTO_TEST_CASE(test_hbb_ghost) {
+  TreeFactory f;
+  auto ghost = mtkv(GHOST, {});
+  auto exp = ghost;
+  auto out = f.hbb(ghost, 0, 0);
+
+  BOOST_TEST(*out == *exp);
+}
 
 BOOST_AUTO_TEST_CASE(test_flatten_empty_children) {
   TreeFactory f;
   auto leaf = mtkv(LEAF, {});
-  auto empty = mtkv(NODE, {});
+  auto empty = mtkv(GHOST, {});
   auto nkc = TreeFactory::no_key;
   auto t = mtkv(NODE, {{{},
                         mtkv(NODE, {{{nkc}, empty}, //
@@ -478,7 +501,7 @@ BOOST_AUTO_TEST_CASE(test_flatten_empty_children) {
 BOOST_AUTO_TEST_CASE(test_flatten_empty_children_with_sub) {
   TreeFactory f;
   auto leaf = mtkv(LEAF, {});
-  auto empty = mtkv(NODE, {});
+  auto empty = mtkv(GHOST, {});
   auto nkc = TreeFactory::no_key;
   auto subtree = mtkv(NODE, {{{0}, leaf}, //
                              {{1}, leaf}});
@@ -539,6 +562,14 @@ BOOST_AUTO_TEST_CASE(test_flatten_levels_3d_02) {
                                           {{1, 1}, subtree}});
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
 }
+BOOST_AUTO_TEST_CASE(test_flatten_ghost) {
+  TreeFactory f;
+  auto ghost = mtkv(GHOST, {});
+  auto exp = ghost;
+  auto out = f.flatten(ghost, 0, 0);
+
+  BOOST_TEST(*out == *exp);
+}
 
 BOOST_AUTO_TEST_CASE(test_eo_naive_1d_even) {
   TreeFactory f;
@@ -581,6 +612,14 @@ BOOST_AUTO_TEST_CASE(test_eo_naive_no_empty_tree) {
   auto t_partitioned_expected = mtkv(NODE, {{{}, mtkv(NODE, {{{0}, leaf}})}});
   BOOST_TEST(*t_partitioned == *t_partitioned_expected);
 }
+BOOST_AUTO_TEST_CASE(test_eo_naive_ghost) {
+  TreeFactory f;
+  auto ghost = mtkv(GHOST, {});
+  auto exp = ghost;
+  auto out = f.eo_naive(ghost, 0);
+
+  BOOST_TEST(*out == *exp);
+}
 
 BOOST_AUTO_TEST_CASE(test_remap_level) {
   TreeFactory f;
@@ -600,6 +639,16 @@ BOOST_AUTO_TEST_CASE(test_remap_level) {
   auto t1_exp = mtkv(NODE, {{{0}, subtree1_exp},                      //
                             {{1}, subtree1_exp}});
   BOOST_TEST(*t1 == *t1_exp);
+}
+BOOST_AUTO_TEST_CASE(test_remap_level_ghost) {
+  TreeFactory f;
+  auto ghost = mtkv(GHOST, {});
+  auto exp = ghost;
+  // these args are crazy - function should die
+  // if it does not return correctly.
+  auto out = f.remap_level(ghost, 0, {2, 3, 4});
+
+  BOOST_TEST(*out == *exp);
 }
 
 BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor) {
@@ -659,7 +708,16 @@ BOOST_AUTO_TEST_CASE(test_collect_leaves_constructor_padding_midlevel) {
                                           {{1}, sub_t_collapsed_expected}});
   BOOST_TEST(*t_collapsed == *t_collapsed_expected);
 }
+BOOST_AUTO_TEST_CASE(test_collect_leaves) {
+  TreeFactory f;
+  auto ghost = mtkv(GHOST, {});
+  auto exp = ghost;
+  // these args are crazy - function should die
+  // if it does not return correctly.
+  auto out = f.collect_leaves(ghost, 0, 8);
 
+  BOOST_TEST(*out == *exp);
+}
 // index pullback and pushforward
 BOOST_AUTO_TEST_CASE(test_index_pullback_id) {
   TreeFactory f;

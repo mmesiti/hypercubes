@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(test_hbb_constructor) {
   auto hbbr = transform_requests::HBB("Y", 1, "BB Y");
   auto hbb = hbbr.join(f, part, n);
   Tree leaf = mtkv(LEAF, {});
-  Tree empty = mtkv(NODE, {});
+  Tree empty = mtkv(GHOST, {});
 
   Tree ytree = mtkv(NODE, {{{0},
                             mtkv(NODE, {{{},                          //

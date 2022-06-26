@@ -90,7 +90,6 @@ void TreeFactory::partition_children_into_subtrees(
            mtkv(make_node(), grandchildren)});
   }
 }
-
 KVTreePv2<NodeType>
 TreeFactory::bring_level_on_top(const KVTreePv2<NodeType> tree,
                                 int next_level) {
@@ -270,6 +269,8 @@ KVTreePv2<NodeType> TreeFactory::qh(KVTreePv2<NodeType> t, //
   // condition) and another where "OPEN" is always the case, for levels down
   // the hierarchy.
   // This can be managed at the TransformRequestMaker level, though.
+  if (t->n == GHOST)
+    return t;
   callcounter.total.qh++;
   if (cache.qh.find({t, level, nparts, halo, existing_halo, bc}) ==
       cache.qh.end()) {
@@ -305,6 +306,9 @@ KVTreePv2<NodeType> TreeFactory::qh(KVTreePv2<NodeType> t, //
 
 KVTreePv2<NodeType> TreeFactory::bb(KVTreePv2<NodeType> t, int level,
                                     int halo) {
+  if (t->n == GHOST)
+    return t;
+
   callcounter.total.bb++;
   if (cache.bb.find({t, level, halo}) == cache.bb.end()) {
 
@@ -332,6 +336,8 @@ KVTreePv2<NodeType> TreeFactory::bb(KVTreePv2<NodeType> t, int level,
 }
 KVTreePv2<NodeType> TreeFactory::hbb(KVTreePv2<NodeType> t, int level,
                                      int halo) {
+  if (t->n == GHOST)
+    return t;
   callcounter.total.hbb++;
   if (cache.hbb.find({t, level, halo}) == cache.hbb.end()) {
 
@@ -367,6 +373,8 @@ KVTreePv2<NodeType> TreeFactory::hbb(KVTreePv2<NodeType> t, int level,
 KVTreePv2<NodeType> TreeFactory::flatten(KVTreePv2<NodeType> t, //
                                          int levelstart,        //
                                          int levelend) {
+  if (t->n == GHOST)
+    return t;
   callcounter.total.flatten++;
   if (cache.flatten.find({t, levelstart, levelend}) == cache.flatten.end()) {
     KVTreePv2<NodeType> res;
@@ -406,6 +414,8 @@ KVTreePv2<NodeType> TreeFactory::collect_leaves(KVTreePv2<NodeType> t, //
                                                 int levelstart,        //
                                                 int pad_to) {
 
+  if (t->n == GHOST)
+    return t;
   callcounter.total.collect_leaves++;
   if (cache.collect_leaves.find({t, levelstart, pad_to}) ==
       cache.collect_leaves.end()) {
@@ -454,7 +464,8 @@ KVTreePv2<NodeType> TreeFactory::collect_leaves(KVTreePv2<NodeType> t, //
 
 KVTreePv2<NodeType> TreeFactory::eo_naive(const KVTreePv2<NodeType> t,
                                           int level) {
-
+  if (t->n == GHOST)
+    return t;
   callcounter.total.eo_naive++;
   if (cache.eo_naive.find({t, level}) == cache.eo_naive.end()) {
 
@@ -488,6 +499,8 @@ KVTreePv2<NodeType> TreeFactory::eo_naive(const KVTreePv2<NodeType> t,
 KVTreePv2<NodeType> TreeFactory::remap_level(const KVTreePv2<NodeType> t,
                                              int level, vector<int> index_map) {
 
+  if (t->n == GHOST)
+    return t;
   callcounter.total.remap_level++;
   if (cache.remap_level.find({t, level, index_map}) ==
       cache.remap_level.end()) {
