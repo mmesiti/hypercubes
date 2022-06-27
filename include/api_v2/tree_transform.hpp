@@ -23,8 +23,6 @@ namespace internals {
 enum NodeType {
   NODE, // The usual node
   LEAF, // The leaf
-  GHOST // The case where this node is a placeholder
-        // and it does not make sense for it to have a subtree
 };
 
 /** Why have a single class with all the functions inside
@@ -38,7 +36,6 @@ class TreeFactory {
 private:
   NodeType make_leaf();
   NodeType make_node();
-  NodeType make_ghost();
   KVTreePv2<NodeType> tree_product2(const KVTreePv2<NodeType> &t1,
                                     const KVTreePv2<NodeType> &t2);
   vector<int> sub_level_ordering(const vector<int> &level_ordering);

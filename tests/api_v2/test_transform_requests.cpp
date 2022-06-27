@@ -88,19 +88,18 @@ BOOST_AUTO_TEST_CASE(test_hbb_constructor) {
   auto hbbr = transform_requests::HBB("Y", 1, "BB Y");
   auto hbb = hbbr.join(f, part, n);
   Tree leaf = mtkv(LEAF, {});
-  Tree empty = mtkv(GHOST, {});
 
   Tree ytree = mtkv(NODE, {{{0},
-                            mtkv(NODE, {{{},                          //
-                                         mtkv(NODE, {{{0}, empty}})}, //
-                                        {{},                          //
-                                         mtkv(NODE, {{{1}, leaf}})},  //
-                                        {{},                          //
-                                         mtkv(NODE, {{{2}, leaf},     //
-                                                     {{3}, leaf}})},  //
-                                        {{},                          //
-                                         mtkv(NODE, {{{4}, leaf}})},  //
-                                        {{},                          //
+                            mtkv(NODE, {{{},                         //
+                                         mtkv(NODE, {{{0}, leaf}})}, //
+                                        {{},                         //
+                                         mtkv(NODE, {{{1}, leaf}})}, //
+                                        {{},                         //
+                                         mtkv(NODE, {{{2}, leaf},    //
+                                                     {{3}, leaf}})}, //
+                                        {{},                         //
+                                         mtkv(NODE, {{{4}, leaf}})}, //
+                                        {{},                         //
                                          mtkv(NODE, {{{5}, leaf}})}})},
                            {{1},
                             mtkv(NODE, {{{},                         //
@@ -113,7 +112,7 @@ BOOST_AUTO_TEST_CASE(test_hbb_constructor) {
                                         {{},                         //
                                          mtkv(NODE, {{{4}, leaf}})}, //
                                         {{},                         //
-                                         mtkv(NODE, {{{5}, empty}})}})}});
+                                         mtkv(NODE, {{{5}, leaf}})}})}});
 
   Tree exptree = mtkv(NODE, {{{0}, ytree}, //
                              {{1}, ytree}});

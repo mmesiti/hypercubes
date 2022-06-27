@@ -338,10 +338,30 @@ BOOST_FIXTURE_TEST_CASE(test_get_transform, BuildFork1) {
 
   auto transform = n.get_transform("root", "mpi-border-bulk");
   vector<int> in{6, 1};
-  vector<int> exp_out{1, 0, 0, 1, 0, 0};
-  auto out = transform->apply(in)[0];
-  BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
-                                exp_out.begin(), exp_out.end());
+  auto outs = transform->apply(in);
+
+  BOOST_TEST(outs.size() == 2);
+  {
+    auto out = outs[0];
+    vector<int> exp_out{0, 0, // in the first rank (X and Y)
+                        4,    // in halo +
+                        2,    // in bulk
+                        0,    // at the beginning
+                        0};   // at the beginning
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  exp_out.begin(), exp_out.end());
+  }
+  {
+    auto out = outs[1];
+    vector<int> exp_out{1,     // in the second rank (X)
+                        0,     // in the first rank (Y)
+                        1,     // in the surface
+                        2,     // in the bulk
+                        0, 0}; // at the beginning (X,Y)
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), //
+                                  exp_out.begin(), exp_out.end());
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
