@@ -65,6 +65,8 @@ add_library(partition_tree src/trees/partition_tree.cpp)
 target_link_libraries(partition_tree partitioners)
 
 add_library(bool_maybe src/selectors/bool_maybe.cpp)
+add_library(intervals src/selectors/intervals.cpp)
+target_link_libraries(intervals bool_maybe)
 add_library(partition_predicates src/selectors/partition_predicates.cpp)
 target_link_libraries(partition_predicates partitioners
                                            bool_maybe)
@@ -95,6 +97,7 @@ target_link_libraries(transform_requests transformer)
 add_library(transform_request_makers src/api_v2/transform_request_makers.cpp)
 target_link_libraries(transform_request_makers transform_network
   transformer transform_requests)
+
 
 
 # API
