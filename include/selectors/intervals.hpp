@@ -14,10 +14,30 @@ struct Interval {
   static const int LIMIT;
   int min, max; // [min,max)
   Interval(int a, int b);
-  bool empty();
+  bool empty() const;
   bool contains(int x) const;
 };
 
+bool same(Interval, Interval); // not to be confused with ==
+
+Interval operator&&(Interval, Interval);
+Interval operator-(Interval);
+Interval operator+(const Interval &, const Interval &);
+Interval operator-(const Interval &, const Interval &);
+Interval operator*(const Interval &, const Interval &);
+Interval operator/(const Interval &, int);
+// Interval operator/(Interval, Interval) is too messy and possibly not useful.
+BoolM operator<(const Interval &, const Interval &);
+BoolM operator<(const Interval &, int);
+BoolM operator<(int, const Interval &);
+BoolM operator==(const Interval &, const Interval &);
+//  TODO
+BoolM operator<=(const Interval &, const Interval &);
+BoolM operator>(const Interval &, const Interval &);
+BoolM operator>=(const Interval &, const Interval &);
+BoolM operator!=(const Interval &, const Interval &);
+
+// Multiple interval operations
 /* An integer value represented as a list of intervals of integers. */
 struct Intervals {
   // A "list" of pair [low,high) sorted by min.
@@ -28,36 +48,19 @@ struct Intervals {
   bool contain(int x) const;
 };
 
-bool same(Interval, Interval);   // not to be confused with ==
 bool same(Intervals, Intervals); // not to be confused with ==
-
 Intervals operator!(Interval);
-Interval operator&&(Interval, Interval);
 Intervals operator||(Interval, Interval);
 
 Intervals operator!(Intervals);
 Intervals operator&&(Intervals, Intervals);
 Intervals operator||(Intervals, Intervals);
-
-Interval operator-(Interval);
 Intervals operator-(Intervals);
-Interval operator+(const Interval &, const Interval &);
-Interval operator-(const Interval &, const Interval &);
-Interval operator*(const Interval &, const Interval &);
-Interval operator/(const Interval &, int);
-// Interval operator/(Interval, Interval) is too messy and possibly not useful.
 // TODO
 Intervals operator+(const Intervals &, const Intervals &);
 Intervals operator-(const Intervals &, const Intervals &);
 Intervals operator*(const Intervals &, const Intervals &);
 Intervals operator/(const Intervals &, int);
-
-BoolM operator<(const Interval &, const Interval &);
-BoolM operator<=(const Interval &, const Interval &);
-BoolM operator>(const Interval &, const Interval &);
-BoolM operator>=(const Interval &, const Interval &);
-BoolM operator==(const Interval &, const Interval &);
-BoolM operator!=(const Interval &, const Interval &);
 
 } // namespace slow
 } // namespace hypercubes
