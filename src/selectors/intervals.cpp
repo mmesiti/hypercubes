@@ -46,6 +46,7 @@ Interval operator/(const Interval &ab, int c) {
   return {std::min(a, b), std::max(a, b) + 1};
 }
 
+// < family
 BoolM operator<(const Interval &ab, const Interval &cd) {
   if (ab.empty() or cd.empty())
     return BoolM::M;
@@ -79,6 +80,8 @@ BoolM operator<(int c, const Interval &ab) {
   Interval cd(c, c + 1);
   return cd < ab;
 }
+
+// == family
 BoolM operator==(const Interval &ab, const Interval &cd) {
   if (ab.empty() or cd.empty())
     return BoolM::M;
@@ -94,19 +97,34 @@ BoolM operator==(const Interval &ab, const Interval &cd) {
       return BoolM::M;
   }
 }
+BoolM operator==(const Interval &ab, int c) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return ab == cd;
+}
+BoolM operator==(int c, const Interval &ab) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return cd == ab;
+}
 
-// TODO
+// <= family
 BoolM operator<=(const Interval &ab, const Interval &cd) {
   if (ab.empty() or cd.empty())
     return BoolM::M;
 
   if (ab.min < cd.min) {
-    if (ab.max + 1 <= cd.min)
+    if (ab.max - 1 <= cd.min)
       return BoolM::T;
     else
       return BoolM::M;
   } else if (ab.min == cd.min) {
-    return BoolM::M;
+    if (ab.max == ab.min + 1)
+      return BoolM::T;
+    else
+      return BoolM::M;
   } else { // ab.min > cd.min
     if (cd.max < ab.min + 1)
       return BoolM::F;
@@ -114,6 +132,70 @@ BoolM operator<=(const Interval &ab, const Interval &cd) {
       return BoolM::M;
   }
 }
+BoolM operator<=(const Interval &ab, int c) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return ab <= cd;
+}
+BoolM operator<=(int c, const Interval &ab) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return cd <= ab;
+}
+
+// > family
+BoolM operator>(const Interval &ab, const Interval &bc) {
+  return not(ab <= bc);
+}
+BoolM operator>(const Interval &ab, int c) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return ab > cd;
+}
+BoolM operator>(int c, const Interval &ab) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return cd > ab;
+}
+
+// >= family
+BoolM operator>=(const Interval &ab, const Interval &bc) {
+  return not(ab < bc);
+}
+BoolM operator>=(const Interval &ab, int c) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return ab >= cd;
+}
+BoolM operator>=(int c, const Interval &ab) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return cd >= ab;
+}
+
+// != family
+BoolM operator!=(const Interval &ab, const Interval &cd) {
+  return not(ab == cd);
+}
+BoolM operator!=(const Interval &ab, int c) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return ab != cd;
+}
+BoolM operator!=(int c, const Interval &ab) {
+  if (ab.empty())
+    return BoolM::F;
+  Interval cd(c, c + 1);
+  return cd != ab;
+}
+
 // Multiple interval operations
 
 Intervals::Intervals(std::vector<Interval> _vs) : vs(_vs) {

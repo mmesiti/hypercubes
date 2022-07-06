@@ -144,6 +144,121 @@ BOOST_AUTO_TEST_CASE(test_interval_less_overlap_M) {
   BOOST_TEST(check == BoolM::M);
 }
 
+#define INTERVAL_DATA_TEST_CASE(NAME, OP)                                      \
+  BOOST_DATA_TEST_CASE(NAME,                                                   \
+                       bdata::xrange(-6, 6) * bdata::xrange(0, 6) *            \
+                           bdata::xrange(-6, 6) * bdata::xrange(0, 6),         \
+                       a, d1, c, d2) {                                         \
+    int b = a + d1;                                                            \
+    int d = c + d2;                                                            \
+    Interval ab(a, b);                                                         \
+    Interval cd(c, d);                                                         \
+    int count = 0, count_not = 0;                                              \
+    for (int x = a; x < b; x++)                                                \
+      for (int y = c; y < d; y++) {                                            \
+        if (x OP y)                                                            \
+          count++;                                                             \
+        else                                                                   \
+          count_not++;                                                         \
+      }                                                                        \
+    BoolM expected;                                                            \
+    if (count == 0 and count_not > 0)                                          \
+      expected = BoolM::F;                                                     \
+    else if (count_not == 0 and count > 0)                                     \
+      expected = BoolM::T;                                                     \
+    else                                                                       \
+      expected = BoolM::M;                                                     \
+    auto check = ab OP cd;                                                     \
+    std::cout << "count true: " << count << " count false: " << count_not      \
+              << " " << a << " " << b << " " << c << " " << d << std::endl;    \
+    BOOST_TEST(check == expected);                                             \
+  }
+
+#define INTERVAL_INT_DATA_TEST_CASE(NAME, OP)                                  \
+  BOOST_DATA_TEST_CASE(                                                        \
+      NAME, bdata::xrange(-6, 6) * bdata::xrange(0, 6) * bdata::xrange(-6, 6), \
+      a, d1, c) {                                                              \
+    int b = a + d1;                                                            \
+    Interval ab(a, b);                                                         \
+                                                                               \
+    int count = 0, count_not = 0;                                              \
+    for (int x = a; x < b; x++) {                                              \
+      if (x OP c)                                                              \
+        count++;                                                               \
+      else                                                                     \
+        count_not++;                                                           \
+    }                                                                          \
+    BoolM expected;                                                            \
+    if (count == 0 and count_not > 0)                                          \
+      expected = BoolM::F;                                                     \
+    else if (count_not == 0 and count > 0)                                     \
+      expected = BoolM::T;                                                     \
+    else if (count_not == 0 and count == 0)                                    \
+      expected = BoolM::F;                                                     \
+    else                                                                       \
+      expected = BoolM::M;                                                     \
+    auto check = ab OP c;                                                      \
+    BOOST_TEST(check == expected);                                             \
+  }
+
+#define INT_INTERVAL_DATA_TEST_CASE(NAME, OP)                                  \
+  BOOST_DATA_TEST_CASE(                                                        \
+      NAME, bdata::xrange(-6, 6) * bdata::xrange(0, 6) * bdata::xrange(-6, 6), \
+      a, d1, c) {                                                              \
+    int b = a + d1;                                                            \
+    Interval ab(a, b);                                                         \
+                                                                               \
+    int count = 0, count_not = 0;                                              \
+    for (int x = a; x < b; x++) {                                              \
+      if (c OP x)                                                              \
+        count++;                                                               \
+      else                                                                     \
+        count_not++;                                                           \
+    }                                                                          \
+    BoolM expected;                                                            \
+    if (count == 0 and count_not > 0)                                          \
+      expected = BoolM::F;                                                     \
+    else if (count_not == 0 and count > 0)                                     \
+      expected = BoolM::T;                                                     \
+    else if (count_not == 0 and count == 0)                                    \
+      expected = BoolM::F;                                                     \
+    else                                                                       \
+      expected = BoolM::M;                                                     \
+    auto check = c OP ab;                                                      \
+    BOOST_TEST(check == expected);                                             \
+  }
+
+// < family
+INTERVAL_DATA_TEST_CASE(test_interval_less, <)
+INT_INTERVAL_DATA_TEST_CASE(test_int_less_interval, <)
+INTERVAL_INT_DATA_TEST_CASE(test_interval_less_int, <)
+
+// == family
+INTERVAL_DATA_TEST_CASE(test_interval_equal, ==)
+INT_INTERVAL_DATA_TEST_CASE(test_int_equal_interval, ==)
+INTERVAL_INT_DATA_TEST_CASE(test_interval_equal_int, ==)
+
+// <= family
+INTERVAL_DATA_TEST_CASE(test_interval_lessequal, <=)
+INT_INTERVAL_DATA_TEST_CASE(test_int_lessequal_interval, <=)
+INTERVAL_INT_DATA_TEST_CASE(test_interval_lessequal_int, <=)
+
+// > family
+INTERVAL_DATA_TEST_CASE(test_interval_greater, >)
+INT_INTERVAL_DATA_TEST_CASE(test_int_greater_interval, >)
+INTERVAL_INT_DATA_TEST_CASE(test_interval_greater_int, >)
+
+// >= family
+INTERVAL_DATA_TEST_CASE(test_interval_greaterequal, >=)
+INT_INTERVAL_DATA_TEST_CASE(test_int_greaterequal_interval, >=)
+INTERVAL_INT_DATA_TEST_CASE(test_interval_greaterequal_int, >=)
+
+// != family
+INTERVAL_DATA_TEST_CASE(test_interval_notequal, !=)
+INT_INTERVAL_DATA_TEST_CASE(test_int_notequal_interval, !=)
+INTERVAL_INT_DATA_TEST_CASE(test_interval_notequal_int, !=)
+
+/*
 BOOST_DATA_TEST_CASE(test_interval_less,
                      bdata::xrange(-6, 6) *     //
                          bdata::xrange(0, 6) *  //
@@ -241,7 +356,6 @@ BOOST_DATA_TEST_CASE(test_int_less_interval,
             << a << " " << b << " " << c << std::endl;
   BOOST_TEST(check == expected);
 }
-
 BOOST_DATA_TEST_CASE(test_interval_equal,
                      bdata::xrange(-6, 6) *     //
                          bdata::xrange(0, 6) *  //
@@ -308,7 +422,169 @@ BOOST_DATA_TEST_CASE(test_interval_lessequal,
   std::cout << a << " " << b << " " << c << " " << d << std::endl;
   BOOST_TEST(check == expected);
 }
+BOOST_DATA_TEST_CASE(test_interval_lessequal_int,
+                     bdata::xrange(-6, 6) *    //
+                         bdata::xrange(0, 6) * //
+                         bdata::xrange(-6, 6),
+                     a, d1, c) {
+  int b = a + d1;
+  Interval ab(a, b);
 
+  int count_less = 0, count_not_less = 0;
+  for (int x = a; x < b; x++) {
+    if (x <= c)
+      count_less++;
+    else
+      count_not_less++;
+  }
+  BoolM expected;
+  if (count_less == 0 and count_not_less > 0)
+    expected = BoolM::F;
+  else if (count_not_less == 0 and count_less > 0)
+    expected = BoolM::T;
+  else if (count_not_less == 0 and count_less == 0)
+    // This means that there is no number in the interval
+    // for which the condition can be true.
+    expected = BoolM::F;
+  else
+    expected = BoolM::M;
+
+  auto check = ab <= c;
+  std::cout << "less " << count_less << " not less " << count_not_less << " "
+            << a << " " << b << " " << c << std::endl;
+  BOOST_TEST(check == expected);
+}
+BOOST_DATA_TEST_CASE(test_int_lessequal_interval,
+                     bdata::xrange(-6, 6) *    //
+                         bdata::xrange(0, 6) * //
+                         bdata::xrange(-6, 6),
+                     a, d1, c) {
+  int b = a + d1;
+  Interval ab(a, b);
+
+  int count_less = 0, count_not_less = 0;
+  for (int x = a; x < b; x++) {
+    if (c <= x)
+      count_less++;
+    else
+      count_not_less++;
+  }
+  BoolM expected;
+  if (count_less == 0 and count_not_less > 0)
+    expected = BoolM::F;
+  else if (count_not_less == 0 and count_less > 0)
+    expected = BoolM::T;
+  else if (count_not_less == 0 and count_less == 0)
+    // This means that there is no number in the interval
+    // for which the condition can be true.
+    expected = BoolM::F;
+  else
+    expected = BoolM::M;
+
+  auto check = c <= ab;
+  std::cout << "less " << count_less << " not less " << count_not_less << " "
+            << a << " " << b << " " << c << std::endl;
+  BOOST_TEST(check == expected);
+}
+
+BOOST_DATA_TEST_CASE(test_interval_greater,
+                     bdata::xrange(-6, 6) *     //
+                         bdata::xrange(0, 6) *  //
+                         bdata::xrange(-6, 6) * //
+                         bdata::xrange(0, 6),
+                     a, d1, c, d2) {
+  int b = a + d1;
+  int d = c + d2;
+  Interval ab(a, b);
+  Interval cd(c, d);
+
+  int count_less = 0, count_not_less = 0;
+  for (int x = a; x < b; x++)
+    for (int y = c; y < d; y++) {
+      if (x > y)
+        count_less++;
+      else
+        count_not_less++;
+    }
+  BoolM expected;
+  if (count_less == 0 and count_not_less > 0)
+    expected = BoolM::F;
+  else if (count_not_less == 0 and count_less > 0)
+    expected = BoolM::T;
+  else
+    expected = BoolM::M;
+
+  auto check = ab > cd;
+  std::cout << "less " << count_less << " not less " << count_not_less << " "
+            << a << " " << b << " " << c << " " << d << std::endl;
+  BOOST_TEST(check == expected);
+}
+BOOST_DATA_TEST_CASE(test_interval_greater_int,
+                     bdata::xrange(-6, 6) *    //
+                         bdata::xrange(0, 6) * //
+                         bdata::xrange(-6, 6),
+                     a, d1, c) {
+  int b = a + d1;
+  Interval ab(a, b);
+
+  int count_less = 0, count_not_less = 0;
+  for (int x = a; x < b; x++) {
+    if (x > c)
+      count_less++;
+    else
+      count_not_less++;
+  }
+  BoolM expected;
+  if (count_less == 0 and count_not_less > 0)
+    expected = BoolM::F;
+  else if (count_not_less == 0 and count_less > 0)
+    expected = BoolM::T;
+  else if (count_not_less == 0 and count_less == 0)
+    // This means that there is no number in the interval
+    // for which the condition can be true.
+    expected = BoolM::F;
+  else
+    expected = BoolM::M;
+
+  auto check = ab > c;
+  std::cout << "less " << count_less << " not less " << count_not_less << " "
+            << a << " " << b << " " << c << std::endl;
+  BOOST_TEST(check == expected);
+}
+BOOST_DATA_TEST_CASE(test_int_greater_interval,
+                     bdata::xrange(-6, 6) *    //
+                         bdata::xrange(0, 6) * //
+                         bdata::xrange(-6, 6),
+                     a, d1, c) {
+  int b = a + d1;
+  Interval ab(a, b);
+
+  int count_less = 0, count_not_less = 0;
+  for (int x = a; x < b; x++) {
+    if (c > x)
+      count_less++;
+    else
+      count_not_less++;
+  }
+  BoolM expected;
+  if (count_less == 0 and count_not_less > 0)
+    expected = BoolM::F;
+  else if (count_not_less == 0 and count_less > 0)
+    expected = BoolM::T;
+  else if (count_not_less == 0 and count_less == 0)
+    // This means that there is no number in the interval
+    // for which the condition can be true.
+    expected = BoolM::F;
+  else
+    expected = BoolM::M;
+
+  auto check = c > ab;
+  std::cout << "less " << count_less << " not less " << count_not_less << " "
+            << a << " " << b << " " << c << std::endl;
+  BOOST_TEST(check == expected);
+}
+
+*/
 // Multiple interval operations
 
 BOOST_AUTO_TEST_CASE(test_interval_not) {

@@ -30,12 +30,27 @@ Interval operator/(const Interval &, int);
 BoolM operator<(const Interval &, const Interval &);
 BoolM operator<(const Interval &, int);
 BoolM operator<(int, const Interval &);
+
 BoolM operator==(const Interval &, const Interval &);
-//  TODO
+BoolM operator==(const Interval &, int);
+BoolM operator==(int, const Interval &);
+
 BoolM operator<=(const Interval &, const Interval &);
+BoolM operator<=(const Interval &, int);
+BoolM operator<=(int, const Interval &);
+
 BoolM operator>(const Interval &, const Interval &);
+BoolM operator>(const Interval &, int);
+BoolM operator>(int, const Interval &);
+
 BoolM operator>=(const Interval &, const Interval &);
+BoolM operator>=(const Interval &, int);
+BoolM operator>=(int, const Interval &);
+
+//  TODO
 BoolM operator!=(const Interval &, const Interval &);
+BoolM operator!=(const Interval &, int);
+BoolM operator!=(int, const Interval &);
 
 // Multiple interval operations
 /* An integer value represented as a list of intervals of integers. */
