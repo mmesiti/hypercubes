@@ -27,12 +27,21 @@ Interval operator&&(Interval ab, Interval cd) {
   return {std::max(ab.min, cd.min), std::min(ab.max, cd.max)};
 }
 Interval operator-(Interval ab) { return {-ab.max + 1, -ab.min + 1}; }
+
 Interval operator+(const Interval &ab, const Interval &cd) {
   return {ab.min + cd.min, (ab.max - 1) + (cd.max - 1) + 1};
 }
+Interval operator+(const Interval &ab, int c) {
+  return {ab.min + c, ab.max + c};
+}
+Interval operator+(int c, const Interval &ab) { return ab + c; }
+
 Interval operator-(const Interval &ab, const Interval &cd) {
   return ab + (-cd);
 }
+Interval operator-(const Interval &ab, int c) { return ab + (-c); }
+Interval operator-(int c, const Interval &ab) { return c + (-ab); }
+
 Interval operator*(const Interval &ab, const Interval &cd) {
   int a = ab.min * cd.min;
   int b = ab.min * (cd.max - 1);
@@ -40,6 +49,17 @@ Interval operator*(const Interval &ab, const Interval &cd) {
   int d = (ab.max - 1) * (cd.max - 1);
   return {std::min({a, b, c, d}), std::max({a, b, c, d}) + 1};
 }
+Interval operator*(const Interval &ab, int c) {
+  int a = ab.min * c;
+  int b = (ab.max - 1) * c;
+  return {std::min({a, b}), std::max({a, b}) + 1};
+}
+Interval operator*(int c, const Interval &ab) {
+  int a = ab.min * c;
+  int b = (ab.max - 1) * c;
+  return {std::min({a, b}), std::max({a, b}) + 1};
+}
+
 Interval operator/(const Interval &ab, int c) {
   int a = ab.min / c;
   int b = (ab.max - 1) / c;

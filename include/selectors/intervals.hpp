@@ -23,10 +23,20 @@ bool same(Interval, Interval); // not to be confused with ==
 Interval operator&&(Interval, Interval);
 Interval operator-(Interval);
 Interval operator+(const Interval &, const Interval &);
+Interval operator+(const Interval &, int);
+Interval operator+(int, const Interval &);
+
 Interval operator-(const Interval &, const Interval &);
+Interval operator-(const Interval &, int);
+Interval operator-(int, const Interval &);
+
 Interval operator*(const Interval &, const Interval &);
+Interval operator*(const Interval &, int);
+Interval operator*(int, const Interval &);
+
 Interval operator/(const Interval &, int);
 // Interval operator/(Interval, Interval) is too messy and possibly not useful.
+
 BoolM operator<(const Interval &, const Interval &);
 BoolM operator<(const Interval &, int);
 BoolM operator<(int, const Interval &);
@@ -47,7 +57,6 @@ BoolM operator>=(const Interval &, const Interval &);
 BoolM operator>=(const Interval &, int);
 BoolM operator>=(int, const Interval &);
 
-//  TODO
 BoolM operator!=(const Interval &, const Interval &);
 BoolM operator!=(const Interval &, int);
 BoolM operator!=(int, const Interval &);

@@ -9,6 +9,12 @@ using namespace hypercubes::slow;
 namespace bdata = boost::unit_test::data;
 
 BOOST_AUTO_TEST_SUITE(test_interval)
+BOOST_AUTO_TEST_CASE(test_interval_ab) {
+  Interval v({4, 6});
+  BOOST_TEST(v.min == 4);
+  BOOST_TEST(v.max == 6);
+}
+
 BOOST_AUTO_TEST_CASE(test_same_interval_true) {
   Interval ab(3, 5);
   Interval cd(3, 5);
@@ -90,6 +96,7 @@ BOOST_DATA_TEST_CASE(test_interval_unary_minus_check, bdata::xrange(-10, 10),
                 (not ab.contains(i) and not cd.contains(-i)));
   BOOST_TEST(check);
 }
+
 BOOST_AUTO_TEST_CASE(test_interval_div_positive) {
   Interval ab{-10, 15};
   int c = 2;
@@ -125,23 +132,157 @@ BOOST_AUTO_TEST_CASE(test_interval_div_negative) {
   BOOST_TEST(div.max == max);
 }
 
-BOOST_AUTO_TEST_CASE(test_interval_less_disjoint_T) {
-  Interval ab(3, 5);
-  Interval cd(5, 8);
-  BoolM check = ab < cd;
-  BOOST_TEST(check == BoolM::T);
+BOOST_AUTO_TEST_CASE(test_interval_plus) {
+  Interval ab{3, 5};
+  Interval cd{4, 6};
+
+  Interval sum = ab + cd;
+
+  std::set<int> sumset;
+  for (int i = -20; i < 20; ++i)
+    for (int j = -20; j < 20; ++j)
+      if (ab.contains(i) and cd.contains(j))
+        sumset.insert(i + j);
+
+  for (int s = -50; s < 50; ++s) {
+    bool check = (sum.contains(s) and sumset.count(s) != 0) or
+                 (not sum.contains(s) and sumset.count(s) == 0);
+    BOOST_TEST(check);
+  }
 }
-BOOST_AUTO_TEST_CASE(test_interval_less_disjoint_F) {
-  Interval ab(3, 5);
-  Interval cd(5, 8);
-  BoolM check = cd < ab;
-  BOOST_TEST(check == BoolM::F);
+BOOST_AUTO_TEST_CASE(test_interval_plus_int) {
+  Interval ab{3, 5};
+  int c = 4;
+
+  Interval sum = ab + c;
+
+  std::set<int> sumset;
+  for (int i = -20; i < 20; ++i)
+    if (ab.contains(i))
+      sumset.insert(i + c);
+
+  for (int s = -50; s < 50; ++s) {
+    bool check = (sum.contains(s) and sumset.count(s) != 0) or
+                 (not sum.contains(s) and sumset.count(s) == 0);
+    BOOST_TEST(check);
+  }
 }
-BOOST_AUTO_TEST_CASE(test_interval_less_overlap_M) {
-  Interval ab(3, 6);
-  Interval cd(5, 8);
-  BoolM check = ab < cd;
-  BOOST_TEST(check == BoolM::M);
+BOOST_AUTO_TEST_CASE(test_int_plus_interval) {
+  Interval ab{3, 5};
+  int c = 4;
+
+  Interval sum = c + ab;
+
+  std::set<int> sumset;
+  for (int i = -20; i < 20; ++i)
+    if (ab.contains(i))
+      sumset.insert(i + c);
+
+  for (int s = -50; s < 50; ++s) {
+    bool check = (sum.contains(s) and sumset.count(s) != 0) or
+                 (not sum.contains(s) and sumset.count(s) == 0);
+    BOOST_TEST(check);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_interval_minus) {
+  Interval ab{3, 5};
+  Interval cd{4, 6};
+
+  Interval sum = ab - cd;
+
+  std::set<int> sumset;
+  for (int i = -20; i < 20; ++i)
+    for (int j = -20; j < 20; ++j)
+      if (ab.contains(i) and cd.contains(j))
+        sumset.insert(i - j);
+
+  for (int s = -50; s < 50; ++s) {
+    bool check = (sum.contains(s) and sumset.count(s) != 0) or
+                 (not sum.contains(s) and sumset.count(s) == 0);
+    BOOST_TEST(check);
+  }
+}
+BOOST_AUTO_TEST_CASE(test_interval_minus_int) {
+  Interval ab{3, 5};
+  int c = 4;
+
+  Interval sum = ab - c;
+
+  std::set<int> sumset;
+  for (int i = -20; i < 20; ++i)
+    if (ab.contains(i))
+      sumset.insert(i - c);
+
+  for (int s = -50; s < 50; ++s) {
+    bool check = (sum.contains(s) and sumset.count(s) != 0) or
+                 (not sum.contains(s) and sumset.count(s) == 0);
+    BOOST_TEST(check);
+  }
+}
+BOOST_AUTO_TEST_CASE(test_int_minus_interval) {
+  Interval ab{3, 5};
+  int c = 4;
+
+  Interval sum = c - ab;
+
+  std::set<int> sumset;
+  for (int i = -20; i < 20; ++i)
+    if (ab.contains(i))
+      sumset.insert(c - i);
+
+  for (int s = -50; s < 50; ++s) {
+    bool check = (sum.contains(s) and sumset.count(s) != 0) or
+                 (not sum.contains(s) and sumset.count(s) == 0);
+    BOOST_TEST(check);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_interval_mult) {
+  Interval ab{3, 5};
+  Interval cd{4, 6};
+
+  Interval prod = ab * cd;
+
+  int min = 100, max = -100;
+  for (int i = -20; i < 20; ++i)
+    for (int j = -20; j < 20; ++j)
+      if (ab.contains(i) and cd.contains(j)) {
+        min = std::min(min, i * j);
+        max = std::max(max, i * j + 1);
+      }
+  BOOST_TEST(prod.min == min);
+  BOOST_TEST(prod.max == max);
+}
+BOOST_AUTO_TEST_CASE(test_interval_mult_int) {
+  Interval ab{3, 5};
+  int c = 4;
+
+  Interval prod = ab * c;
+
+  int min = 100, max = -100;
+  for (int i = -20; i < 20; ++i)
+    if (ab.contains(i)) {
+      min = std::min(min, i * c);
+      max = std::max(max, i * c + 1);
+    }
+  BOOST_TEST(prod.min == min);
+  BOOST_TEST(prod.max == max);
+}
+BOOST_AUTO_TEST_CASE(test_int_mult_interval) {
+  Interval ab{3, 5};
+  int c = 4;
+
+  Interval prod = c * ab;
+
+  int min = 100, max = -100;
+  for (int i = -20; i < 20; ++i)
+    if (ab.contains(i)) {
+      min = std::min(min, i * c);
+      max = std::max(max, i * c + 1);
+    }
+  BOOST_TEST(prod.min == min);
+  BOOST_TEST(prod.max == max);
 }
 
 #define INTERVAL_DATA_TEST_CASE(NAME, OP)                                      \
@@ -258,333 +399,6 @@ INTERVAL_DATA_TEST_CASE(test_interval_notequal, !=)
 INT_INTERVAL_DATA_TEST_CASE(test_int_notequal_interval, !=)
 INTERVAL_INT_DATA_TEST_CASE(test_interval_notequal_int, !=)
 
-/*
-BOOST_DATA_TEST_CASE(test_interval_less,
-                     bdata::xrange(-6, 6) *     //
-                         bdata::xrange(0, 6) *  //
-                         bdata::xrange(-6, 6) * //
-                         bdata::xrange(0, 6),
-                     a, d1, c, d2) {
-  int b = a + d1;
-  int d = c + d2;
-  Interval ab(a, b);
-  Interval cd(c, d);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++)
-    for (int y = c; y < d; y++) {
-      if (x < y)
-        count_less++;
-      else
-        count_not_less++;
-    }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else
-    expected = BoolM::M;
-
-  auto check = ab < cd;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << " " << d << std::endl;
-  BOOST_TEST(check == expected);
-}
-
-BOOST_DATA_TEST_CASE(test_interval_less_int,
-                     bdata::xrange(-6, 6) *    //
-                         bdata::xrange(0, 6) * //
-                         bdata::xrange(-6, 6),
-                     a, d1, c) {
-  int b = a + d1;
-  Interval ab(a, b);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++) {
-    if (x < c)
-      count_less++;
-    else
-      count_not_less++;
-  }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else if (count_not_less == 0 and count_less == 0)
-    // This means that there is no number in the interval
-    // for which the condition can be true.
-    expected = BoolM::F;
-  else
-    expected = BoolM::M;
-
-  auto check = ab < c;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << std::endl;
-  BOOST_TEST(check == expected);
-}
-BOOST_DATA_TEST_CASE(test_int_less_interval,
-                     bdata::xrange(-6, 6) *    //
-                         bdata::xrange(0, 6) * //
-                         bdata::xrange(-6, 6),
-                     a, d1, c) {
-  int b = a + d1;
-  Interval ab(a, b);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++) {
-    if (c < x)
-      count_less++;
-    else
-      count_not_less++;
-  }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else if (count_not_less == 0 and count_less == 0)
-    // This means that there is no number in the interval
-    // for which the condition can be true.
-    expected = BoolM::F;
-  else
-    expected = BoolM::M;
-
-  auto check = c < ab;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << std::endl;
-  BOOST_TEST(check == expected);
-}
-BOOST_DATA_TEST_CASE(test_interval_equal,
-                     bdata::xrange(-6, 6) *     //
-                         bdata::xrange(0, 6) *  //
-                         bdata::xrange(-6, 6) * //
-                         bdata::xrange(0, 6),
-                     a, d1, c, d2) {
-  int b = a + d1;
-  int d = c + d2;
-  Interval ab(a, b);
-  Interval cd(c, d);
-
-  int count_equal = 0, count_not_equal = 0;
-  for (int x = a; x < b; x++)
-    for (int y = c; y < d; y++) {
-      if (x == y)
-        count_equal++;
-      else
-        count_not_equal++;
-    }
-  BoolM expected;
-  if (count_equal == 0 and count_not_equal > 0)
-    expected = BoolM::F;
-  else if (count_not_equal == 0 and count_equal > 0)
-    expected = BoolM::T;
-  else
-    expected = BoolM::M;
-
-  auto check = ab == cd;
-  std::cout << "less " << count_equal << " not less " << count_not_equal << " "
-            << a << " " << b << " " << c << " " << d << std::endl;
-  BOOST_TEST(check == expected);
-}
-
-BOOST_DATA_TEST_CASE(test_interval_lessequal,
-                     bdata::xrange(-6, 6) *     //
-                         bdata::xrange(0, 6) *  //
-                         bdata::xrange(-6, 6) * //
-                         bdata::xrange(0, 6),
-                     a, d1, c, d2) {
-  int b = a + d1;
-  int d = c + d2;
-  Interval ab(a, b);
-  Interval cd(c, d);
-
-  int count_lesseq = 0, count_not_lesseq = 0;
-  for (int x = a; x < b; x++)
-    for (int y = c; y < d; y++) {
-      if (x <= y)
-        count_lesseq++;
-      else
-        count_not_lesseq++;
-    }
-  BoolM expected;
-  if (count_lesseq == 0 and count_not_lesseq > 0)
-    expected = BoolM::F;
-  else if (count_not_lesseq == 0 and count_lesseq > 0)
-    expected = BoolM::T;
-  else
-    expected = BoolM::M;
-
-  auto check = ab <= cd;
-  std::cout << "<= :" << check << " <: " << (ab < cd) << " ==:" << (ab == cd)
-            << "  ";
-  std::cout << a << " " << b << " " << c << " " << d << std::endl;
-  BOOST_TEST(check == expected);
-}
-BOOST_DATA_TEST_CASE(test_interval_lessequal_int,
-                     bdata::xrange(-6, 6) *    //
-                         bdata::xrange(0, 6) * //
-                         bdata::xrange(-6, 6),
-                     a, d1, c) {
-  int b = a + d1;
-  Interval ab(a, b);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++) {
-    if (x <= c)
-      count_less++;
-    else
-      count_not_less++;
-  }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else if (count_not_less == 0 and count_less == 0)
-    // This means that there is no number in the interval
-    // for which the condition can be true.
-    expected = BoolM::F;
-  else
-    expected = BoolM::M;
-
-  auto check = ab <= c;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << std::endl;
-  BOOST_TEST(check == expected);
-}
-BOOST_DATA_TEST_CASE(test_int_lessequal_interval,
-                     bdata::xrange(-6, 6) *    //
-                         bdata::xrange(0, 6) * //
-                         bdata::xrange(-6, 6),
-                     a, d1, c) {
-  int b = a + d1;
-  Interval ab(a, b);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++) {
-    if (c <= x)
-      count_less++;
-    else
-      count_not_less++;
-  }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else if (count_not_less == 0 and count_less == 0)
-    // This means that there is no number in the interval
-    // for which the condition can be true.
-    expected = BoolM::F;
-  else
-    expected = BoolM::M;
-
-  auto check = c <= ab;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << std::endl;
-  BOOST_TEST(check == expected);
-}
-
-BOOST_DATA_TEST_CASE(test_interval_greater,
-                     bdata::xrange(-6, 6) *     //
-                         bdata::xrange(0, 6) *  //
-                         bdata::xrange(-6, 6) * //
-                         bdata::xrange(0, 6),
-                     a, d1, c, d2) {
-  int b = a + d1;
-  int d = c + d2;
-  Interval ab(a, b);
-  Interval cd(c, d);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++)
-    for (int y = c; y < d; y++) {
-      if (x > y)
-        count_less++;
-      else
-        count_not_less++;
-    }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else
-    expected = BoolM::M;
-
-  auto check = ab > cd;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << " " << d << std::endl;
-  BOOST_TEST(check == expected);
-}
-BOOST_DATA_TEST_CASE(test_interval_greater_int,
-                     bdata::xrange(-6, 6) *    //
-                         bdata::xrange(0, 6) * //
-                         bdata::xrange(-6, 6),
-                     a, d1, c) {
-  int b = a + d1;
-  Interval ab(a, b);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++) {
-    if (x > c)
-      count_less++;
-    else
-      count_not_less++;
-  }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else if (count_not_less == 0 and count_less == 0)
-    // This means that there is no number in the interval
-    // for which the condition can be true.
-    expected = BoolM::F;
-  else
-    expected = BoolM::M;
-
-  auto check = ab > c;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << std::endl;
-  BOOST_TEST(check == expected);
-}
-BOOST_DATA_TEST_CASE(test_int_greater_interval,
-                     bdata::xrange(-6, 6) *    //
-                         bdata::xrange(0, 6) * //
-                         bdata::xrange(-6, 6),
-                     a, d1, c) {
-  int b = a + d1;
-  Interval ab(a, b);
-
-  int count_less = 0, count_not_less = 0;
-  for (int x = a; x < b; x++) {
-    if (c > x)
-      count_less++;
-    else
-      count_not_less++;
-  }
-  BoolM expected;
-  if (count_less == 0 and count_not_less > 0)
-    expected = BoolM::F;
-  else if (count_not_less == 0 and count_less > 0)
-    expected = BoolM::T;
-  else if (count_not_less == 0 and count_less == 0)
-    // This means that there is no number in the interval
-    // for which the condition can be true.
-    expected = BoolM::F;
-  else
-    expected = BoolM::M;
-
-  auto check = c > ab;
-  std::cout << "less " << count_less << " not less " << count_not_less << " "
-            << a << " " << b << " " << c << std::endl;
-  BOOST_TEST(check == expected);
-}
-
-*/
 // Multiple interval operations
 
 BOOST_AUTO_TEST_CASE(test_interval_not) {
@@ -628,11 +442,6 @@ BOOST_AUTO_TEST_CASE(test_intervals_contain_false) {
 BOOST_AUTO_TEST_CASE(test_intervals_constructor_empty) {
   Intervals v;
   BOOST_TEST(v.vs.size() == 0);
-}
-BOOST_AUTO_TEST_CASE(test_interval_ab) {
-  Interval v({4, 6});
-  BOOST_TEST(v.min == 4);
-  BOOST_TEST(v.max == 6);
 }
 BOOST_AUTO_TEST_CASE(test_intervals_ab) {
   Intervals v({{4, 6}});
@@ -691,59 +500,6 @@ BOOST_DATA_TEST_CASE(test_intervals_unary_minus_check, bdata::xrange(-20, 20),
   auto cd = -ab;
   bool check = ((ab.contain(i) and cd.contain(-i)) or
                 (not ab.contain(i) and not cd.contain(-i)));
-}
-
-BOOST_AUTO_TEST_CASE(test_interval_plus) {
-  Interval ab{3, 5};
-  Interval cd{4, 6};
-
-  Interval sum = ab + cd;
-
-  std::set<int> sumset;
-  for (int i = -20; i < 20; ++i)
-    for (int j = -20; j < 20; ++j)
-      if (ab.contains(i) and cd.contains(j))
-        sumset.insert(i + j);
-
-  for (int s = -50; s < 50; ++s) {
-    bool check = (sum.contains(s) and sumset.count(s) != 0) or
-                 (not sum.contains(s) and sumset.count(s) == 0);
-    BOOST_TEST(check);
-  }
-}
-BOOST_AUTO_TEST_CASE(test_interval_minus) {
-  Interval ab{3, 5};
-  Interval cd{4, 6};
-
-  Interval sum = ab - cd;
-
-  std::set<int> sumset;
-  for (int i = -20; i < 20; ++i)
-    for (int j = -20; j < 20; ++j)
-      if (ab.contains(i) and cd.contains(j))
-        sumset.insert(i - j);
-
-  for (int s = -50; s < 50; ++s) {
-    bool check = (sum.contains(s) and sumset.count(s) != 0) or
-                 (not sum.contains(s) and sumset.count(s) == 0);
-    BOOST_TEST(check);
-  }
-}
-BOOST_AUTO_TEST_CASE(test_interval_mult) {
-  Interval ab{3, 5};
-  Interval cd{4, 6};
-
-  Interval prod = ab * cd;
-
-  int min = 100, max = -100;
-  for (int i = -20; i < 20; ++i)
-    for (int j = -20; j < 20; ++j)
-      if (ab.contains(i) and cd.contains(j)) {
-        min = std::min(min, i * j);
-        max = std::max(max, i * j + 1);
-      }
-  BOOST_TEST(prod.min == min);
-  BOOST_TEST(prod.max == max);
 }
 
 BOOST_AUTO_TEST_SUITE_END();
