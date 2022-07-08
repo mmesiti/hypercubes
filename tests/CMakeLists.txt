@@ -109,6 +109,11 @@ add_executable(test_intervals test_intervals.cpp)
 target_link_libraries(test_intervals boost_test_helper
                                      intervals)
 
+add_executable(test_selectors test_selectors.cpp)
+target_link_libraries(test_selectors boost_test_helper
+                                     selectors)
+
+
 #
 # Adding compile options for coverage for some tests.
 # This is needed because some code exists only as template.
@@ -161,3 +166,4 @@ add_test(partition_predicates test_partition_predicates -r confirm)
 add_test(pt_full test_pt_full -r confirm)
 add_test(kvtree_v2 test_kvtree_v2 -r confirm)
 add_test(intervals test_intervals -r confirm)
+add_test(selectors test_selectors -r confirm)

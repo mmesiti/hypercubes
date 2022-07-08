@@ -98,7 +98,8 @@ add_library(transform_request_makers src/api_v2/transform_request_makers.cpp)
 target_link_libraries(transform_request_makers transform_network
   transformer transform_requests)
 
-
+add_library(selectors src/selectors/selectors.cpp)
+target_link_libraries(selectors intervals)
 
 # API
 add_library(memory_layout src/api/memory_layout.cpp)
@@ -120,6 +121,8 @@ add_custom_target(coverage
              --directory tests/api_v2/CMakeFiles/test_transform_requests.dir
              --directory tests/api_v2/CMakeFiles/test_transform_network.dir
              --directory tests/api_v2/CMakeFiles/test_transform_request_makers.dir
+             --directory tests/api_v2/CMakeFiles/test_intervals.dir
+             --directory tests/api_v2/CMakeFiles/test_selectors.dir
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
      COMMAND genhtml --demangle-cpp coverage.info
