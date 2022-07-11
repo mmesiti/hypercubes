@@ -121,8 +121,8 @@ add_custom_target(coverage
              --directory tests/api_v2/CMakeFiles/test_transform_requests.dir
              --directory tests/api_v2/CMakeFiles/test_transform_network.dir
              --directory tests/api_v2/CMakeFiles/test_transform_request_makers.dir
-             --directory tests/api_v2/CMakeFiles/test_intervals.dir
-             --directory tests/api_v2/CMakeFiles/test_selectors.dir
+             --directory tests/CMakeFiles/test_intervals.dir
+             --directory tests/CMakeFiles/test_selectors.dir
              --output-file coverage.info
              --exclude '/usr/include/\*' # Hack to remove system headers
      COMMAND genhtml --demangle-cpp coverage.info
