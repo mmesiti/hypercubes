@@ -1,6 +1,7 @@
 #include "api_v2/tree_transform.hpp"
 #include "exceptions/exceptions.hpp"
 #include "geometry/geometry.hpp"
+#include "selectors/bool_maybe.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/tree.hpp"
 #include "trees/tree_data_structure.hpp"
@@ -12,6 +13,7 @@
 #include <stdexcept>
 
 using namespace hypercubes::slow::internals;
+using hypercubes::slow::BoolM;
 
 using hypercubes::slow::BoundaryCondition;
 namespace bdata = boost::unit_test::data;
@@ -1084,6 +1086,95 @@ BOOST_AUTO_TEST_CASE(test_collapse_level_by_key_missing) {
                                      {5} /*child key to replace*/);
 
   BOOST_TEST(*tcollapsed_exp == *tcollapsed);
+}
+
+BOOST_AUTO_TEST_CASE(test_selector_true) {
+  TreeFactory f;
+  TreeFactory::Predicate p = [](const std::vector<int> &idx) {
+    return BoolM::T;
+  };
+  auto t = mtkv(NodeType::NODE, {{{10}, mtkv(NodeType::LEAF, {})}, //
+                                 {{11}, mtkv(NodeType::LEAF, {})}, //
+                                 {{22}, mtkv(NodeType::LEAF, {})}});
+
+  // Trees are renumbered.
+  auto exp_newt = mtkv(NodeType::NODE, {{{0}, mtkv(NodeType::LEAF, {})}, //
+                                        {{1}, mtkv(NodeType::LEAF, {})}, //
+                                        {{2}, mtkv(NodeType::LEAF, {})}});
+
+  auto newt = f.select_subtree(t, p);
+
+  BOOST_TEST(*newt == *exp_newt);
+}
+BOOST_AUTO_TEST_CASE(test_selector_false) {
+  TreeFactory f;
+  TreeFactory::Predicate p = [](const std::vector<int> &idx) {
+    if (idx.size() < 2)
+      return BoolM::M;
+    else if (idx[1] == 1)
+      return BoolM::T;
+    else
+      return BoolM::F;
+  };
+  auto subt = mtkv(NodeType::NODE, {{{10}, mtkv(NodeType::LEAF, {})}, //
+                                    {{11}, mtkv(NodeType::LEAF, {})}, //
+                                    {{22}, mtkv(NodeType::LEAF, {})}});
+
+  auto t = mtkv(NodeType::NODE, {{{10}, subt}, //
+                                 {{32}, subt}});
+
+  auto newt = f.select_subtree(t, p);
+
+  auto exp_newt =
+      mtkv(NodeType::NODE,
+           {{{0}, mtkv(NodeType::NODE, {{{1}, mtkv(NodeType::LEAF, {})}})},
+            {{1}, mtkv(NodeType::NODE, {{{1}, mtkv(NodeType::LEAF, {})}})}});
+
+  BOOST_TEST(*newt == *exp_newt);
+}
+BOOST_AUTO_TEST_CASE(test_selector_prune_empty_subtrees) {
+  TreeFactory f;
+  TreeFactory::Predicate p = [](const std::vector<int> &idx) {
+    if (idx.size() < 2)
+      return BoolM::M;
+    else if (idx[1] == 2)
+      return BoolM::T;
+    else
+      return BoolM::F;
+  };
+  auto subt0 = mtkv(NodeType::NODE, {{{10}, mtkv(NodeType::LEAF, {})}, //
+                                     {{11}, mtkv(NodeType::LEAF, {})}, //
+                                     {{22}, mtkv(NodeType::LEAF, {})}});
+
+  auto subt1 = mtkv(NodeType::NODE, {{{10}, mtkv(NodeType::LEAF, {})}, //
+                                     {{22}, mtkv(NodeType::LEAF, {})}});
+
+  auto t = mtkv(NodeType::NODE, {{{10}, subt0}, //
+                                 {{32}, subt1}});
+
+  auto newt = f.select_subtree(t, p);
+
+  auto exp_newt =
+      mtkv(NodeType::NODE,
+           {{{0}, mtkv(NodeType::NODE, {{{2}, mtkv(NodeType::LEAF, {})}})}});
+
+  BOOST_TEST(*newt == *exp_newt);
+}
+BOOST_AUTO_TEST_CASE(test_selector_prune_empty_subtrees_leave_leaves) {
+  TreeFactory f;
+  TreeFactory::Predicate p = [](const std::vector<int> &idx) {
+    return BoolM::M;
+  };
+  auto subt = mtkv(NodeType::NODE, {{{0}, mtkv(NodeType::LEAF, {})}, //
+                                    {{1}, mtkv(NodeType::LEAF, {})}, //
+                                    {{2}, mtkv(NodeType::LEAF, {})}});
+
+  auto t = mtkv(NodeType::NODE, {{{0}, subt}, //
+                                 {{1}, subt}});
+
+  auto newt = f.select_subtree(t, p);
+
+  BOOST_TEST(*newt == *t);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

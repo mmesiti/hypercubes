@@ -2,6 +2,7 @@
 #define TREE_TRANSFORM_H_
 #include "exceptions/exceptions.hpp"
 #include "geometry/geometry.hpp"
+#include "selectors/bool_maybe.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
 #include "utils/print_utils.hpp"
@@ -9,6 +10,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -31,6 +33,8 @@ enum NodeType {
  *  call each other (qh and hbb do call renumber_children)
  */
 class TreeFactory {
+public:
+  using Predicate = std::function<BoolM(const std::vector<int> &)>;
   // TODO: make copy constructor
   //       and copy assignment operator private?
 private:
@@ -62,6 +66,9 @@ private:
   }
 
   // Caches for memoisation
+  KVTreePv2<NodeType> _select_subtree(const KVTreePv2<NodeType> t, //
+                                      std::vector<int> idx_above,  //
+                                      Predicate &p);
 
 public:
   // These is public only to expose it conveniently during the tests,
@@ -187,8 +194,8 @@ public:
    * NOTE: the subtrees at depth level+1 are untouched
    *       and concide with the relative subtrees in the input tree.
    *       This means that they should be ignored by index_pullback,
-   *       or that the children should be renumbered so that index_pullback does
-   *       the right thing.   */
+   *       or that the children should be renumbered so that index_pullback
+   * does the right thing.   */
 
   /** Splits a level of a tree in n-parts,
    * making sure the partitions are as equal as possible,
@@ -296,8 +303,10 @@ public:
   KVTreePv2<NodeType> remap_level(const KVTreePv2<NodeType> t, int level,
                                   vector<int> index_map);
 
-  const KVTreePv2<NodeType> swap_levels(const KVTreePv2<NodeType> &t,
-                                        const vector<int> &new_level_ordering);
+  KVTreePv2<NodeType> swap_levels(const KVTreePv2<NodeType> t,
+                                  const vector<int> &new_level_ordering);
+
+  KVTreePv2<NodeType> select_subtree(const KVTreePv2<NodeType> t, Predicate &);
 };
 
 /** Where all these functions transform an input tree into an output tree,

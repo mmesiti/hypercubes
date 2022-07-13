@@ -514,8 +514,8 @@ KVTreePv2<NodeType> TreeFactory::remap_level(const KVTreePv2<NodeType> t,
   return cache.remap_level[{t, level, index_map}];
 }
 
-const KVTreePv2<NodeType>
-TreeFactory::swap_levels(const KVTreePv2<NodeType> &t,
+KVTreePv2<NodeType>
+TreeFactory::swap_levels(const KVTreePv2<NodeType> t,
                          const vector<int> &new_level_ordering) {
 
   callcounter.total.swap_levels++;
@@ -551,7 +551,41 @@ TreeFactory::swap_levels(const KVTreePv2<NodeType> &t,
   return cache.swap_levels[{t, new_level_ordering}];
 }
 
-} // namespace internals
+KVTreePv2<NodeType> TreeFactory::select_subtree(const KVTreePv2<NodeType> t,
+                                                TreeFactory::Predicate &p) {
+  return _select_subtree(t, {}, p);
+};
 
+KVTreePv2<NodeType> TreeFactory::_select_subtree(const KVTreePv2<NodeType> t, //
+                                                 std::vector<int> idx_above,  //
+                                                 TreeFactory::Predicate &p) {
+  auto node = t->n;
+  decltype(t->children) new_children;
+  int i = 0;
+  for (auto c = t->children.begin(); c != t->children.end(); c++) {
+    auto idx = idx_above;
+    idx.push_back(i);
+    switch (p(idx)) {
+    case BoolM::T:
+      new_children.push_back({{i}, renumber_children(c->second)});
+      break;
+    case BoolM::M: {
+      auto new_child = _select_subtree(c->second, //
+                                       idx,       //
+                                       p);
+      if ((new_child->children.size() > 0) or new_child->n == NodeType::LEAF)
+        new_children.push_back({{i}, new_child});
+    }; break;
+    default:
+      break;
+    }
+    i++;
+  }
+
+  return mtkv(node, new_children);
+}
+
+} // namespace internals
 } // namespace slow
+
 } // namespace hypercubes
