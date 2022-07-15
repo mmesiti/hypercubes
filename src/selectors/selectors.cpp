@@ -33,6 +33,16 @@ Interval IndexIntervalMap::operator[](const std::string &key) const {
   return it->second;
 };
 
+Selector operator&&(Selector a, Selector b) {
+  return [a, b](const IndexIntervalMap &map) { return a(map) and b(map); };
+}
+Selector operator||(Selector a, Selector b) {
+      return [a, b](const IndexIntervalMap &map) { return a(map) or b(map); };
+}
+Selector operator!(Selector s) {
+    return [s](const IndexIntervalMap &map) { return not s(map); };
+}
+
 } // namespace selectors_v2
 } // namespace slow
 } // namespace hypercubes
