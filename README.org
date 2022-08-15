@@ -15,12 +15,13 @@ For the tests:
 
 To build and run the tests:
 #+begin_src bash
-$ mkdir build
-$ cd build
-$ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. && \
+mkdir build
+cd build
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug .. && \
     make -j4 && ctest --test-dir ./tests --output-on-failure && \
     make coverage
 #+end_src
+
 Using ~-DCMAKE_BUILD_TYPE=Release~
 slows down the compilation
 but can speed up considerably the tests,
