@@ -11,13 +11,15 @@ namespace selectors_v2 {
 
 struct IndexIntervalMap {
 
-  std::vector<std::pair<std::string, Interval>> _map;
+  std::vector<std::string> _strings;
+  std::vector<Interval> _intervals;
   IndexIntervalMap(std::vector<std::string> levelnames,
                    std::vector<int> indices);
   Interval operator[](const std::string &key) const;
 };
 
 using Selector = std::function<BoolM(const IndexIntervalMap &)>;
+using BareSelector = std::function<BoolM(const std::vector<int> &)>;
 template <class... Args>
 Selector getp(BoolM (*predicate)(const IndexIntervalMap &, Args...),
               Args... args) {

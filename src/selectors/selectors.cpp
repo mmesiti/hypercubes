@@ -11,36 +11,32 @@ IndexIntervalMap::IndexIntervalMap(std::vector<std::string> levelnames,
   if (indices.size() > levelnames.size())
     throw std::invalid_argument(
         "indices vector must not be longer than levelnames vector.");
-  for (int i = 0; i < indices.size(); ++i) {
-    _map.push_back(std::make_pair(levelnames[i], //
-                                  Interval(indices[i], indices[i] + 1)));
-  }
-  // TODO: better-informed intervals if needed.
+  _strings = levelnames;
+  for (int i = 0; i < indices.size(); ++i)
+    _intervals.push_back(Interval(indices[i], indices[i] + 1));
+  // TODO: better-informed intervals if needed  (e.g., HBB only goes up to 4)
   for (int i = indices.size(); i < levelnames.size(); ++i) {
-    _map.push_back(
-        std::make_pair(levelnames[i], //
-                       Interval(0,    // All indices start from 0 anyway.
-                                Interval::LIMIT)));
+    _intervals.push_back(Interval(0, // All indices start from 0 anyway.
+                                  Interval::LIMIT));
   }
 }
 
 Interval IndexIntervalMap::operator[](const std::string &key) const {
-  auto it = std::find_if(_map.begin(), _map.end(),
-                         [key](auto p) { return p.first == key; });
-  if (it == _map.end())
+  auto it = std::find(_strings.begin(), _strings.end(), key);
+  if (it == _strings.end())
     throw std::invalid_argument("Key not found in IndexIntervalMap.");
 
-  return it->second;
+  return _intervals[it - _strings.begin()];
 };
 
 Selector operator&&(Selector a, Selector b) {
   return [a, b](const IndexIntervalMap &map) { return a(map) and b(map); };
 }
 Selector operator||(Selector a, Selector b) {
-      return [a, b](const IndexIntervalMap &map) { return a(map) or b(map); };
+  return [a, b](const IndexIntervalMap &map) { return a(map) or b(map); };
 }
 Selector operator!(Selector s) {
-    return [s](const IndexIntervalMap &map) { return not s(map); };
+  return [s](const IndexIntervalMap &map) { return not s(map); };
 }
 
 } // namespace selectors_v2

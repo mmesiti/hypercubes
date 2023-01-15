@@ -1,6 +1,7 @@
 #ifndef TRANSFORMER_H_
 #define TRANSFORMER_H_
 #include "geometry/geometry.hpp"
+#include "selectors/selectors.hpp"
 #include "tree_transform.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
@@ -196,6 +197,7 @@ private:
   vector<int> permutation_apply;
   vector<int> permutation_inverse;
 };
+
 struct EONaive : public Transformer {
 private:
   vector<std::string> levelnames;
@@ -207,6 +209,15 @@ public:
           std::string new_level_name);
 };
 
+struct Select : public Transformer {
+private:
+  selectors_v2::Selector s;
+
+public:
+  Select(TreeFactory &f,        //
+         TransformerP previous, //
+         selectors_v2::Selector s);
+};
 } // namespace transformers
 } // namespace internals
 } // namespace slow

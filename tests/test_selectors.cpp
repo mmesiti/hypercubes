@@ -13,14 +13,14 @@ BOOST_AUTO_TEST_SUITE(test_index_interval_map)
 BOOST_AUTO_TEST_CASE(test_index_interval_map_constructor_all_known) {
 
   IndexIntervalMap map({"f", "c", "d", "e"}, {5, 4, 3, 4});
-  BOOST_TEST(map._map.size() == 4);
-  BOOST_TEST(same(map._map[3].second, Interval(4, 5)));
+  BOOST_TEST(map._strings.size() == 4);
+  BOOST_TEST(same(map._intervals[3], Interval(4, 5)));
 }
 BOOST_AUTO_TEST_CASE(test_index_interval_map_constructor_some_unk) {
 
   IndexIntervalMap map({"f", "c", "d", "e"}, {5, 4});
-  BOOST_TEST(map._map.size() == 4);
-  BOOST_TEST(same(map._map[3].second, Interval(0, Interval::LIMIT)));
+  BOOST_TEST(map._strings.size() == 4);
+  BOOST_TEST(same(map._intervals[3], Interval(0, Interval::LIMIT)));
 }
 BOOST_AUTO_TEST_CASE(test_index_interval_map_constructor_throws) {
   // if the list of indices is longer than the list of levelnames
