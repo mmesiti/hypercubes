@@ -1177,4 +1177,69 @@ BOOST_AUTO_TEST_CASE(test_selector_prune_empty_subtrees_leave_leaves) {
   BOOST_TEST(*newt == *t);
 }
 
+BOOST_AUTO_TEST_CASE(test_eo_fix) {
+
+  TreeFactory f;
+  // A 9x9 lattice partitioned in 3x3xEOxflattened index,
+  // with 3 local degrees of freedom
+  auto local = mtkv(NodeType::NODE, {{{0}, mtkv(NodeType::LEAF, {})},
+                                     {{1}, mtkv(NodeType::LEAF, {})},
+                                     {{2}, mtkv(NodeType::LEAF, {})}});
+
+  auto sub4 = mtkv(NodeType::NODE, {{{0}, local}, //
+                                    {{1}, local}, //
+                                    {{2}, local}, //
+                                    {{3}, local}});
+  auto sub5 = mtkv(NodeType::NODE, {{{0}, local}, //
+                                    {{1}, local}, //
+                                    {{2}, local}, //
+                                    {{3}, local}, //
+                                    {{4}, local}});
+
+  auto sub54 = mtkv(NodeType::NODE, {{{0}, sub5}, //
+                                     {{1}, sub4}});
+
+  auto sub45 = mtkv(NodeType::NODE, {{{0}, sub4}, //
+                                     {{1}, sub5}});
+
+  auto row = mtkv(NodeType::NODE, {{{0}, sub54}, //
+                                   {{1}, sub54}, //
+                                   {{2}, sub54}});
+
+  auto t = mtkv(NodeType::NODE, {{{0}, row}, //
+                                 {{1}, row}, //
+                                 {{2}, row}});
+
+  auto transform = [](const vector<int> idx) -> vector<vector<int>> {
+    int r = idx[0];
+    int c = idx[1];
+    int parity = idx[2];
+    int flattened = idx[3];
+    int local = idx[4];
+    int global_row = r * 3 + (flattened * 2 + parity) / 3;
+    int global_col = c * 3 + (flattened * 2 + parity) % 3;
+    vector<vector<int>> res{{global_row, global_col, local}};
+
+    return res;
+  };
+
+  auto new_t = f.eo_fix(t,         //
+                        2,         // level,
+                        transform, //
+                        {0, 1});
+
+  auto row13_fix = mtkv(NodeType::NODE, {{{0}, sub54}, //
+                                         {{1}, sub45}, //
+                                         {{2}, sub54}});
+
+  auto row2_fix = mtkv(NodeType::NODE, {{{0}, sub45}, //
+                                        {{1}, sub54}, //
+                                        {{2}, sub45}});
+
+  auto t_fix = mtkv(NodeType::NODE, {{{0}, row13_fix}, //
+                                     {{1}, row2_fix},  //
+                                     {{2}, row13_fix}});
+  BOOST_TEST(*t_fix == *new_t);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

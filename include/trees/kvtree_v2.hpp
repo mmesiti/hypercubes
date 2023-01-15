@@ -79,6 +79,14 @@ void _throw_different_nodes_error(const std::set<Value> &nodes,
   throw TreeLevelPermutationError(message.str().c_str());
 }
 
+template <class Value>
+int get_depth(const KVTreePv2<Value> &tree, Value leaf_value) {
+  if (tree->n == leaf_value)
+    return 0;
+  else
+    return get_depth(tree->children[0].second, leaf_value) + 1;
+}
+
 } // namespace internals
 } // namespace slow
 } // namespace hypercubes
