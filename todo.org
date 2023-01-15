@@ -1,0 +1,9 @@
+#+title: Todo
+
+Originally written on: Sun Jan 15 23:08:42 2023
+
+* Selectors: basis is implement whole boilerplate
+* EO:
+* General purge of unneeded stuff
+* Purge/fix of readme
+* update/purge of notes.org

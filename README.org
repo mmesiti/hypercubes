@@ -319,7 +319,7 @@ Our initial definition
 idx = f ( x_0, ... , x_d )
 #+end_src
 is reasonable but relatively hard to work with,
-and also possibly not fully correct.
+and also not fully correct.
 A couple of considerations:
 - While building ~f~ like this
   in the case of lexicographic-like ordering
@@ -522,7 +522,7 @@ to distinguish it from other trees.
 *** ~Transformer~'s, ~TransformRequest~'s and ~TransformRequestMaker~'s
 Each transformation is represented as a ~Transformer~ object.
 The problem is that to create a ~Transformer~ object,
-the previous node is known.
+the previous node needs to be already known.
 In some cases, also the knowledge of the full network
 is necessary.
 Moreover, the creation of the ~Transformer~ object
@@ -534,7 +534,8 @@ but we need to store the information
 we type in a ~TransformRequest~ object,
 and create trees of ~TransformRequest~'s.
 A ~Build~ function will then take
-the list of ~TransformRequest~'s
+the data structure
+that contains the ~TransformRequest~'s
 and generate the tree of ~Transformer~ objects.
 
 To create ~TransformRequest~'s,
@@ -576,6 +577,115 @@ In principle, they could be templatised as:
 But this does not work if one wants to call define the call
 with brace initialisation,
 since the compiler cannot infer the types correctly in that situation.
+
+** Types of transformation
+In [[generalisation]] we described the general properties
+of the transformations that, through monadic composition,
+build the memory layout functions.
+The main goal of this library
+is to provide a list of simple transformations
+that can be used to create the transformation network.
+Examples of possible transformation include:
+*** Identity transformations
+An identity transformation ~Id~ is represented
+by the "root" of the transformation network tree.
+*** Renumbering
+This transformation just renumbers the elements
+in all the levels of the tree to start from 0
+and end with the size of the level.
+This should not be needed by the end user.
+TODO: This is needed before using LevelSwap
+but it should be included by default in a LevelSwap.
+*** QFull
+Splitting a dimension of a full lattice into ~nparts~
+as equal as possible.
+This takes a level and returns two levels.
+The behaviour depends on the boundary conditions.
+It includes a halo parameter,
+to allow the partitions to overlap by ~2*halo~
+lattice points.
+*** QSub
+Splitting a dimension of a sublattice
+(created wity [[QFull]])
+into ~nparts~ as equal as possible.
+This takes a level and returns two levels.
+The halo behaviour is also dependent on the halo
+created at the previous transformation stage
+but as [[QFUll]] it includes a halo parameter,
+to allow the partitions to overlap by ~2*halo~
+lattice points.
+*** HBB
+Stands for Halo, Border, Bulk.
+Partitions an already partitioned sublattice
+(by [[QFull]] and/or [[QSub]])
+into the Halo, Border and bulk regions
+along the chosen dimension.
+*** Flatten
+Compresses a number of levels into one,
+using a depth-first traversal.
+*** CollectLeaves
+Like flatten, but until the leaves of the tree,
+and can pad the leaves to a specific size,
+adding empty spots if needed
+(might be needed for vectorisation)
+*** EO
+EO partitioning of a sublattice,
+specifying which dimensions need to be added up
+to compute the parity.
+Determining whether or not a site is even or odd
+compared to the global origin of the lattice
+requires transforming its coordinates
+back to the origin of the lattice
+and doing the sum there.
+*** LevelRemap
+Shuffling around the elements in a level,
+changing their order or removing some.
+*** LevelSwap
+Needed to implement GRID's memory layout.
+This changes the hierarchy, which means that
+when Flatten or CollectLeaves is used,
+the order of the sites is changed.
+*** Sum
+The output of multiple transforms
+is grouped into a single tree,
+having a new top level that maps
+to the choice of the transform.
+All the transform in the sum
+need to start from the same node.
+*** TreeComposition
+Multiple transformation
+that start from different starting point are combined,
+while still being totally independent.
+In the tree language,
+composing a transform to another
+means replacing the leaves
+of the tree representing the first transform
+with the tree representing the other transform.
+*** Selection
+Removing part of the transformation,
+remapping the parts that are left.
+This is equivalent to a LevelRemap
+if it happens on a single level,
+but there might be interactions between multiple levels
+(e.g. when selecting halos
+limited to a certain dimensionality).
+For the selection to be efficiently applied to a tree,
+the predicate used needs to use ternary logic.
+The predicate might also involve arithmetic operations
+(e.g. when selecting halos
+limited to a certain dimensionality),
+so this benefits of a rudimental form
+of interval arithmetics.
+
+
+
+
+
+
+
+
+
+
 
 ** Partitioning of the lattice - an example (OLD)
 
