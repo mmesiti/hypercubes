@@ -518,7 +518,7 @@ KVTreePv2<NodeType> TreeFactory::_eo_fix(
     auto idx = idx_above;
     idx.push_back(0);
     // TODO: find how deep the tree is
-    int depth = get_depth(t->children[0].second, make_leaf());
+    int depth = get_depth(t->children[0].second, make_leaf(), 0);
     idx.insert(idx.end(), depth, 0);
     // TODO: assert that there is only one result
     //       from the transformation,

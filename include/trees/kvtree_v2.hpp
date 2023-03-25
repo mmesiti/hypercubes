@@ -80,11 +80,12 @@ void _throw_different_nodes_error(const std::set<Value> &nodes,
 }
 
 template <class Value>
-int get_depth(const KVTreePv2<Value> &tree, Value leaf_value) {
+int get_depth(const KVTreePv2<Value> &tree, Value leaf_value,
+              int depth_so_far) {
   if (tree->n == leaf_value)
-    return 0;
+    return depth_so_far;
   else
-    return get_depth(tree->children[0].second, leaf_value) + 1;
+    return get_depth(tree->children[0].second, leaf_value, depth_so_far + 1);
 }
 
 } // namespace internals
