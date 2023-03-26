@@ -70,9 +70,9 @@ struct TreeTransformer {
   int find_level(const std::string &) const;
   TreeTransformer(TransformerP previous,           //
                   KVTreePv2<NodeType> output_tree, //
-                  const vector<std::string> output_levelnames);
+                  const vector<std::string> &output_levelnames);
   TreeTransformer(KVTreePv2<NodeType> input_output_tree, //
-                  const vector<std::string> output_levelnames);
+                  const vector<std::string> &output_levelnames);
 
 private:
   bool check_names_different();
@@ -207,6 +207,19 @@ public:
           TransformerP previous, //
           std::string keylevel,  //
           std::string new_level_name);
+};
+
+// TODO: test
+struct EOFix : public Transformer {
+private:
+  vector<std::string> levelnames;
+
+public:
+  EOFix(TreeFactory &f,                                                   //
+        TransformerP previous,                                            //
+        std::string level_name,                                           //
+        const std::function<vector<vector<int>>(vector<int>)> &transform, //
+        const vector<int> &levels_reference);
 };
 
 struct Select : public Transformer {

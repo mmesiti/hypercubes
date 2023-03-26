@@ -311,7 +311,7 @@ public:
    * (where the index levels have the correct meaning),
    * and the indices of the levels.
    *  */
-  // TODO: implement
+  // TODO: review implementation
   KVTreePv2<NodeType>
   eo_fix(const KVTreePv2<NodeType> t, int level,
          const std::function<vector<vector<int>>(vector<int>)> &transform,

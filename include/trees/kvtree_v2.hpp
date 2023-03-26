@@ -81,7 +81,7 @@ void _throw_different_nodes_error(const std::set<Value> &nodes,
 
 template <class Value>
 int get_depth(const KVTreePv2<Value> &tree, Value leaf_value,
-              int depth_so_far) {
+              int depth_so_far = 0) {
   if (tree->n == leaf_value)
     return depth_so_far;
   else

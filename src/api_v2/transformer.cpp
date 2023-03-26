@@ -104,7 +104,7 @@ TreeTransformer::_replace_name_range(const std::string &name, //
 
 TreeTransformer::TreeTransformer(TransformerP previous,           //
                                  KVTreePv2<NodeType> output_tree, //
-                                 const vector<std::string> output_levelnames)
+                                 const vector<std::string> &output_levelnames)
     : input_tree(previous->output_tree), //
       output_tree(output_tree),          //
       output_levelnames(output_levelnames) {
@@ -113,7 +113,7 @@ TreeTransformer::TreeTransformer(TransformerP previous,           //
 };
 
 TreeTransformer::TreeTransformer(KVTreePv2<NodeType> input_output_tree, //
-                                 const vector<std::string> output_levelnames)
+                                 const vector<std::string> &output_levelnames)
     : input_tree(input_output_tree),  //
       output_tree(input_output_tree), //
       output_levelnames(output_levelnames) {
@@ -345,6 +345,20 @@ EONaive::EONaive(TreeFactory &f,        //
 // TODO:
 // - SubTree selection with predicates
 // - EO (non-naive)
+
+// TODO: Test
+EOFix::EOFix(
+    TreeFactory &f,                                                   //
+    TransformerP previous,                                            //
+    std::string level_name,                                           //
+    const std::function<vector<vector<int>>(vector<int>)> &transform, //
+    const vector<int> &levels_reference)
+    : Transformer(previous,
+                  f.eo_fix(previous->output_tree,            //
+                           previous->find_level(level_name), //
+                           transform,                        //
+                           levels_reference),
+                  previous->output_levelnames) {}
 
 TreeComposition::TreeComposition(TreeFactory &f,        //
                                  TransformerP previous, //

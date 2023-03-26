@@ -518,7 +518,7 @@ KVTreePv2<NodeType> TreeFactory::_eo_fix(
     auto idx = idx_above;
     idx.push_back(0);
     // TODO: find how deep the tree is
-    int depth = get_depth(t->children[0].second, make_leaf(), 0);
+    int depth = get_depth(t->children[0].second, make_leaf());
     idx.insert(idx.end(), depth, 0);
     // TODO: assert that there is only one result
     //       from the transformation,
@@ -529,10 +529,10 @@ KVTreePv2<NodeType> TreeFactory::_eo_fix(
       sum += original_idx[level];
     int first_subtree_parity = sum % 2;
     if (first_subtree_parity == 0)
-      return t;
+      return renumber_children(t);
     else { // we need to swap the parities
-      children.push_back({{0}, t->children[1].second});
-      children.push_back({{1}, t->children[0].second});
+      children.push_back({{0}, renumber_children(t->children[1].second)});
+      children.push_back({{1}, renumber_children(t->children[0].second)});
       return mtkv(t->n, children);
     }
   }
