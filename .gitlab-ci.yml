@@ -1,0 +1,20 @@
+stages:    
+  - build
+  - test
+  - deploy
+
+build-job:
+  stage: build
+  script:
+    - echo "Compilation"
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug ..
+    - make -j4 
+
+unit-test-job: 
+  stage: test
+  script:
+    - echo "Running unit tests..."
+    - cd build
+    - ctest --test-dir ./tests --output-on-failure
