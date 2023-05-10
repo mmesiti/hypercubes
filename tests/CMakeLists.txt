@@ -3,6 +3,9 @@ project (HYPERCUBES_TEST)
 
 set(CMAKE_CXX_STANDARDS 14)
 
+find_package(Boost 1.76 REQUIRED)
+
+
 add_library(test_utils test_utils.cpp)
 add_library(fixtures fixtures.cpp)
 target_link_libraries(fixtures partitioners partition_tree)

@@ -32,6 +32,12 @@ at higher level of optimisation,
 so asking for a Debug build
 seems a more stringent requirement.
 
+* TODO items
+** TODO Implement non-naive eo
+** TODO Remove stale code
+** TODO Add items to this list
+** TODO Add properly written docs
+
 * Memory layouts: N-dimensional arrays and trees
 In this section the main "raw" ideas are discussed,
 the [[Implementation][implementation]] is described separately.

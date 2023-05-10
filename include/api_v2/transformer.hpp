@@ -109,6 +109,7 @@ public:
 //           has no existing halo.
 //         b. QSub: uses only open boundary conditions, uses existing halo.
 //       2. add halo specification to both.
+//       Thu Oct 13 23:33:01 2022: Isn't this done already?
 struct QFull : public Transformer {
 public:
   QFull(TreeFactory &f,             //

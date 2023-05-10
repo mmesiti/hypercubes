@@ -202,6 +202,7 @@ BOOST_AUTO_TEST_CASE(test_network_build_repeated_names_throws) {
 }
 // TODO: convert this into a test for LevelSwap,
 //       which is obviously fucked up
+//       Thu Oct 13 22:44:47 2022: What did you mean?
 BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
   TreeFactory f;
   TransformNetwork n;
@@ -213,7 +214,7 @@ BOOST_AUTO_TEST_CASE(test_network_Q_swap) {
             TreeComposition(
                 {QFull("X", 2, "MPI X", 0, BoundaryCondition::OPEN), //
                  QFull("Y", 2, "MPI Y", 0, BoundaryCondition::OPEN), //
-                 Renumber(),
+                 Renumber(), // Renumber here is needed, but unintuitive
                  LevelSwap({"MPI X", "MPI Y", //
                             "X", "Y"})},
                 "domain decomposition"),
