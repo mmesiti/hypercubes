@@ -23,8 +23,9 @@ Id::Id(vector<int> dimensions,              //
       dimensions(dimensions),      //
       dimension_names(dimension_names) {}
 
-TransformerP Id::join(TreeFactory &f, //
-                      TransformerP previous, TransformNetwork &_) const {
+TransformerP Id::join(TreeFactory &f,        //
+                      TransformerP previous, //
+                      TransformNetwork &_) const {
 
   if (previous)
     throw std::invalid_argument("Id cannot have a previous tree transformer.");
@@ -34,6 +35,44 @@ TransformerP Id::join(TreeFactory &f, //
                                             dimension_names); //
 }
 
+EOFix::EOFix(const std::string &level_name,                    //
+             const std::string &origin,                        //
+             const std::string &previous_name,                 //
+             const std::vector<std::string> &levels_reference, //
+             std::string end_node_name)
+    : TransformRequest(end_node_name), //
+      level_name(level_name),          //
+      previous_name(previous_name),    //
+      origin(origin),                  //
+      levels_reference(levels_reference) {}
+
+// TODO: Test
+TransformerP EOFix::join(TreeFactory &f,        //
+                         TransformerP previous, //
+                         TransformNetwork &n) const {
+
+  std::vector<int> levels_reference_int;
+  std::transform(levels_reference.begin(),                 //
+                 levels_reference.end(),                   //
+                 std::back_inserter(levels_reference_int), //
+                 [&n, this](const std::string &l) -> int {
+                   return n[origin]->find_level(l);
+                 });
+
+  // TODO: check that this is the right direction
+  auto _transform = n.get_transform(previous_name, origin);
+  using Trans = std::function<vector<vector<int>>(const vector<int> &)>;
+  Trans transform =
+      [&_transform](const vector<int> &idx) -> vector<vector<int>> {
+    return _transform->apply(idx); //
+  };
+  return std::make_shared<transformers::EOFix>(f,          //
+                                               previous,   //
+                                               level_name, //
+                                               transform,  //
+                                               levels_reference_int);
+}
+
 Sum::Sum(std::string new_level_name,                //
          const vector<TransformRequestP> &requests, //
          std::string end_node_name)
@@ -41,8 +80,9 @@ Sum::Sum(std::string new_level_name,                //
       requests(requests),              //
       new_level_name(new_level_name) {}
 
-TransformerP Sum::join(TreeFactory &f, //
-                       TransformerP previous, TransformNetwork &network) const {
+TransformerP Sum::join(TreeFactory &f,        //
+                       TransformerP previous, //
+                       TransformNetwork &network) const {
   vector<TransformerP> transformers;
 
   // Assuming "previous" is already in the network.

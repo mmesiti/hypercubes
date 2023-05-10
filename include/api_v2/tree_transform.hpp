@@ -3,6 +3,7 @@
 #include "exceptions/exceptions.hpp"
 #include "geometry/geometry.hpp"
 #include "selectors/bool_maybe.hpp"
+#include "selectors/selectors.hpp"
 #include "trees/kvtree_data_structure.hpp"
 #include "trees/kvtree_v2.hpp"
 #include "utils/print_utils.hpp"
@@ -71,10 +72,12 @@ private:
                                       Predicate &p);
 
 public:
-  // These is public only to expose it conveniently during the tests,
+  // These are public only to expose it conveniently during the tests,
   // so that we have a way to check
   // which functions are called by the higher-level code
   // and with which arguments.
+  // TODO: determine whether it is really needed to have these public
+  //       or not.
   struct Cache {
     std::map<KVTreePv2<NodeType>, KVTreePv2<NodeType>> renumber;
 
@@ -294,10 +297,31 @@ public:
    * This means that the partitioning between even and odd sites
    * will be correct only up to an exchange between even and odd
    * (that will be different for each subtree).
-   * Therefore, an additional step might be necessary
+   * Therefore, an additional step is in general necessary
    * to fix the parity.
    * Uses recursion. */
   KVTreePv2<NodeType> eo_naive(const KVTreePv2<NodeType> t, int level);
+
+  /** Fixes the parity produced by the eo_naive method.
+   * In addition to the pointer to the tree to fix
+   * and the level to fix,
+   * it needs a function that gives the transformation
+   * of the indices between the tree to fix
+   * and the reference tree
+   * (where the index levels have the correct meaning),
+   * and the indices of the levels.
+   *  */
+  // TODO: review implementation
+  KVTreePv2<NodeType>
+  eo_fix(const KVTreePv2<NodeType> t, int level,
+         const std::function<vector<vector<int>>(vector<int>)> &transform,
+         const vector<int> &levels_reference);
+
+  KVTreePv2<NodeType>
+  _eo_fix(const KVTreePv2<NodeType> t, int level, //
+          const vector<int> &idx_above,
+          const std::function<vector<vector<int>>(vector<int>)> &transform,
+          const vector<int> &levels_reference);
 
   /** Remaps keys in a level, allowing duplications and deletions. */
   KVTreePv2<NodeType> remap_level(const KVTreePv2<NodeType> t, int level,

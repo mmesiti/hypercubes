@@ -257,6 +257,30 @@ using EONaive = TransformRequestGeneric2Arg<transformers::EONaive,
                                             std::string,  // keylevel
                                             std::string>; // new_level_name
 
+// TODO: Test
+class EOFix : public TransformRequest {
+private:
+  std::string level_name;
+  std::string origin;
+  std::string previous_name;
+  std::vector<std::string> levels_reference;
+
+public:
+  EOFix(const std::string &level_name,                    //
+        const std::string &origin,                        //
+        const std::string &previous_name,                 //
+        const std::vector<std::string> &levels_reference, //
+        std::string end_node_name = "");
+  /** NOTE: This method can only work
+   *        if the path between the origin
+   *        and the previous transformer
+   *        is already in the network
+   * */
+  TransformerP join(TreeFactory &f,        //
+                    TransformerP previous, //
+                    TransformNetwork &n) const override;
+};
+
 /** Represents a graph of the kind
  *    R
  *  / | \
@@ -274,9 +298,9 @@ public:
   Sum(std::string new_level_name,                //
       const vector<TransformRequestP> &requests, //
       std::string end_node_name = "");
-  TransformerP join(TreeFactory &f,                   //
-                    TransformerP previous,            //
-                    TransformNetwork &network) const; //
+  TransformerP join(TreeFactory &f,                            //
+                    TransformerP previous,                     //
+                    TransformNetwork &network) const override; //
 };
 
 /** Represents a graph of the kind
@@ -292,9 +316,9 @@ public:
   Fork(const vector<TransformRequestP> &requests); //
 
   // This returns NULL
-  TransformerP join(TreeFactory &f,                   //
-                    TransformerP previous,            //
-                    TransformNetwork &network) const; //
+  TransformerP join(TreeFactory &f,                            //
+                    TransformerP previous,                     //
+                    TransformNetwork &network) const override; //
 };
 
 /* Represents a graph of the kind
@@ -312,9 +336,9 @@ public:
   // Adds all the subnodes to the network,
   // and return the last node as result.
   // (This is the only object that knows the name of the sub nodes).
-  TransformerP join(TreeFactory &f,                   //
-                    TransformerP previous,            //
-                    TransformNetwork &network) const; //
+  TransformerP join(TreeFactory &f,                            //
+                    TransformerP previous,                     //
+                    TransformNetwork &network) const override; //
 };
 
 /* This function is the top-level function

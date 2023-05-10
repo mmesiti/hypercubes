@@ -487,6 +487,57 @@ KVTreePv2<NodeType> TreeFactory::eo_naive(const KVTreePv2<NodeType> t,
   return cache.eo_naive[{t, level}];
 }
 
+KVTreePv2<NodeType> TreeFactory::eo_fix(
+    const KVTreePv2<NodeType> t, int level,
+    const std::function<vector<vector<int>>(vector<int>)> &transform,
+    const vector<int> &levels_reference) {
+  return _eo_fix(t, level, {}, transform, levels_reference);
+}
+
+KVTreePv2<NodeType> TreeFactory::_eo_fix(
+    const KVTreePv2<NodeType> t, int level, const vector<int> &idx_above,
+    const std::function<vector<vector<int>>(vector<int>)> &transform,
+    const vector<int> &levels_reference) {
+  KVTreePv2<NodeType> res;
+  decltype(KVTree<NodeType>::children) children;
+
+  if (level > 0) {
+    for (auto i = 0; i < t->children.size(); ++i) {
+      vector<int> idx_above_new = append(idx_above, i);
+      children.push_back({{i},
+                          _eo_fix(t->children[i].second, //
+                                  level - 1,             //
+                                  idx_above_new,         //
+                                  transform,             //
+                                  levels_reference)});
+    }
+    return mtkv(t->n, children);
+  } else {
+    // TODO: assert t->children.size() == 2;
+    // Testing only the parity of the first element.
+    auto idx = idx_above;
+    idx.push_back(0);
+    // TODO: find how deep the tree is
+    int depth = get_depth(t->children[0].second, make_leaf());
+    idx.insert(idx.end(), depth, 0);
+    // TODO: assert that there is only one result
+    //       from the transformation,
+    //       or that all the results are the same.
+    auto original_idx = transform(idx)[0];
+    int sum = 0;
+    for (int level : levels_reference)
+      sum += original_idx[level];
+    int first_subtree_parity = sum % 2;
+    if (first_subtree_parity == 0)
+      return renumber_children(t);
+    else { // we need to swap the parities
+      children.push_back({{0}, renumber_children(t->children[1].second)});
+      children.push_back({{1}, renumber_children(t->children[0].second)});
+      return mtkv(t->n, children);
+    }
+  }
+}
+
 KVTreePv2<NodeType> TreeFactory::remap_level(const KVTreePv2<NodeType> t,
                                              int level, vector<int> index_map) {
 
